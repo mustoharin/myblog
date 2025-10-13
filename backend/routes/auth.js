@@ -1,0 +1,155 @@
+const express = require('express');
+const router = express.Router();
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const captcha = process.env.NODE_ENV === 'test' ? 
+  require('../utils/mockCaptcha') :
+  require('../utils/captcha');
+const passwordValidator = require('../utils/passwordValidator');
+
+// Get new captcha route
+router.get('/captcha', (req, res) => {
+  const { sessionId, imageDataUrl } = captcha.createCaptcha();
+  res.json({ 
+    sessionId,
+    imageDataUrl
+  });
+});
+
+// Login route
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password, captchaToken, captchaSessionId, captchaText } = req.body;
+
+    // Validate required fields first
+    if (!username && !password) {
+      return res.status(400).json({ message: 'Username and password are required' });
+    }
+    if (!username || username.trim() === '') {
+      return res.status(400).json({ message: 'Username is required' });
+    }
+    if (!password || password.trim() === '') {
+      return res.status(400).json({ message: 'Password is required' });
+    }
+
+    // Validate CAPTCHA after username/password checks
+    if (!captchaToken && (!captchaSessionId || !captchaText)) {
+      return res.status(400).json({ message: 'CAPTCHA verification required' });
+    }
+
+    // Try token-based validation first
+    if (captchaToken) {
+      const isValid = await captcha.validateToken(captchaToken);
+      if (!isValid) {
+        return res.status(400).json({ message: 'Invalid CAPTCHA' });
+      }
+    } else {
+      // Fall back to session-based validation
+      const isCaptchaValid = await captcha.verifyCaptcha(captchaSessionId, captchaText);
+      if (!isCaptchaValid) {
+        return res.status(400).json({ message: 'Invalid CAPTCHA' });
+      }
+    }
+
+    // Find user by username and populate role with privileges
+    const user = await User.findOne({ username }).populate({
+      path: 'role',
+      populate: {
+        path: 'privileges'
+      }
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Check password
+    console.log('Stored hash:', user.password);
+    console.log('Comparing with:', password);
+    const isMatch = await user.comparePassword(password);
+    console.log('Password match:', isMatch);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Generate token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET || 'fallback_secret_key',
+      { expiresIn: '7d' }
+    );
+    
+    // Return user data with populated role
+    res.status(200).json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: {
+          _id: user.role._id,
+          name: user.role.name,
+          privileges: user.role.privileges.map(p => ({
+            _id: p._id,
+            name: p.name,
+            code: p.code
+          }))
+        }
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get current user
+router.get('/me', async (req, res) => {
+  try {
+    const authHeader = req.header('Authorization');
+    
+    if (!authHeader) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Invalid authorization format' });
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
+    
+    const user = await User.findById(decoded.userId)
+      .select('-password')
+      .populate({
+        path: 'role',
+        populate: {
+          path: 'privileges'
+        }
+      });
+    
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    
+    res.json({
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: {
+          _id: user.role._id,
+          name: user.role.name,
+          privileges: user.role.privileges.map(p => ({
+            _id: p._id,
+            name: p.name,
+            code: p.code
+          }))
+        }
+      }
+    });
+  } catch (error) {
+    res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
+module.exports = router;
