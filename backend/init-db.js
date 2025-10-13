@@ -97,20 +97,57 @@ const initializeDB = async () => {
     }
 
     // Create initial superadmin user if not exists
-    const superadminUser = await User.findOne({ username: 'superadmin' });
-    if (!superadminUser) {
-      const newUser = new User({
-        username: 'superadmin',
-        email: 'superadmin@example.com',
-        password: 'superadmin123', // Will be hashed by pre-save middleware
+    let adminUser = await User.findOne({ username: 'admin_myblog' });
+    if (!adminUser) {
+      adminUser = new User({
+        username: 'admin_myblog',
+        email: 'admin@myblog.com',
+        password: 'MyBl0g@dm1n2025!', // Will be hashed by pre-save middleware
         role: (await Role.findOne({ name: 'superadmin' }))._id
       });
       
-      await newUser.save();
+      await adminUser.save();
       
-      console.log('Superadmin user created with credentials:');
-      console.log('Username: superadmin');
-      console.log('Password: superadmin123');
+      console.log('Admin user created with credentials:');
+      console.log('Username: admin_myblog');
+      console.log('Password: MyBl0g@dm1n2025!');
+    }
+
+    // Create sample blog posts
+    const Post = require('./models/Post');
+    const samplePosts = [
+      {
+        title: 'Welcome to My Blog',
+        content: '<h2>Welcome to My New Blog!</h2><p>This is the beginning of our journey together. Here, we\'ll explore various topics and share interesting insights.</p><p>Stay tuned for more content!</p>',
+        excerpt: 'Welcome to our new blog platform. Join us on this exciting journey of discovery and learning.',
+        author: adminUser._id,
+        isPublished: true,
+        tags: ['welcome', 'introduction']
+      },
+      {
+        title: 'The Art of Writing',
+        content: '<h2>The Art of Writing</h2><p>Writing is more than just putting words on paper. It\'s about expressing ideas, sharing emotions, and connecting with readers.</p><h3>Key Elements of Good Writing</h3><ul><li>Clarity</li><li>Coherence</li><li>Engagement</li></ul>',
+        excerpt: 'Discover the essential elements that make writing powerful and engaging.',
+        author: adminUser._id,
+        isPublished: true,
+        tags: ['writing', 'tips', 'creativity']
+      },
+      {
+        title: 'Technology in 2025',
+        content: '<h2>Technology Trends in 2025</h2><p>As we move through 2025, several technology trends are shaping our future:</p><ul><li>Artificial Intelligence Advancement</li><li>Sustainable Tech Solutions</li><li>Digital Privacy Innovation</li></ul><p>Let\'s explore how these trends are impacting our daily lives.</p>',
+        excerpt: 'Exploring the latest technology trends and their impact on our future.',
+        author: adminUser._id,
+        isPublished: true,
+        tags: ['technology', 'trends', '2025']
+      }
+    ];
+
+    for (const postData of samplePosts) {
+      const existingPost = await Post.findOne({ title: postData.title });
+      if (!existingPost) {
+        await Post.create(postData);
+        console.log(`Created sample post: ${postData.title}`);
+      }
     }
 
     console.log('Database initialized successfully');
