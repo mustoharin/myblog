@@ -1,38 +1,71 @@
+@import './styles/base.css';
+@import './styles/admin.css';
+@import './styles/blog.css';
+
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Auth pages */
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--background-grey);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  background-color: var(--background-light);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-header h1 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+  color: var(--text-secondary);
+}
+
+.auth-links {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Error pages */
+.error-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
 }
 
-.App-link {
-  color: #61dafb;
+.error-page h1 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.error-page p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
 }

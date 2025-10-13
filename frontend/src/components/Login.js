@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './Login.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaImage, setCaptchaImage] = useState('');
+  const [captchaText, setCaptchaText] = useState('');
+  const [captchaSessionId, setCaptchaSessionId] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    loadCaptcha();
+  }, []);
+
+  const loadCaptcha = async () => {
+    try {
+      const response = await axios.get('http://localhost:5002/api/auth/captcha');
+      setCaptchaImage(response.data.imageDataUrl);
+      setCaptchaSessionId(response.data.sessionId);
+      setCaptchaText('');
+    } catch (err) {
+      setError('Failed to load CAPTCHA');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,9 +34,11 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post('/api/auth/login', {
-        email,
-        password
+      const response = await axios.post('http://localhost:5002/api/auth/login', {
+        username: 'superadmin',  // Use the actual username instead of email
+        password,
+        captchaText,
+        captchaSessionId
       });
 
       // Store token in localStorage
@@ -39,13 +60,14 @@ const Login = () => {
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email:</label>
+            <label htmlFor="username">Username:</label>
             <input
-              type="email"
-              id="email"
+              type="text"
+              id="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              placeholder="superadmin"
             />
           </div>
           <div className="form-group">
@@ -58,14 +80,32 @@ const Login = () => {
               required
             />
           </div>
+          <div className="form-group captcha-group">
+            {captchaImage && (
+              <>
+                <img 
+                  src={captchaImage} 
+                  alt="CAPTCHA" 
+                  onClick={loadCaptcha}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to refresh CAPTCHA"
+                />
+                <input
+                  type="text"
+                  value={captchaText}
+                  onChange={(e) => setCaptchaText(e.target.value)}
+                  placeholder="Enter CAPTCHA text"
+                  required
+                />
+              </>
+            )}
+          </div>
           <button type="submit" disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <div className="auth-links">
-          <p>Don't have an account? <Link to="/register">Register</Link></p>
-        </div>
       </div>
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 };
