@@ -16,6 +16,21 @@ router.get('/captcha', (req, res) => {
   });
 });
 
+// Refresh existing captcha route
+router.post('/captcha/refresh', (req, res) => {
+  const { sessionId } = req.body;
+  
+  if (!sessionId) {
+    return res.status(400).json({ message: 'Session ID is required' });
+  }
+
+  const { sessionId: newSessionId, imageDataUrl } = captcha.createCaptcha(sessionId);
+  res.json({ 
+    sessionId: newSessionId,
+    imageDataUrl
+  });
+});
+
 // Login route
 router.post('/login', async (req, res) => {
   try {

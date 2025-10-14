@@ -29,6 +29,37 @@ describe('CAPTCHA and Authentication', () => {
     });
   });
 
+  describe('POST /api/auth/captcha/refresh', () => {
+    it('should return 400 if no session ID is provided', async () => {
+      const response = await request(app)
+        .post('/api/auth/captcha/refresh')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Session ID is required');
+    });
+
+    it('should refresh captcha with existing session ID', async () => {
+      // First get a captcha
+      const initialResponse = await request(app)
+        .get('/api/auth/captcha');
+
+      expect(initialResponse.status).toBe(200);
+      const initialSessionId = initialResponse.body.sessionId;
+      const initialImageDataUrl = initialResponse.body.imageDataUrl;
+
+      // Then refresh it
+      const refreshResponse = await request(app)
+        .post('/api/auth/captcha/refresh')
+        .send({ sessionId: initialSessionId });
+
+      expect(refreshResponse.status).toBe(200);
+      expect(refreshResponse.body).toHaveProperty('sessionId', initialSessionId);
+      expect(refreshResponse.body).toHaveProperty('imageDataUrl');
+      expect(refreshResponse.body.imageDataUrl).not.toBe(initialImageDataUrl);
+    });
+  });
+
   describe('POST /api/auth/login with CAPTCHA', () => {
     beforeEach(() => {
       mockCaptcha.validationTokens.clear();

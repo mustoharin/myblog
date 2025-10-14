@@ -19,6 +19,35 @@ Returns a new captcha image and session ID for authentication.
 }
 ```
 
+### Refresh Captcha
+```http
+POST /api/auth/captcha/refresh
+```
+Refreshes an existing captcha while maintaining the same session ID. Use this when the user wants a new captcha image.
+
+**Request Body**
+```json
+{
+  "sessionId": "string"
+}
+```
+
+**Response**
+```json
+{
+  "sessionId": "string",
+  "imageDataUrl": "string (base64 encoded image)"
+}
+```
+
+**Error Responses**
+```json
+{
+  "message": "Session ID is required"
+}
+```
+Status: 400 Bad Request
+
 ### Login
 ```http
 POST /api/auth/login

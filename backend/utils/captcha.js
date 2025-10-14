@@ -1,7 +1,29 @@
 const crypto = require('crypto');
 const { createCanvas } = require('canvas');
 
+/**
+ * Captcha generation and validation class
+ * 
+ * This class provides functionality to:
+ * - Generate new captchas with random text and visual noise
+ * - Refresh existing captchas while maintaining the same session
+ * - Validate captcha inputs
+ * - Handle token-based and session-based validation
+ * - Auto-cleanup of expired captchas and tokens
+ * 
+ * Note: In production, consider replacing the in-memory storage with Redis
+ * for better scalability and persistence.
+ */
 class Captcha {
+  /**
+   * Initialize the Captcha instance with default settings
+   * 
+   * @constructor
+   * @property {Map<string, {text: string, expiresAt: number}>} captchaStore - Stores captcha data with expiry
+   * @property {Map<string, number>} validationTokens - Stores validation tokens with expiry
+   * @property {number} width - Width of the captcha image in pixels
+   * @property {number} height - Height of the captcha image in pixels
+   */
   constructor() {
     this.captchaStore = new Map(); // Store captcha in memory (replace with Redis in production)
     this.validationTokens = new Map(); // Store validation tokens
@@ -55,10 +77,11 @@ class Captcha {
 
   /**
    * Create a new captcha
+   * @param {string} [existingSessionId] Optional existing session ID to refresh
    * @returns {Object} Captcha session id and image data URL
    */
-  createCaptcha() {
-    const sessionId = crypto.randomBytes(32).toString('hex');
+  createCaptcha(existingSessionId = null) {
+    const sessionId = existingSessionId || crypto.randomBytes(32).toString('hex');
     const captchaText = this.generateCaptchaText();
     
     // Create canvas

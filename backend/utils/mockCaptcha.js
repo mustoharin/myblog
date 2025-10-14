@@ -20,10 +20,11 @@ class MockCaptcha {
 
   /**
    * Create a new mock captcha that always returns the same values
+   * @param {string} [existingSessionId] Optional existing session ID to refresh
    * @returns {Object} Mock captcha session id and image data URL
    */
-  createCaptcha() {
-    const sessionId = `test-session-${Date.now()}`;
+  createCaptcha(existingSessionId = null) {
+    const sessionId = existingSessionId || `test-session-${Date.now()}`;
     const expiresIn = process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID ? 5000 : 300000; // 5 seconds in tests, 5 minutes otherwise
     this.sessions.set(sessionId, {
       text: this.mockText,
@@ -32,7 +33,7 @@ class MockCaptcha {
     
     return {
       sessionId,
-      imageDataUrl: 'data:image/png;base64,mock-image'
+      imageDataUrl: `data:image/png;base64,mock-image-${Date.now()}`
     };
   }
 
