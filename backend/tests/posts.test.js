@@ -75,14 +75,49 @@ describe('Post Routes', () => {
       const response = await request(app)
         .post('/api/posts')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          title: '',
-          content: '',
-          author: adminUser._id
-        });
+        .send({});
 
       expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(/required/);
     });
+
+    it('should save excerpt and tags when creating a post', async () => {
+      const postData = {
+        title: 'Test Post with Excerpt and Tags',
+        content: 'Test content',
+        excerpt: 'This is a test excerpt',
+        tags: ['test', 'blog', 'sample']
+      };
+
+      const response = await request(app)
+        .post('/api/posts')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(postData);
+
+      expect(response.status).toBe(201);
+      expect(response.body.excerpt).toBe(postData.excerpt);
+      expect(response.body.tags).toEqual(expect.arrayContaining(postData.tags));
+    });
+
+    it('should validate tags format', async () => {
+      const postData = {
+        title: 'Test Post with Invalid Tags',
+        content: 'Test content',
+        excerpt: 'Test excerpt',
+        tags: ['invalid@tag', 'valid-tag']
+      };
+
+      const response = await request(app)
+        .post('/api/posts')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(postData);
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(/must contain only letters, numbers, and hyphens/);
+    });
+  });
+
+  describe('PUT /api/posts/:id', () => {
   });
 
   describe('PUT /api/posts/:id', () => {
@@ -145,6 +180,54 @@ describe('Post Routes', () => {
         .set('Authorization', `Bearer ${superadminToken}`);
 
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe('Excerpt and Tags Update', () => {
+    let postId;
+
+    beforeEach(async () => {
+      // Create a test post
+      const post = await request(app)
+        .post('/api/posts')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          title: 'Test Post',
+          content: 'Test content',
+          excerpt: 'Initial excerpt',
+          tags: ['initial-tag'],
+          author: adminUser._id
+        });
+      postId = post.body._id;
+    });
+
+    it('should update excerpt and tags', async () => {
+      const updateResponse = await request(app)
+        .put(`/api/posts/${postId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          excerpt: 'Updated excerpt',
+          tags: ['updated', 'test-tag']
+        });
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.excerpt).toBe('Updated excerpt');
+      expect(updateResponse.body.tags).toEqual(expect.arrayContaining(['updated', 'test-tag']));
+    });
+
+    it('should maintain other fields when updating only excerpt or tags', async () => {
+      const updateResponse = await request(app)
+        .put(`/api/posts/${postId}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          excerpt: 'Updated excerpt only'
+        });
+
+      expect(updateResponse.status).toBe(200);
+      expect(updateResponse.body.excerpt).toBe('Updated excerpt only');
+      expect(updateResponse.body.tags).toEqual(expect.arrayContaining(['initial-tag']));
+      expect(updateResponse.body.title).toBe('Test Post');
+      expect(updateResponse.body.content).toBe('Test content');
     });
   });
 

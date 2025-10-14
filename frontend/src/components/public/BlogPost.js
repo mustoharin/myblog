@@ -33,7 +33,7 @@ const BlogPost = () => {
   const fetchPost = useCallback(async () => {
     if (!id) {
       setError('Invalid post ID');
-      navigate('/blog');
+      navigate('/');
       return;
     }
 
@@ -42,7 +42,7 @@ const BlogPost = () => {
       if (!/^[0-9a-fA-F]{24}$/.test(id)) {
         throw new Error('Invalid post ID');
       }
-      const response = await api.get(`/public/posts/${id}`);
+            const response = await api.get(`/public/posts/${id}`);
       if (!response.data) {
         throw new Error('Post not found');
       }
@@ -52,10 +52,10 @@ const BlogPost = () => {
       console.error('Error fetching post:', error);
       if (error.message === 'Invalid post ID') {
         setError('Invalid post ID');
-        navigate('/blog');
+        navigate('/');
       } else if (error.response?.status === 404) {
         setError('Post not found or is not published');
-        navigate('/blog');
+        navigate('/');
       } else {
         setError(error.response?.data?.message || 'Failed to load post');
       }
@@ -101,7 +101,7 @@ const BlogPost = () => {
           {error || 'Post not found'}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <Button variant="contained" onClick={() => navigate('/blog')}>
+          <Button variant="contained" onClick={() => navigate('/')}>
             Back to Blog
           </Button>
         </Box>
@@ -155,7 +155,7 @@ const BlogPost = () => {
               key={tag}
               label={tag}
               icon={<TagIcon />}
-              onClick={() => navigate(`/blog?search=${tag}`)}
+              onClick={() => navigate(`/?search=${encodeURIComponent('#' + tag)}`)}
               sx={{ mr: 1, mb: 1 }}
             />
           ))}

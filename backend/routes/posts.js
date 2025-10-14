@@ -3,6 +3,7 @@ const router = express.Router();
 const Post = require('../models/Post');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
+const { formatTags } = require('../utils/tagFormatter');
 
 // Get all posts
 router.get('/', auth, checkRole(['read_post']), async (req, res) => {
@@ -39,15 +40,20 @@ router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
 // Create a post
 router.post('/', auth, checkRole(['create_post']), async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, excerpt, tags, isPublished } = req.body;
     
     if (!title || !content) {
       return res.status(400).json({ message: 'Title and content are required' });
     }
 
+    const formattedTags = formatTags(tags);
+    
     const post = new Post({
       title,
       content,
+      excerpt,
+      tags: formattedTags,
+      isPublished,
       author: req.user._id // Use the authenticated user's ID
     });
 
@@ -78,9 +84,12 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this post' });
     }
 
-    const { title, content } = req.body;
+    const { title, content, excerpt, tags, isPublished } = req.body;
     if (title) post.title = title;
     if (content) post.content = content;
+    if (excerpt !== undefined) post.excerpt = excerpt;
+    if (tags !== undefined) post.tags = formatTags(tags);
+    if (isPublished !== undefined) post.isPublished = isPublished;
 
     await post.save();
     const updatedPost = await Post.findById(post._id).populate('author', 'username');

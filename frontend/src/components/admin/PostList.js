@@ -225,7 +225,7 @@ const PostList = ({ onEdit }) => {
                         <Tooltip title="View" arrow>
                           <IconButton
                             size="small"
-                            onClick={() => window.open(`/blog/${post._id}`, '_blank')}
+                            onClick={() => window.open(`/post/${post._id}`, '_blank')}
                           >
                             <VisibilityIcon fontSize="small" />
                           </IconButton>

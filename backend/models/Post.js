@@ -39,17 +39,16 @@ const PostSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  tags: [{
-    type: String,
-    trim: true,
-    lowercase: true,
-    validate: {
+  tags: {
+    type: [String],
+    validate: [{
       validator: function(v) {
-        return /^[a-z0-9-]+$/.test(v);
+        return v.every(tag => /^[a-z0-9-]+$/.test(tag));
       },
-      message: props => `${props.value} is not a valid tag format. Use only letters, numbers, and hyphens.`
-    }
-  }],
+      message: props => 'Tags must contain only letters, numbers, and hyphens'
+    }],
+    default: []
+  },
   excerpt: {
     type: String,
     validate: {
@@ -96,10 +95,7 @@ const PostSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  comments: [CommentSchema],
-  tags: {
-    type: [String]
-  }
+  comments: [CommentSchema]
 });
 
 // Add text search indexes

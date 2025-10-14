@@ -42,7 +42,8 @@ const BlogList = () => {
       const response = await api.get('/public/posts', {
         params: {
           page,
-          search: searchTerm,
+          search: searchTerm.startsWith('#') ? '' : searchTerm,
+          tags: searchTerm.startsWith('#') ? searchTerm.substring(1) : '',
           limit: 9,
         },
       });
@@ -192,7 +193,7 @@ const BlogList = () => {
                             sx={{ mr: 1, mb: 1 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/blog?search=${tag}`);
+                              navigate(`/?search=${encodeURIComponent('#' + tag)}`);
                             }}
                           />
                         ))}

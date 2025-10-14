@@ -51,6 +51,22 @@ services:
     networks:
       - myblog-network
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: myblog-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5002
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - myblog-network
+
 volumes:
   mongodb_data:
 
