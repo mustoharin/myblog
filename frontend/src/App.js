@@ -1,64 +1,70 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import './App.css';
-import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { createTheme } from '@mui/material/styles';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Admin Components
+import Dashboard from './components/admin/Dashboard';
+import PostsManager from './components/admin/PostsManager';
+import UserManager from './components/admin/UserManager';
+import RoleManager from './components/admin/RoleManager';
+import Overview from './components/admin/Overview';
+
+// Public Components
+import BlogList from './components/public/BlogList';
+import BlogPost from './components/public/BlogPost';
+import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
-// Public Pages
-import HomePage from './pages/public/HomePage';
-import BlogListPage from './pages/public/BlogListPage';
-import BlogPost from './pages/public/BlogPost';
-import Login from './components/Login';
+// Context
+import { AuthProvider } from './context/AuthContext';
 
-// Admin Pages
-import Dashboard from './pages/admin/Dashboard';
-import Posts from './pages/admin/Posts';
-import Users from './pages/admin/Users';
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <Router>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/blog" element={<BlogListPage />} />
-            <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/" element={<BlogList />} />
+            <Route path="/post/:id" element={<BlogPost />} />
             <Route path="/login" element={<Login />} />
 
-            {/* Admin Routes */}
-            <Route 
+            {/* Admin Routes - Use nested routing */}
+            <Route
               path="/admin"
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/posts"
-              element={
-                <ProtectedRoute>
-                  <Posts />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/users"
-              element={
-                <ProtectedRoute>
-                  <Users />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" />} />
+              }
+            >
+              <Route index element={<Overview />} />
+              <Route path="posts/*" element={<PostsManager />} />
+              <Route path="users/*" element={<UserManager />} />
+              <Route path="roles/*" element={<RoleManager />} />
+            </Route>
           </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+
+          <ToastContainer position="bottom-right" />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

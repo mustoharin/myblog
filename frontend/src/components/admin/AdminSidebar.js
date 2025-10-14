@@ -1,50 +1,89 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Divider,
+} from '@mui/material';
+import {
+  Dashboard as DashboardIcon,
+  Article as ArticleIcon,
+  People as PeopleIcon,
+  VpnKey as RolesIcon,
+} from '@mui/icons-material';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-const AdminSidebar = () => {
+const drawerWidth = 240;
+
+const menuItems = [
+  { text: 'Overview', icon: <DashboardIcon />, path: '/admin' },
+  { text: 'Posts', icon: <ArticleIcon />, path: '/admin/posts' },
+  { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },
+  { text: 'Roles', icon: <RolesIcon />, path: '/admin/roles' },
+];
+
+const AdminSidebar = ({ mobileOpen = false, handleDrawerToggle }) => {
+  const navigate = useNavigate();
   const location = useLocation();
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const drawer = (
+    <>
+      <Toolbar />
+      <Divider />
+      <List>
+        {menuItems.map((item) => (
+          <ListItem
+            button
+            key={item.text}
+            onClick={() => navigate(item.path)}
+            selected={location.pathname === item.path}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.text} />
+          </ListItem>
+        ))}
+      </List>
+    </>
+  );
 
   return (
-    <aside className="admin-sidebar">
-      <nav className="admin-nav">
-        <ul>
-          <li className={isActive('/admin') ? 'active' : ''}>
-            <Link to="/admin">
-              <span className="icon">📊</span>
-              Dashboard
-            </Link>
-          </li>
-          <li className={isActive('/admin/posts') ? 'active' : ''}>
-            <Link to="/admin/posts">
-              <span className="icon">📝</span>
-              Posts
-            </Link>
-          </li>
-          <li className={isActive('/admin/users') ? 'active' : ''}>
-            <Link to="/admin/users">
-              <span className="icon">👥</span>
-              Users
-            </Link>
-          </li>
-          <li className={isActive('/admin/comments') ? 'active' : ''}>
-            <Link to="/admin/comments">
-              <span className="icon">💬</span>
-              Comments
-            </Link>
-          </li>
-          <li className={isActive('/admin/settings') ? 'active' : ''}>
-            <Link to="/admin/settings">
-              <span className="icon">⚙️</span>
-              Settings
-            </Link>
-          </li>
-        </ul>
-      </nav>
-    </aside>
+    <>
+      {/* Mobile drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+      {/* Desktop drawer */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', sm: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+          },
+        }}
+        open
+      >
+        {drawer}
+      </Drawer>
+    </>
   );
 };
 

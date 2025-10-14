@@ -1,112 +1,186 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import './Login.css';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Container,
+  Alert,
+  Link,
+} from '@mui/material';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [captchaImage, setCaptchaImage] = useState('');
-  const [captchaText, setCaptchaText] = useState('');
-  const [captchaSessionId, setCaptchaSessionId] = useState('');
+  const [captcha, setCaptcha] = useState({
+    sessionId: '',
+    imageDataUrl: '',
+    text: ''
+  });
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  useEffect(() => {
-    loadCaptcha();
-  }, []);
-
-  const loadCaptcha = async () => {
+  const fetchCaptcha = async () => {
     try {
-      const response = await axios.get('http://localhost:5002/api/auth/captcha');
-      setCaptchaImage(response.data.imageDataUrl);
-      setCaptchaSessionId(response.data.sessionId);
-      setCaptchaText('');
-    } catch (err) {
-      setError('Failed to load CAPTCHA');
+      const response = await api.get('/auth/captcha');
+      setCaptcha(prev => ({
+        ...prev,
+        sessionId: response.data.sessionId,
+        imageDataUrl: response.data.imageDataUrl,
+        text: ''
+      }));
+    } catch (error) {
+      console.error('Failed to fetch CAPTCHA:', error);
+      setError('Failed to load CAPTCHA. Please try again.');
     }
   };
 
+  useEffect(() => {
+    fetchCaptcha();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!username || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (!captcha.text) {
+      setError('Please enter the CAPTCHA code');
+      return;
+    }
+
     setError('');
+    setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5002/api/auth/login', {
-        username: 'superadmin',  // Use the actual username instead of email
-        password,
-        captchaText,
-        captchaSessionId
-      });
-
-      // Store token in localStorage
-      localStorage.setItem('token', response.data.token);
-      
-      // Redirect to admin panel
+      await login(username, password, captcha.sessionId, captcha.text);
       navigate('/admin');
     } catch (err) {
-      setError(err.response?.data?.message || 'An error occurred during login');
+      setError(err.response?.data?.message || 'Failed to login');
+      // Get a new CAPTCHA if login failed
+      fetchCaptcha();
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-form">
-        <h2>Admin Login</h2>
-        {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="username">Username:</label>
-            <input
-              type="text"
-              id="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+    <Container component="main" maxWidth="xs">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography component="h1" variant="h5">
+          Sign in
+        </Typography>
+        <Paper 
+          elevation={3}
+          sx={{
+            marginTop: 3,
+            padding: 3,
+            width: '100%',
+          }}
+        >
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              margin="normal"
               required
-              placeholder="superadmin"
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              autoFocus
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              disabled={loading}
             />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password:</label>
-            <input
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
               type="password"
               id="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              disabled={loading}
             />
-          </div>
-          <div className="form-group captcha-group">
-            {captchaImage && (
-              <>
-                <img 
-                  src={captchaImage} 
-                  alt="CAPTCHA" 
-                  onClick={loadCaptcha}
-                  style={{ cursor: 'pointer' }}
-                  title="Click to refresh CAPTCHA"
-                />
-                <input
-                  type="text"
-                  value={captchaText}
-                  onChange={(e) => setCaptchaText(e.target.value)}
-                  placeholder="Enter CAPTCHA text"
-                  required
-                />
-              </>
-            )}
-          </div>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-      </div>
-      {error && <div className="error-message">{error}</div>}
-    </div>
+            <Box sx={{ mt: 2, mb: 2 }}>
+              {captcha.imageDataUrl ? (
+                <>
+                  <img 
+                    src={captcha.imageDataUrl} 
+                    alt="CAPTCHA" 
+                    style={{ 
+                      display: 'block', 
+                      marginBottom: '8px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px'
+                    }} 
+                  />
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <TextField
+                      label="Enter CAPTCHA"
+                      value={captcha.text}
+                      onChange={(e) => setCaptcha(prev => ({ ...prev, text: e.target.value }))}
+                      required
+                      size="small"
+                      sx={{ flexGrow: 1 }}
+                      disabled={loading}
+                    />
+                    <Button
+                      onClick={fetchCaptcha}
+                      disabled={loading}
+                      size="small"
+                    >
+                      New CAPTCHA
+                    </Button>
+                  </Box>
+                </>
+              ) : (
+                <Alert severity="warning">
+                  Loading CAPTCHA...
+                </Alert>
+              )}
+            </Box>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </Button>
+            <Box sx={{ textAlign: 'center' }}>
+              <Link component={RouterLink} to="/forgot-password">
+                Forgot Password?
+              </Link>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 
