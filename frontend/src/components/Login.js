@@ -140,6 +140,9 @@ const Login = () => {
                   />
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <TextField
+                      id="captcha-input"
+                      data-testid="captcha-input"
+                      name="captcha"
                       label="Enter CAPTCHA"
                       value={captcha.text}
                       onChange={(e) => setCaptcha(prev => ({ ...prev, text: e.target.value }))}
@@ -147,11 +150,18 @@ const Login = () => {
                       size="small"
                       sx={{ flexGrow: 1 }}
                       disabled={loading}
+                      inputProps={{
+                        'data-testid': 'captcha-input',
+                        'aria-label': 'Enter CAPTCHA code'
+                      }}
                     />
                     <Button
+                      id="refresh-captcha"
                       onClick={fetchCaptcha}
                       disabled={loading}
                       size="small"
+                      aria-label="Refresh CAPTCHA"
+                      data-testid="refresh-captcha-button"
                     >
                       New CAPTCHA
                     </Button>
