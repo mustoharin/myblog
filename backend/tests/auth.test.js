@@ -21,6 +21,31 @@ describe('Auth Routes', () => {
   });
 
   describe('POST /api/auth/login', () => {
+    beforeEach(() => {
+      // Set up test environment
+      process.env.TEST_BYPASS_CAPTCHA_TOKEN = 'e2e_test_bypass_captcha_2025';
+    });
+
+    it('should login successfully with test bypass token', async () => {
+      // Verify the bypass token is set in the environment
+      const bypassToken = process.env.TEST_BYPASS_CAPTCHA_TOKEN;
+      console.log('Bypass token from env:', bypassToken);
+      expect(bypassToken).toBe('e2e_test_bypass_captcha_2025');
+
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'superadmin',
+          password: 'Password#12345!',
+          testBypassToken: bypassToken
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('token');
+      expect(response.body).toHaveProperty('user');
+      expect(response.body.user.username).toBe('superadmin');
+    });
+
     it('should login successfully with superadmin credentials', async () => {
       // First get a CAPTCHA
       const captchaResponse = await request(app)
@@ -43,6 +68,20 @@ describe('Auth Routes', () => {
       expect(response.body).toHaveProperty('token');
       expect(response.body).toHaveProperty('user');
       expect(response.body.user.username).toBe('superadmin');
+    });
+
+    it('should fail with invalid test bypass token', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'superadmin',
+          password: 'Password#12345!',
+          testBypassToken: 'invalid-bypass-token'
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toBe('CAPTCHA verification required');
     });
 
     it('should login successfully with admin credentials', async () => {

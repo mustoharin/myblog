@@ -46,6 +46,17 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       return res.status(400).json({ message: 'Title and content are required' });
     }
 
+    // Validate tags format before formatting
+    if (tags && Array.isArray(tags)) {
+      const invalidTags = tags.filter(tag => tag && !/^[a-z0-9-]+$/.test(tag));
+      if (invalidTags.length > 0) {
+        return res.status(400).json({ 
+          message: 'Tags must contain only letters, numbers, and hyphens',
+          invalidTags
+        });
+      }
+    }
+
     const formattedTags = formatTags(tags);
     
     const post = new Post({

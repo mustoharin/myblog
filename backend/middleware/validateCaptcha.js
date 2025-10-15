@@ -3,6 +3,18 @@
  */
 const validateCaptcha = async (req, res, next) => {
   try {
+    // First check for test bypass token
+    if (process.env.TEST_BYPASS_CAPTCHA_TOKEN) {
+      console.log('TEST_BYPASS_CAPTCHA_TOKEN is set:', process.env.TEST_BYPASS_CAPTCHA_TOKEN);
+      console.log('testBypassToken from request:', req.body.testBypassToken);
+      
+      if (req.body.testBypassToken === process.env.TEST_BYPASS_CAPTCHA_TOKEN) {
+        console.log('Bypass token matched - skipping CAPTCHA validation');
+        return next();
+      }
+    }
+
+    // Regular CAPTCHA validation
     const { captchaToken, captchaSessionId, captchaText } = req.body;
     const captcha = require('../utils/captcha');
 

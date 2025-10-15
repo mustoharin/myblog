@@ -8,6 +8,12 @@ let mongoServer;
 
 // Setup before all tests
 beforeAll(async () => {
+  // Load environment variables for test
+  require('dotenv').config();
+
+  // Set up test environment variables
+  process.env.TEST_BYPASS_CAPTCHA_TOKEN = 'e2e_test_bypass_captcha_2025';
+  
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
   await mongoose.connect(mongoUri);

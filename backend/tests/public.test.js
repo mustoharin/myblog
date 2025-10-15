@@ -114,6 +114,20 @@ describe('Public API', () => {
   });
 
   describe('POST /api/public/posts/:id/comments', () => {
+    it('should add a comment with test bypass token', async () => {
+      const response = await request(app)
+        .post(`/api/public/posts/${testPost._id}/comments`)
+        .send({
+          content: 'Test comment with bypass',
+          name: 'Test User',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        })
+        .expect(201);
+
+      expect(response.body.content).toBe('Test comment with bypass');
+      expect(response.body.authorName).toBe('Test User');
+    });
+    
     it('should add a comment with valid captcha', async () => {
       // Get CAPTCHA for comment
       const captchaResponse = await request(app)
@@ -178,40 +192,30 @@ describe('Public API', () => {
         .expect(400);
     });
 
-    it('should enforce comment rate limiting', async () => {
+    it('should enforce comment rate limiting even with bypass token', async () => {
       // Reset rate limiters
       const { resetAllLimiters } = require('../middleware/rateLimiter');
       resetAllLimiters();
 
-      // Make 6 comments (exceeding the 5 per windowMs limit)
+      // Make 5 comments (reaching the 5 per windowMs limit) with bypass token
       for (let i = 0; i < 5; i++) {
-        const captchaResponse = await request(app)
-          .get('/api/auth/captcha')
-          .expect(200);
-
         await request(app)
           .post(`/api/public/posts/${testPost._id}/comments`)
           .send({
             content: `Comment ${i}`,
             name: 'Test User',
-            captchaText: '123456',
-            captchaSessionId: captchaResponse.body.sessionId
+            testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
           })
           .expect(201);
       }
 
-      // Get CAPTCHA for rate-limited request
-      const captchaResponse = await request(app)
-        .get('/api/auth/captcha')
-        .expect(200);
-
+      // Attempt one more comment - should be rate limited even with bypass token
       const response = await request(app)
         .post(`/api/public/posts/${testPost._id}/comments`)
         .send({
           content: 'Rate limited comment',
           name: 'Test User',
-          captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
         })
         .expect(429);
 

@@ -47,22 +47,28 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Password is required' });
     }
 
-    // Validate CAPTCHA after username/password checks
-    if (!captchaToken && (!captchaSessionId || !captchaText)) {
-      return res.status(400).json({ message: 'CAPTCHA verification required' });
-    }
+    // Check for test bypass token
+    const testBypassToken = req.body.testBypassToken;
+    const skipCaptcha = process.env.TEST_BYPASS_CAPTCHA_TOKEN && testBypassToken === process.env.TEST_BYPASS_CAPTCHA_TOKEN;
 
-    // Try token-based validation first
-    if (captchaToken) {
-      const isValid = await captcha.validateToken(captchaToken);
-      if (!isValid) {
-        return res.status(400).json({ message: 'Invalid CAPTCHA' });
+    if (!skipCaptcha) {
+      // Validate CAPTCHA after username/password checks
+      if (!captchaToken && (!captchaSessionId || !captchaText)) {
+        return res.status(400).json({ message: 'CAPTCHA verification required' });
       }
-    } else {
-      // Fall back to session-based validation
-      const isCaptchaValid = await captcha.verifyCaptcha(captchaSessionId, captchaText);
-      if (!isCaptchaValid) {
-        return res.status(400).json({ message: 'Invalid CAPTCHA' });
+
+      // Try token-based validation first
+      if (captchaToken) {
+        const isValid = await captcha.validateToken(captchaToken);
+        if (!isValid) {
+          return res.status(400).json({ message: 'Invalid CAPTCHA' });
+        }
+      } else {
+        // Fall back to session-based validation
+        const isCaptchaValid = await captcha.verifyCaptcha(captchaSessionId, captchaText);
+        if (!isCaptchaValid) {
+          return res.status(400).json({ message: 'Invalid CAPTCHA' });
+        }
       }
     }
 
