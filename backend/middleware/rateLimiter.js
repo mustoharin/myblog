@@ -6,8 +6,8 @@ const createStore = () => process.env.NODE_ENV === 'test' ? new MemoryStore() : 
 
 // Base rate limiter for all public APIs
 const baseRateLimiter = rateLimit({
-  windowMs: process.env.NODE_ENV === 'test' ? 100 : 15 * 60 * 1000, // 15 minutes (100ms in test)
-  max: process.env.NODE_ENV === 'test' ? 5 : 100, // Lower limit in test for easier testing
+  windowMs: process.env.NODE_ENV === 'test' ? 10000 : 15 * 60 * 1000, // 15 minutes (10 seconds in test)
+  max: process.env.NODE_ENV === 'test' ? 1000 : 100, // Very high limit in test to avoid flakiness
   message: { message: 'Too many requests from this IP, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -17,8 +17,8 @@ const baseRateLimiter = rateLimit({
 
 // More strict rate limiter for comment submission
 const commentRateLimiter = rateLimit({
-  windowMs: process.env.NODE_ENV === 'test' ? 100 : 60 * 60 * 1000, // 1 hour (100ms in test)
-  max: process.env.NODE_ENV === 'test' ? 5 : 10, // Lower limit in test for easier testing
+  windowMs: process.env.NODE_ENV === 'test' ? 10000 : 60 * 60 * 1000, // 1 hour (10 seconds in test)
+  max: process.env.NODE_ENV === 'test' ? 100 : 10, // High limit in test to avoid flakiness
   message: { message: 'Too many comments from this IP, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,

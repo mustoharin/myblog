@@ -8,6 +8,10 @@ describe('Search and Tag Features', () => {
   let testAuthor;
 
   beforeEach(async () => {
+    // Reset rate limiters before each test
+    const { resetAllLimiters } = require('../middleware/rateLimiter');
+    resetAllLimiters();
+
     // Clean up existing posts
     await Post.deleteMany({});
     
