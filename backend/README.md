@@ -479,6 +479,153 @@ The system implements RBAC with three default roles:
   - Cannot delete essential privileges or those assigned to roles
   - Returns: 200 OK
 
+### Admin Endpoints
+
+#### Get Dashboard Statistics
+```http
+GET /api/admin/stats
+```
+Get aggregated statistics for the admin dashboard.
+
+**Authentication Required:** JWT token with `read_post` privilege
+
+**Response:**
+```json
+{
+  "totalPosts": 150,
+  "totalUsers": 45,
+  "totalViews": 12580,
+  "totalComments": 342
+}
+```
+
+**Features:**
+- Real-time counts from database
+- Views aggregated from all posts using MongoDB aggregation
+- Comments counted from all post comment arrays
+- Efficient aggregation pipelines for performance
+
+#### Get Popular Posts
+```http
+GET /api/admin/posts/popular
+```
+Get popular posts sorted by view count for trending analysis.
+
+**Authentication Required:** JWT token with `read_post` privilege
+
+**Query Parameters:**
+- `limit` (optional): Number of posts to return (default: 10, max: 50)
+- `timeframe` (optional): Filter by time period
+  - `day` - Posts from last 24 hours
+  - `week` - Posts from last 7 days (default)
+  - `month` - Posts from last 30 days
+  - `year` - Posts from last 365 days
+  - `all` - All posts (no time filter)
+
+**Response:**
+```json
+{
+  "posts": [
+    {
+      "_id": "post_id",
+      "title": "Most Popular Post",
+      "views": 1250,
+      "commentsCount": 45,
+      "sharesCount": 0,
+      "status": "published",
+      "createdAt": "2025-10-15T10:00:00.000Z",
+      "author": {
+        "_id": "author_id",
+        "username": "john_doe"
+      }
+    }
+  ]
+}
+```
+
+**Sorting:**
+- Primary: Views (descending)
+- Secondary: Creation date (descending)
+
+**Notes:**
+- Includes both published and draft posts
+- `sharesCount` currently returns 0 (placeholder for future feature)
+
+### Public Endpoints (Additional Features)
+
+#### Track Post View
+```http
+POST /api/public/posts/:id/view
+```
+Increment the view count for a post. Called automatically when users view a post.
+
+**Rate Limited:** Base rate limiter applies (1000 requests per 15 minutes)
+
+**Response:**
+```json
+{
+  "views": 125
+}
+```
+
+**Features:**
+- Atomic increment using MongoDB `$inc` operator
+- Only increments for published posts
+- Returns 404 for unpublished or non-existent posts
+- Prevents race conditions with concurrent requests
+
+**Use Case:**
+Frontend automatically calls this endpoint when a user views a blog post, enabling accurate view tracking analytics.
+
+## New Features
+
+### Post Views Tracking
+Tracks how many times each post has been viewed by visitors.
+
+**Backend Implementation:**
+- `views` field added to Post model (Number, default: 0)
+- Database index on `views` field for efficient sorting
+- POST `/api/public/posts/:id/view` endpoint for tracking
+- Admin stats endpoint aggregates total views
+- Popular posts endpoint sorts by view count
+
+**Frontend Integration:**
+- BlogPost component automatically tracks views on page load
+- Admin dashboard displays total views
+- Popular posts widget shows trending content
+- View count displayed on each post
+
+**Security:**
+- Rate limited to prevent abuse
+- Only published posts can be tracked
+- Atomic operations prevent race conditions
+
+### Last Login Tracking
+Records when users last successfully logged in to the system.
+
+**Backend Implementation:**
+- `lastLogin` field added to User model (Date, nullable)
+- Updated on successful authentication only
+- Not updated on failed login attempts
+- Included in user list API responses
+
+**Frontend Integration:**
+- User list table displays "Last Login" timestamp
+- Shows "Never" for users who haven't logged in yet
+- Format: "Oct 16, 2025" or "Never"
+
+**Use Cases:**
+- Monitor user activity
+- Identify inactive accounts
+- Security auditing
+- Compliance reporting
+
+**Security:**
+- Only updates on successful password validation
+- Only visible to admins with `read_user` privilege
+- Failed login attempts don't update timestamp
+- Prevents attackers from determining valid usernames
+
 ## Error Handling
 The API uses standard HTTP status codes:
 - 200: Success
@@ -504,10 +651,15 @@ Error responses include a message:
 ```javascript
 {
   _id: ObjectId,
-  username: String,
-  email: String,
-  password: String (hashed),
-  role: ObjectId (ref: 'Role')
+  username: String, // XSS protected
+  email: String, // Validated email format
+  password: String, // Hashed with bcrypt
+  role: ObjectId (ref: 'Role'),
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  lastLogin: Date, // NEW: Tracks last successful login timestamp
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
@@ -517,41 +669,15 @@ Error responses include a message:
   _id: ObjectId,
   title: String, // XSS protected
   content: String, // Supports rich HTML with sanitization
+  excerpt: String, // Short description
   author: ObjectId (ref: 'User'),
   tags: [String], // Array of tag strings
-  date: Date,
+  views: Number, // NEW: Tracks post view count (default: 0)
+  isPublished: Boolean,
   comments: [{
     content: String, // XSS protected
     author: ObjectId (ref: 'User'),
-    date: Date
-  }]
-}
-```
-
-### Role
-```javascript
-{
-  _id: ObjectId,
-  name: String, // XSS protected
-  description: String, // Supports rich HTML with sanitization
-  privileges: [ObjectId (ref: 'Privilege')]
-}
-```
-
-### Privilege
-```javascript
-{
-  _id: ObjectId,
-  name: String, // XSS protected
-  description: String, // Supports rich HTML with sanitization
-  code: String, // XSS protected
-  isActive: Boolean
-}
-  content: String,
-  author: ObjectId (ref: 'User'),
-  comments: [{
-    content: String,
-    author: ObjectId (ref: 'User'),
+    name: String, // For non-authenticated commenters
     createdAt: Date
   }],
   createdAt: Date,
@@ -559,14 +685,21 @@ Error responses include a message:
 }
 ```
 
+**Post Indexes:**
+- Text index on `title` and `content` for search functionality
+- Index on `tags` for efficient tag filtering
+- Index on `views` (descending) for popular posts queries
+- Index on `createdAt` (descending) for chronological ordering
+
 ### Role
 ```javascript
 {
   _id: ObjectId,
-  name: String,
-  description: String,
+  name: String, // XSS protected
+  description: String, // Supports rich HTML with sanitization
   privileges: [ObjectId] (ref: 'Privilege'),
-  isActive: Boolean
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
@@ -574,15 +707,246 @@ Error responses include a message:
 ```javascript
 {
   _id: ObjectId,
-  name: String,
-  description: String,
-  code: String,
-  isActive: Boolean
+  name: String, // XSS protected
+  code: String, // XSS protected, unique identifier
+  description: String, // Supports rich HTML with sanitization
+  createdAt: Date,
+  updatedAt: Date
 }
 ```
 
 ## Development
-- Install dependencies: `npm install`
-- Run development server: `npm run dev`
-- Run tests: `npm test`
-- Run with watch mode: `npm run test:watch`
+
+### Setup
+```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run development server
+npm run dev
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run specific test file
+npm test -- --testPathPattern=auth.test.js
+
+# Run tests matching a pattern
+npm test -- --testNamePattern="Last Login"
+```
+
+### Test Suite
+The project includes comprehensive test coverage with 185 tests:
+
+**Test Files:**
+- `auth.test.js` (18 tests) - Authentication and last login tracking
+- `admin.test.js` (21 tests) - Admin dashboard statistics and popular posts
+- `users.test.js` (17 tests) - User CRUD operations
+- `posts.test.js` (17 tests) - Post management and rich content validation
+- `roles.test.js` (20 tests) - Role management and data integrity
+- `privileges.test.js` (8 tests) - Privilege management
+- `public.test.js` (17 tests) - Public API and view tracking
+- `captcha.test.js` (11 tests) - CAPTCHA generation and validation
+- `password.test.js` (9 tests) - Password reset functionality
+- `change-password.test.js` (7 tests) - Password change validation
+- `pagination.test.js` (10 tests) - Pagination across all endpoints
+- `search.test.js` (7 tests) - Search and tag filtering
+- `trim-inputs.test.js` (5 tests) - Input sanitization
+- `password-validator.test.js` (9 tests) - Password validation rules
+- `roles.content.test.js` (4 tests) - Rich content in role descriptions
+- `privileges.content.test.js` (4 tests) - Rich content in privilege descriptions
+
+**Test Results:** 183 tests passing, 2 skipped
+
+**Key Test Coverage:**
+- ✅ Authentication with CAPTCHA validation
+- ✅ Last login timestamp tracking (4 tests)
+- ✅ Post view tracking (5 tests)
+- ✅ Admin statistics aggregation (11 tests)
+- ✅ Popular posts with timeframe filtering (10 tests)
+- ✅ Role-based access control
+- ✅ XSS protection and input validation
+- ✅ Rich content sanitization
+- ✅ Rate limiting
+- ✅ Pagination across all endpoints
+- ✅ Search and tag filtering
+- ✅ Concurrent operation handling
+- ✅ Data integrity and referential integrity
+
+### Environment Variables
+```env
+# Database
+MONGODB_URI=mongodb://localhost:27017/blog
+
+# JWT
+JWT_SECRET=your_jwt_secret_key
+
+# Email (for password reset)
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
+
+# Testing
+NODE_ENV=test
+TEST_BYPASS_CAPTCHA_TOKEN=your_secure_test_token
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
+RATE_LIMIT_MAX_REQUESTS=1000
+```
+
+### API Testing
+You can test the API using tools like:
+- **Postman** - Import the endpoints and test interactively
+- **cURL** - Command-line HTTP requests
+- **Automated Tests** - Jest test suite included
+
+Example cURL requests:
+```bash
+# Login
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password","testBypassToken":"your_token"}'
+
+# Get admin stats (requires auth token)
+curl -X GET http://localhost:5000/api/admin/stats \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Track post view
+curl -X POST http://localhost:5000/api/public/posts/POST_ID/view
+
+# Get popular posts
+curl -X GET "http://localhost:5000/api/admin/posts/popular?timeframe=week&limit=10" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Performance Considerations
+
+### Database Indexes
+The application uses strategic indexes for optimal query performance:
+
+**User Model:**
+- Email (unique)
+- Username (unique)
+- lastLogin (descending) - for activity queries
+
+**Post Model:**
+- Text index on title and content - for full-text search
+- Tags array - for tag filtering
+- Views (descending) - for popular posts sorting
+- createdAt (descending) - for chronological ordering
+- isPublished + createdAt - compound index for public queries
+
+**Role Model:**
+- Name (unique)
+
+**Privilege Model:**
+- Code (unique)
+
+### Caching Strategies
+Consider implementing caching for:
+- Popular posts (Redis cache with 5-minute TTL)
+- Dashboard statistics (Cache invalidation on post create/delete)
+- User roles and privileges (In-memory cache)
+
+### Rate Limiting
+- Base rate limiter: 1000 requests per 15 minutes
+- Comment rate limiter: 10 comments per hour per IP
+- Configurable via environment variables
+- Different limits for test vs production environments
+
+## Security Features
+
+### Authentication & Authorization
+- JWT-based authentication with 7-day expiration
+- CAPTCHA validation on login to prevent brute force attacks
+- Role-based access control (RBAC) with granular privileges
+- Password hashing with bcrypt (10 salt rounds)
+- Test bypass token for E2E testing environments
+
+### Input Validation & Sanitization
+- XSS protection on all text inputs
+- Rich HTML content sanitization (DOMPurify)
+- Email format validation (RFC 5322 compliant)
+- Password complexity requirements
+- Input length limits
+- Trim whitespace from inputs
+
+### Rate Limiting
+- IP-based rate limiting on all endpoints
+- Special limits for comment posting
+- Configurable thresholds
+- Prevents abuse and DDoS attacks
+
+### Data Integrity
+- Referential integrity checks before deletion
+- Cascade deletion for related data
+- Atomic operations for view counts
+- Transaction-like operations where needed
+- Prevents orphaned records
+
+### Security Best Practices
+- Environment variables for sensitive data
+- Password reset tokens with expiration
+- Failed login attempts don't reveal user existence
+- lastLogin only updates on successful authentication
+- Admin-only endpoints protected by privileges
+- CORS configuration for production
+- Helmet.js for security headers
+
+## Deployment
+
+### Production Checklist
+- [ ] Set strong JWT_SECRET
+- [ ] Configure production MongoDB URI
+- [ ] Set up email service for password reset
+- [ ] Configure CORS for your domain
+- [ ] Set NODE_ENV=production
+- [ ] Remove TEST_BYPASS_CAPTCHA_TOKEN
+- [ ] Set up SSL/TLS certificates
+- [ ] Configure rate limiting for production
+- [ ] Set up monitoring and logging
+- [ ] Configure backup strategy for database
+- [ ] Set up error tracking (e.g., Sentry)
+
+### Docker Support
+The application includes Docker configuration:
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f backend
+
+# Stop services
+docker-compose down
+```
+
+## API Versioning
+Current version: v1 (implicit)
+Future versions will use URL versioning: `/api/v2/...`
+
+## Documentation
+- Backend API: This README
+- Detailed Feature Docs:
+  - `VIEW_TRACKING_IMPLEMENTATION.md` - Post views tracking feature
+  - `LAST_LOGIN_FEATURE.md` - Last login tracking feature
+  - `POPULAR_POSTS_WIDGET_FIX.md` - Popular posts widget implementation
+  - `ADMIN_STATS_ENDPOINT_FIX.md` - Admin statistics endpoint
+
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Write tests for new features
+4. Ensure all tests pass (`npm test`)
+5. Submit a pull request
+
+## License
+MIT License - See LICENSE file for details
