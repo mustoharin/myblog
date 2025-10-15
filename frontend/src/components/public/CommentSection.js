@@ -90,8 +90,8 @@ const CommentSection = ({ postId }) => {
     };
 
     // In test environment, use bypass token
-    if (process.env.NODE_ENV == 'development' || process.env.REACT_APP_TEST_MODE === 'true') {
-      commentData.testBypassToken = process.env.REACT_APP_TEST_BYPASS_CAPTCHA_TOKEN;
+    if (process.env.REACT_APP_TEST_MODE === 'true') {
+      commentData.testBypassToken = process.env.TEST_BYPASS_CAPTCHA_TOKEN;
     } else {
       // In production, require CAPTCHA
       if (!captcha.text.trim()) {
