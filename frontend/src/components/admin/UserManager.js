@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -7,21 +7,17 @@ import UserForm from './UserForm';
 
 const UserManager = () => {
   const navigate = useNavigate();
-  const [selectedUser, setSelectedUser] = useState(null);
 
   const handleEdit = (user) => {
-    setSelectedUser(user);
-    navigate('edit');
+    navigate(`edit/${user._id}`);
   };
 
   const handleCreate = () => {
-    setSelectedUser(null);
     navigate('new');
   };
 
   const handleBack = () => {
-    setSelectedUser(null);
-    navigate('.');
+    navigate('/admin/users');
   };
 
   return (
@@ -52,9 +48,9 @@ const UserManager = () => {
           }
         />
         <Route
-          path="/edit"
+          path="/edit/:id"
           element={
-            <UserForm user={selectedUser} onBack={handleBack} />
+            <UserForm onBack={handleBack} />
           }
         />
       </Routes>

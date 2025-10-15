@@ -44,6 +44,66 @@ describe('Role Routes', () => {
     });
   });
 
+  describe('GET /api/roles/:id', () => {
+    it('should allow superadmin to get a single role by ID', async () => {
+      const response = await request(app)
+        .get(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('_id');
+      expect(response.body).toHaveProperty('name', 'admin');
+      expect(response.body).toHaveProperty('description');
+      expect(response.body).toHaveProperty('privileges');
+      expect(Array.isArray(response.body.privileges)).toBeTruthy();
+    });
+
+    it('should populate privileges in role details', async () => {
+      const response = await request(app)
+        .get(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.privileges.length).toBeGreaterThan(0);
+      expect(response.body.privileges[0]).toHaveProperty('name');
+      expect(response.body.privileges[0]).toHaveProperty('description');
+    });
+
+    it('should return 404 for non-existent role ID', async () => {
+      const fakeId = '507f1f77bcf86cd799439011';
+      const response = await request(app)
+        .get(`/api/roles/${fakeId}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toContain('Role not found');
+    });
+
+    it('should return 404 for invalid ObjectId', async () => {
+      const response = await request(app)
+        .get('/api/roles/invalid_id')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body.message).toContain('Role not found');
+    });
+
+    it('should not allow admin to get role by ID', async () => {
+      const response = await request(app)
+        .get(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should not allow unauthenticated access', async () => {
+      const response = await request(app)
+        .get(`/api/roles/${roles.adminRole._id}`);
+
+      expect(response.status).toBe(401);
+    });
+  });
+
   describe('POST /api/roles', () => {
     it('should validate against XSS in role name', async () => {
       const response = await request(app)

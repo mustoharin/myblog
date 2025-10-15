@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -15,6 +15,7 @@ import {
   AccordionDetails,
   Divider,
   Alert,
+  CircularProgress,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -36,21 +37,54 @@ const validationSchema = Yup.object({
     .max(200, 'Description must be at most 200 characters'),
 });
 
-const RoleForm = ({ role, onBack }) => {
+const RoleForm = ({ onBack }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
+  const [fetchingRole, setFetchingRole] = useState(!!id);
   const [availablePrivileges, setAvailablePrivileges] = useState([]);
   const [expandedResource, setExpandedResource] = useState(null);
+  const [role, setRole] = useState(null);
+  const [privilegeMap, setPrivilegeMap] = useState({}); // Map privilege names to IDs
 
   useEffect(() => {
     fetchAvailablePrivileges();
-  }, []);
+    if (id) {
+      fetchRole();
+    }
+  }, [id]);
+
+  const fetchRole = async () => {
+    try {
+      setFetchingRole(true);
+      const response = await api.get(`/roles/${id}`);
+      setRole(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch role');
+      navigate('/admin/roles');
+    } finally {
+      setFetchingRole(false);
+    }
+  };
 
   const fetchAvailablePrivileges = async () => {
     try {
-      const response = await api.get('/privileges');
+      // Fetch all privileges without pagination (max 50 per backend limit)
+      const response = await api.get('/privileges', {
+        params: { limit: 50 }
+      });
+      // Backend returns paginated response with 'items' array
+      const privilegesList = response.data.items || response.data.privileges || [];
+      
+      // Create a map of privilege names to IDs for later conversion
+      const nameToIdMap = {};
+      privilegesList.forEach(priv => {
+        nameToIdMap[priv.name] = priv._id;
+      });
+      setPrivilegeMap(nameToIdMap);
+      
       // Group privileges by resource
-      const grouped = response.data.privileges.reduce((acc, priv) => {
+      const grouped = privilegesList.reduce((acc, priv) => {
         const [resource] = priv.name.split('.');
         if (!acc[resource]) {
           acc[resource] = {
@@ -64,6 +98,7 @@ const RoleForm = ({ role, onBack }) => {
       
       setAvailablePrivileges(Object.values(grouped));
     } catch (error) {
+      console.error('Failed to fetch privileges:', error);
       toast.error('Failed to fetch privileges');
     }
   };
@@ -82,15 +117,25 @@ const RoleForm = ({ role, onBack }) => {
 
     setLoading(true);
     try {
+      // Convert privilege names to IDs before sending to backend
+      const privilegeIds = values.privileges.map(name => privilegeMap[name]).filter(Boolean);
+      
+      const payload = {
+        name: values.name,
+        description: values.description,
+        privileges: privilegeIds
+      };
+      
       if (role) {
-        await api.put(`/roles/${role._id}`, values);
+        await api.put(`/roles/${role._id}`, payload);
         toast.success('Role updated successfully');
       } else {
-        await api.post('/roles', values);
+        await api.post('/roles', payload);
         toast.success('Role created successfully');
       }
       navigate('/admin/roles');
     } catch (error) {
+      console.error('Role submission error:', error);
       toast.error(error.response?.data?.message || 'Failed to save role');
     } finally {
       setLoading(false);
@@ -101,6 +146,7 @@ const RoleForm = ({ role, onBack }) => {
     initialValues,
     validationSchema,
     onSubmit: handleSubmit,
+    enableReinitialize: true,
   });
 
   const handleResourcePrivilegesChange = (resourceName, checked, privileges) => {
@@ -129,6 +175,15 @@ const RoleForm = ({ role, onBack }) => {
     ).length;
     return checkedCount > 0 && checkedCount < privileges.length;
   };
+
+  // Show loading spinner while fetching role data
+  if (fetchingRole) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -7,21 +7,17 @@ import RoleForm from './RoleForm';
 
 const RoleManager = () => {
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState(null);
 
   const handleEdit = (role) => {
-    setSelectedRole(role);
-    navigate('edit');
+    navigate(`edit/${role._id}`);
   };
 
   const handleCreate = () => {
-    setSelectedRole(null);
     navigate('new');
   };
 
   const handleBack = () => {
-    setSelectedRole(null);
-    navigate('.');
+    navigate('/admin/roles');
   };
 
   return (
@@ -52,9 +48,9 @@ const RoleManager = () => {
           }
         />
         <Route
-          path="/edit"
+          path="/edit/:id"
           element={
-            <RoleForm role={selectedRole} onBack={handleBack} />
+            <RoleForm onBack={handleBack} />
           }
         />
       </Routes>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -13,8 +13,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
-  OutlinedInput,
+  CircularProgress,
 } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
@@ -29,35 +28,63 @@ const validationSchema = Yup.object({
   email: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
+  role: Yup.string()
+    .required('Role is required'),
   password: Yup.string()
     .min(8, 'Password must be at least 8 characters')
     .when('isNew', {
       is: true,
-      then: Yup.string().required('Password is required'),
+      then: (schema) => schema.required('Password is required'),
+      otherwise: (schema) => schema.notRequired(),
     }),
   confirmPassword: Yup.string()
     .when('password', {
       is: (val) => val?.length > 0,
-      then: Yup.string()
+      then: (schema) => schema
         .oneOf([Yup.ref('password')], 'Passwords must match')
         .required('Please confirm password'),
+      otherwise: (schema) => schema.notRequired(),
     }),
 });
 
-const UserForm = ({ user, onBack }) => {
+const UserForm = ({ onBack }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
+  const [fetchingUser, setFetchingUser] = useState(!!id);
   const [roles, setRoles] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     fetchRoles();
-  }, []);
+    if (id) {
+      fetchUser();
+    }
+  }, [id]);
+
+  const fetchUser = async () => {
+    try {
+      setFetchingUser(true);
+      const response = await api.get(`/users/${id}`);
+      setUser(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch user');
+      navigate('/admin/users');
+    } finally {
+      setFetchingUser(false);
+    }
+  };
 
   const fetchRoles = async () => {
     try {
-      const response = await api.get('/roles');
-      setRoles(response.data.roles);
+      // Fetch all roles without pagination (max 50 per backend limit)
+      const response = await api.get('/roles', {
+        params: { limit: 50 }
+      });
+      // Backend returns paginated response with 'items' array
+      setRoles(response.data.items || response.data.roles || []);
     } catch (error) {
+      console.error('Failed to fetch roles:', error);
       toast.error('Failed to fetch roles');
     }
   };
@@ -68,7 +95,7 @@ const UserForm = ({ user, onBack }) => {
     password: '',
     confirmPassword: '',
     isActive: user?.isActive ?? true,
-    roles: user?.roles?.map(role => role._id) || [],
+    role: user?.role?._id || '',
     isNew: !user,
   };
 
@@ -79,7 +106,7 @@ const UserForm = ({ user, onBack }) => {
         username: values.username,
         email: values.email,
         isActive: values.isActive,
-        roles: values.roles,
+        role: values.role,
       };
 
       if (values.password) {
@@ -105,7 +132,17 @@ const UserForm = ({ user, onBack }) => {
     initialValues,
     validationSchema,
     onSubmit: handleSubmit,
+    enableReinitialize: true,
   });
+
+  // Show loading spinner while fetching user data
+  if (fetchingUser) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -179,36 +216,35 @@ const UserForm = ({ user, onBack }) => {
 
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id="roles-label">Roles</InputLabel>
+                <InputLabel id="role-label">Role</InputLabel>
                 <Select
-                  labelId="roles-label"
-                  id="roles"
-                  name="roles"
-                  multiple
-                  value={formik.values.roles}
+                  labelId="role-label"
+                  id="role"
+                  name="role"
+                  value={formik.values.role}
                   onChange={formik.handleChange}
-                  input={<OutlinedInput label="Roles" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((roleId) => {
-                        const role = roles.find(r => r._id === roleId);
-                        return role ? (
-                          <Chip key={roleId} label={role.name} />
-                        ) : null;
-                      })}
-                    </Box>
-                  )}
+                  label="Role"
+                  error={formik.touched.role && Boolean(formik.errors.role)}
                 >
-                  {roles.map((role) => (
-                    <MenuItem
-                      key={role._id}
-                      value={role._id}
-                      disabled={user?.username === 'admin' && role.name === 'admin'}
-                    >
-                      {role.name}
-                    </MenuItem>
-                  ))}
+                  {roles && roles.length > 0 ? (
+                    roles.map((role) => (
+                      <MenuItem
+                        key={role._id}
+                        value={role._id}
+                        disabled={user?.username === 'admin' && role.name !== 'admin'}
+                      >
+                        {role.name}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>Loading roles...</MenuItem>
+                  )}
                 </Select>
+                {formik.touched.role && formik.errors.role && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
+                    {formik.errors.role}
+                  </Typography>
+                )}
               </FormControl>
             </Grid>
 

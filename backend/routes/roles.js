@@ -23,6 +23,24 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
   }
 });
 
+// Get single role by ID (superadmin only)
+router.get('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
+  try {
+    const role = await Role.findById(req.params.id).populate('privileges');
+    
+    if (!role) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+
+    res.json(role);
+  } catch (error) {
+    if (error.kind === 'ObjectId') {
+      return res.status(404).json({ message: 'Role not found' });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Create new role (superadmin only)
 router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
   try {

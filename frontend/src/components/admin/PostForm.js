@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Paper,
@@ -14,6 +14,7 @@ import {
   Tabs,
   Chip,
   LinearProgress,
+  CircularProgress,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -56,13 +57,36 @@ const validationSchema = Yup.object({
   isPublished: Yup.boolean()
 });
 
-const PostForm = ({ post, onBack }) => {
+const PostForm = ({ onBack }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
   const [loading, setLoading] = useState(false);
+  const [fetchingPost, setFetchingPost] = useState(!!id);
   const [autoSaving, setAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [activeTab, setActiveTab] = useState('edit');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [post, setPost] = useState(null);
+
+  // Fetch post data if editing
+  useEffect(() => {
+    if (id) {
+      fetchPost();
+    }
+  }, [id]);
+
+  const fetchPost = async () => {
+    try {
+      setFetchingPost(true);
+      const response = await api.get(`/posts/${id}`);
+      setPost(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch post');
+      navigate('/admin/posts');
+    } finally {
+      setFetchingPost(false);
+    }
+  };
 
   const initialValues = {
     title: post?.title || '',
@@ -109,6 +133,7 @@ const PostForm = ({ post, onBack }) => {
     initialValues,
     validationSchema,
     onSubmit: handleSubmit,
+    enableReinitialize: true, // This allows formik to reset when post data is loaded
   });
 
   // Auto-save functionality
@@ -172,6 +197,15 @@ const PostForm = ({ post, onBack }) => {
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
+
+  // Show loading spinner while fetching post data
+  if (fetchingPost) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box>

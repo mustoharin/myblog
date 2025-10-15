@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -7,21 +7,17 @@ import PostForm from './PostForm';
 
 const PostsManager = () => {
   const navigate = useNavigate();
-  const [selectedPost, setSelectedPost] = useState(null);
 
   const handleEdit = (post) => {
-    setSelectedPost(post);
-    navigate('edit');
+    navigate(`edit/${post._id}`);
   };
 
   const handleCreate = () => {
-    setSelectedPost(null);
     navigate('new');
   };
 
   const handleBack = () => {
-    setSelectedPost(null);
-    navigate('.');
+    navigate('/admin/posts');
   };
 
   return (
@@ -52,9 +48,9 @@ const PostsManager = () => {
           }
         />
         <Route
-          path="/edit"
+          path="/edit/:id"
           element={
-            <PostForm post={selectedPost} onBack={handleBack} />
+            <PostForm onBack={handleBack} />
           }
         />
       </Routes>
