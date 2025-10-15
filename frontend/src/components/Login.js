@@ -48,12 +48,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    if (!captcha.text) {
-      setError('Please enter the CAPTCHA code');
+      setError('Username and password are required');
       return;
     }
 
@@ -61,11 +56,30 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await login(username, password, captcha.sessionId, captcha.text);
+      const loginData = {
+        username,
+        password
+      };
+
+      // In test environment, use bypass token
+      if (process.env.NODE_ENV == 'development' || process.env.REACT_APP_TEST_MODE === 'true') {
+        loginData.testBypassToken = process.env.REACT_APP_TEST_BYPASS_CAPTCHA_TOKEN;
+      } else {
+        // In production, require CAPTCHA
+        if (!captcha.text) {
+          setError('Please enter the CAPTCHA text');
+          setLoading(false);
+          return;
+        }
+        loginData.captchaSessionId = captcha.sessionId;
+        loginData.captchaText = captcha.text;
+      }
+
+      const response = await api.post('/auth/login', loginData);
+      await login(response.data.token, response.data.user);
       navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to login');
-      // Get a new CAPTCHA if login failed
       fetchCaptcha();
     } finally {
       setLoading(false);

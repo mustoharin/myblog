@@ -84,18 +84,27 @@ const CommentSection = ({ postId }) => {
     setSubmitting(true);
     setError(null);
 
-    if (!captcha.text.trim()) {
-      setError('Please enter the CAPTCHA code');
-      return;
+    const commentData = {
+      name,
+      content
+    };
+
+    // In test environment, use bypass token
+    if (process.env.NODE_ENV == 'development' || process.env.REACT_APP_TEST_MODE === 'true') {
+      commentData.testBypassToken = process.env.REACT_APP_TEST_BYPASS_CAPTCHA_TOKEN;
+    } else {
+      // In production, require CAPTCHA
+      if (!captcha.text.trim()) {
+        setError('Please enter the CAPTCHA code');
+        setSubmitting(false);
+        return;
+      }
+      commentData.captchaSessionId = captcha.sessionId;
+      commentData.captchaText = captcha.text;
     }
 
     try {
-      const response = await api.post(`/public/posts/${postId}/comments`, {
-        name,
-        content,
-        captchaSessionId: captcha.sessionId,
-        captchaText: captcha.text
-      });
+      const response = await api.post(`/public/posts/${postId}/comments`, commentData);
 
       setComments([...comments, response.data]);
       setCommentForm({ name: '', content: '' });
