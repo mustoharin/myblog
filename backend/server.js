@@ -40,6 +40,9 @@ app.use('/api/privileges', authMiddleware, require('./routes/privileges'));
 // Blog post routes (protected)
 app.use('/api/posts', authMiddleware, require('./routes/posts'));
 
+// Admin routes (protected)
+app.use('/api/admin', authMiddleware, require('./routes/admin'));
+
 // Password reset routes (public)
 app.use('/api/password', require('./routes/password'));
 app.use('/api/password', require('./routes/password'));
