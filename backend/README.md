@@ -59,9 +59,22 @@ Authenticate a user and get a JWT token.
 {
   "username": "string",
   "password": "string",
+  // Standard CAPTCHA validation
   "captchaSessionId": "string",
-  "captchaText": "string"
+  "captchaText": "string",
+  // Or for E2E testing environment
+  "testBypassToken": "string"
 }
+```
+
+**CAPTCHA Bypass for Testing**
+For E2E testing environments, you can bypass CAPTCHA validation by:
+1. Setting `TEST_BYPASS_CAPTCHA_TOKEN` in your `.env` file
+2. Including the token in your request as `testBypassToken`
+
+Example test environment setup:
+```env
+TEST_BYPASS_CAPTCHA_TOKEN=your_secure_token_here
 ```
 
 **Response**
@@ -126,12 +139,25 @@ Allowed HTML elements and attributes:
 
 ### Environment Variables
 Create a `.env` file in the backend directory:
+
+For Development:
 ```env
 NODE_ENV=development
 PORT=5002
 MONGODB_URI=mongodb://admin:password123@localhost:27018/myblog?authSource=admin
 JWT_SECRET=your_jwt_secret
 ```
+
+For Testing (additional variables):
+```env
+NODE_ENV=test
+TEST_BYPASS_CAPTCHA_TOKEN=e2e_test_bypass_captcha_2025  # Token for bypassing CAPTCHA in tests
+```
+
+The test environment uses:
+- In-memory MongoDB for tests
+- Faster rate limiting windows (100ms instead of hours)
+- CAPTCHA bypass capability for E2E testing
 
 ### Docker Setup
 Run the database using Docker Compose:
@@ -173,7 +199,9 @@ The test server uses an in-memory MongoDB instance and includes:
 - Pre-initialized test data with the same superadmin user
 - Same API endpoints as production server
 
-### Example Test Login
+### Example Test Requests
+
+**Standard Login (with CAPTCHA)**
 ```bash
 # Get a captcha
 curl http://localhost:5002/api/auth/captcha
@@ -185,6 +213,33 @@ curl -X POST http://localhost:5002/api/auth/login \
     "username": "superadmin",
     "password": "superadmin123",
     "captchaSessionId": "SESSION_ID_FROM_CAPTCHA",
+    "captchaText": "123456"
+  }'
+```
+
+**Test Environment Login (with CAPTCHA bypass)**
+```bash
+# Login using bypass token
+curl -X POST http://localhost:5002/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "superadmin",
+    "password": "superadmin123",
+    "testBypassToken": "e2e_test_bypass_captcha_2025"
+  }'
+```
+
+**Add Comment (with CAPTCHA bypass)**
+```bash
+# Add a comment using bypass token
+curl -X POST http://localhost:5002/api/public/posts/POST_ID/comments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Test comment",
+    "name": "Test User",
+    "testBypassToken": "e2e_test_bypass_captcha_2025"
+  }'
+```
     "captchaText": "123456"
   }'
 ```
@@ -335,9 +390,24 @@ The system implements RBAC with three default roles:
   - Returns: 204 No Content
 
 - **POST /api/posts/:id/comments**
-  - Add comment to post (requires `create_post` privilege)
-  - Request body: `{ "content": "string" }`
-  - Returns: Updated post with new comment
+  - Add comment to post (public endpoint with CAPTCHA and rate limiting)
+  - Request body:
+    ```json
+    {
+      "content": "string",
+      "name": "string",
+      // Standard CAPTCHA validation
+      "captchaSessionId": "string",
+      "captchaText": "string",
+      // Or for E2E testing environment
+      "testBypassToken": "string"
+    }
+    ```
+  - Validation:
+    - Content: 1 to 1000 characters
+    - Name: 1 to 50 characters, XSS protected
+  - Rate limiting: 5 comments per 100ms in test, 10 comments per hour in production
+  - Returns: Created comment object
 
 ### Roles
 - **GET /api/roles**
