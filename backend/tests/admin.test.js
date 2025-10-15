@@ -285,4 +285,272 @@ describe('Admin Routes', () => {
       expect(response.body.message).toContain('Insufficient privileges');
     });
   });
+
+  describe('GET /api/admin/posts/popular', () => {
+    it('should return popular posts sorted by views', async () => {
+      // Clean up any existing posts
+      await Post.deleteMany({});
+      
+      // Create test posts with different view counts
+      await Post.create([
+        {
+          title: 'Most Popular Post',
+          content: 'Content 1',
+          excerpt: 'Excerpt 1',
+          author: superadminUser._id,
+          isPublished: true,
+          views: 100
+        },
+        {
+          title: 'Second Popular Post',
+          content: 'Content 2',
+          excerpt: 'Excerpt 2',
+          author: superadminUser._id,
+          isPublished: true,
+          views: 50
+        },
+        {
+          title: 'Third Popular Post',
+          content: 'Content 3',
+          excerpt: 'Excerpt 3',
+          author: superadminUser._id,
+          isPublished: true,
+          views: 25
+        }
+      ]);
+
+      const response = await request(app)
+        .get('/api/admin/posts/popular')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('posts');
+      expect(Array.isArray(response.body.posts)).toBe(true);
+      expect(response.body.posts.length).toBe(3);
+      
+      // Check sorting by views (descending)
+      expect(response.body.posts[0].title).toBe('Most Popular Post');
+      expect(response.body.posts[0].views).toBe(100);
+      expect(response.body.posts[1].views).toBe(50);
+      expect(response.body.posts[2].views).toBe(25);
+    });
+
+    it('should include correct post data fields', async () => {
+      // Clean up any existing posts
+      await Post.deleteMany({});
+      
+      await Post.create({
+        title: 'Test Post',
+        content: 'Test Content',
+        excerpt: 'Test Excerpt',
+        author: superadminUser._id,
+        isPublished: true,
+        views: 10,
+        comments: [
+          { content: 'Comment 1', author: superadminUser._id },
+          { content: 'Comment 2', author: superadminUser._id }
+        ]
+      });
+
+      const response = await request(app)
+        .get('/api/admin/posts/popular')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.posts.length).toBeGreaterThan(0);
+      
+      const post = response.body.posts[0];
+      expect(post).toHaveProperty('_id');
+      expect(post).toHaveProperty('title');
+      expect(post).toHaveProperty('views');
+      expect(post).toHaveProperty('commentsCount');
+      expect(post).toHaveProperty('sharesCount');
+      expect(post).toHaveProperty('status');
+      expect(post.commentsCount).toBe(2);
+      expect(post.status).toBe('published');
+    });
+
+    it('should respect limit parameter', async () => {
+      // Clean up any existing posts
+      await Post.deleteMany({});
+      
+      // Create 10 posts
+      const posts = Array.from({ length: 10 }, (_, i) => ({
+        title: `Post ${i + 1}`,
+        content: `Content ${i + 1}`,
+        excerpt: `Excerpt ${i + 1}`,
+        author: superadminUser._id,
+        isPublished: true,
+        views: 10 - i // Descending views
+      }));
+      await Post.create(posts);
+
+      const response = await request(app)
+        .get('/api/admin/posts/popular?limit=5')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.posts.length).toBe(5);
+    });
+
+    it('should filter by timeframe', async () => {
+      // Clean up any existing posts
+      await Post.deleteMany({});
+      
+      const now = new Date();
+      const recentTime = new Date(now.getTime() - 12 * 60 * 60 * 1000); // 12 hours ago
+      const oldTime = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000); // 8 days ago
+
+      // Create posts from different time periods
+      await Post.create([
+        {
+          title: 'Recent Post',
+          content: 'Content',
+          excerpt: 'Excerpt',
+          author: superadminUser._id,
+          isPublished: true,
+          views: 100,
+          createdAt: recentTime
+        },
+        {
+          title: 'Old Post',
+          content: 'Content',
+          excerpt: 'Excerpt',
+          author: superadminUser._id,
+          isPublished: true,
+          views: 200,
+          createdAt: oldTime
+        }
+      ]);
+
+      const response = await request(app)
+        .get('/api/admin/posts/popular?timeframe=day')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.posts.length).toBe(1);
+      expect(response.body.posts[0].title).toBe('Recent Post');
+    });
+
+    it('should include both published and draft posts', async () => {
+      // Clean up any existing posts
+      await Post.deleteMany({});
+      
+      await Post.create([
+        {
+          title: 'Published Post',
+          content: 'Content',
+          excerpt: 'Excerpt',
+          author: superadminUser._id,
+          isPublished: true,
+          views: 50
+        },
+        {
+          title: 'Draft Post',
+          content: 'Content',
+          excerpt: 'Excerpt',
+          author: superadminUser._id,
+          isPublished: false,
+          views: 100
+        }
+      ]);
+
+      const response = await request(app)
+        .get('/api/admin/posts/popular')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.posts.length).toBe(2);
+      expect(response.body.posts[0].title).toBe('Draft Post');
+      expect(response.body.posts[0].status).toBe('draft');
+      expect(response.body.posts[1].status).toBe('published');
+    });
+
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .get('/api/admin/posts/popular');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should require read_post privilege', async () => {
+      // Create a user with limited role (no read_post privilege)
+      const Role = require('../models/Role');
+      const User = require('../models/User');
+      
+      const limitedRole = await Role.create({
+        name: 'limited_popular',
+        description: 'Limited Role',
+        privileges: []
+      });
+
+      const limitedUser = await User.create({
+        username: 'limited_popular_user',
+        email: 'limited_popular@test.com',
+        password: 'Password123!',
+        role: limitedRole._id
+      });
+
+      const loginResponse = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'limited_popular_user',
+          password: 'Password123!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      const limitedToken = loginResponse.body.token;
+
+      const response = await request(app)
+        .get('/api/admin/posts/popular')
+        .set('Authorization', `Bearer ${limitedToken}`);
+
+      expect(response.status).toBe(403);
+    });
+
+    it('should handle empty database', async () => {
+      // Clean up any existing posts
+      await Post.deleteMany({});
+      
+      const response = await request(app)
+        .get('/api/admin/posts/popular')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.posts).toEqual([]);
+    });
+
+    it('should default to limit 10 when not specified', async () => {
+      // Clean up any existing posts
+      await Post.deleteMany({});
+      
+      // Create 15 posts
+      const posts = Array.from({ length: 15 }, (_, i) => ({
+        title: `Post ${i + 1}`,
+        content: `Content ${i + 1}`,
+        excerpt: `Excerpt ${i + 1}`,
+        author: superadminUser._id,
+        isPublished: true,
+        views: 15 - i
+      }));
+      await Post.create(posts);
+
+      const response = await request(app)
+        .get('/api/admin/posts/popular')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.posts.length).toBe(10);
+    });
+
+    it('should enforce maximum limit of 50', async () => {
+      const response = await request(app)
+        .get('/api/admin/posts/popular?limit=100')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      // Even with limit=100, should return max 50 (or less if fewer posts exist)
+      expect(response.body.posts.length).toBeLessThanOrEqual(50);
+    });
+  });
 });
