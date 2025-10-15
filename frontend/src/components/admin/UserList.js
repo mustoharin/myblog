@@ -208,7 +208,7 @@ const UserList = ({ onEdit }) => {
                           Created: {formatDate(user.createdAt)}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Last Login: {user.lastLoginAt ? formatDate(user.lastLoginAt) : 'Never'}
+                          Last Login: {user.lastLogin ? formatDate(user.lastLogin) : 'Never'}
                         </Typography>
                       </Stack>
                     </TableCell>

@@ -264,4 +264,137 @@ describe('Auth Routes', () => {
       expect(Array.isArray(response.body.items)).toBe(true);
     });
   });
+
+  describe('Last Login Tracking', () => {
+    it('should update lastLogin timestamp on successful login', async () => {
+      const User = require('../models/User');
+      
+      // Get user before login
+      const userBefore = await User.findOne({ username: 'superadmin' });
+      const lastLoginBefore = userBefore.lastLogin;
+      
+      // Wait a bit to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Login
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'superadmin',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      expect(response.status).toBe(200);
+      
+      // Get user after login
+      const userAfter = await User.findOne({ username: 'superadmin' });
+      const lastLoginAfter = userAfter.lastLogin;
+      
+      // Verify lastLogin was updated
+      expect(lastLoginAfter).not.toBeNull();
+      if (lastLoginBefore) {
+        expect(new Date(lastLoginAfter).getTime()).toBeGreaterThan(new Date(lastLoginBefore).getTime());
+      }
+    });
+
+    it('should not update lastLogin on failed login', async () => {
+      const User = require('../models/User');
+      
+      // Get user before login attempt
+      const userBefore = await User.findOne({ username: 'superadmin' });
+      const lastLoginBefore = userBefore.lastLogin;
+      
+      // Wait a bit
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Try to login with wrong password
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'superadmin',
+          password: 'WrongPassword123!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      expect(response.status).toBe(401);
+      
+      // Get user after failed login
+      const userAfter = await User.findOne({ username: 'superadmin' });
+      const lastLoginAfter = userAfter.lastLogin;
+      
+      // Verify lastLogin was NOT updated
+      if (lastLoginBefore) {
+        expect(new Date(lastLoginAfter).getTime()).toBe(new Date(lastLoginBefore).getTime());
+      } else {
+        expect(lastLoginAfter).toBe(lastLoginBefore);
+      }
+    });
+
+    it('should include lastLogin in user list endpoint', async () => {
+      const captchaResponse = await request(app)
+        .get('/api/auth/captcha');
+
+      // Login to update lastLogin
+      const loginResponse = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'superadmin',
+          password: 'Password#12345!',
+          captchaText: '123456',
+          captchaSessionId: captchaResponse.body.sessionId
+        });
+
+      const token = loginResponse.body.token;
+
+      // Get users list
+      const response = await request(app)
+        .get('/api/users')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.items.length).toBeGreaterThan(0);
+      
+      // Find the superadmin user
+      const superadmin = response.body.items.find(u => u.username === 'superadmin');
+      expect(superadmin).toBeDefined();
+      expect(superadmin).toHaveProperty('lastLogin');
+      expect(superadmin.lastLogin).not.toBeNull();
+    });
+
+    it('should track multiple logins with different timestamps', async () => {
+      const User = require('../models/User');
+      
+      // First login
+      await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'admin',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+      
+      const userAfterFirst = await User.findOne({ username: 'admin' });
+      const firstLogin = userAfterFirst.lastLogin;
+      expect(firstLogin).not.toBeNull();
+      
+      // Wait to ensure different timestamp
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Second login
+      await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'admin',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+      
+      const userAfterSecond = await User.findOne({ username: 'admin' });
+      const secondLogin = userAfterSecond.lastLogin;
+      
+      // Verify second login timestamp is later
+      expect(new Date(secondLogin).getTime()).toBeGreaterThan(new Date(firstLogin).getTime());
+    });
+  });
 });
