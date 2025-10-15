@@ -68,6 +68,29 @@ const BlogPost = () => {
     fetchPost();
   }, [fetchPost]);
 
+  // Track post view
+  useEffect(() => {
+    const trackView = async () => {
+      if (post && post._id) {
+        try {
+          const response = await api.post(`/public/posts/${post._id}/view`);
+          // Update the local view count with the response
+          if (response.data?.views !== undefined) {
+            setPost(prevPost => ({
+              ...prevPost,
+              views: response.data.views
+            }));
+          }
+        } catch (error) {
+          // Silently fail - view tracking is not critical
+          console.debug('Failed to track view:', error);
+        }
+      }
+    };
+
+    trackView();
+  }, [post?._id]); // Only track when we have a valid post ID
+
   const handleShare = async () => {
     try {
       await navigator.share({

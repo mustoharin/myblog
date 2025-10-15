@@ -140,4 +140,26 @@ router.post('/posts/:id/comments', [commentRateLimiter, validateCaptcha], async 
   }
 });
 
+// Track post view (increment view count)
+router.post('/posts/:id/view', baseRateLimiter, async (req, res) => {
+  try {
+    const post = await Post.findOneAndUpdate(
+      { _id: req.params.id, isPublished: true },
+      { $inc: { views: 1 } },
+      { new: true, select: 'views' }
+    );
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json({ views: post.views });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

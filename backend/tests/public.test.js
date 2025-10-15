@@ -1,4 +1,5 @@
 const request = require('supertest');
+const mongoose = require('mongoose');
 const app = require('../server');
 const Post = require('../models/Post');
 const User = require('../models/User');
@@ -261,6 +262,72 @@ describe('Public API', () => {
           captchaSessionId: captchaResponse2.body.sessionId
         })
         .expect(400);
+    });
+  });
+
+  describe('POST /api/public/posts/:id/view', () => {
+    it('should increment view count for published post', async () => {
+      const response = await request(app)
+        .post(`/api/public/posts/${testPost._id}/view`)
+        .expect(200);
+
+      expect(response.body.views).toBe(1);
+
+      // Verify it increments again
+      const response2 = await request(app)
+        .post(`/api/public/posts/${testPost._id}/view`)
+        .expect(200);
+
+      expect(response2.body.views).toBe(2);
+    });
+
+    it('should return 404 for non-existent post', async () => {
+      const fakeId = new mongoose.Types.ObjectId();
+      await request(app)
+        .post(`/api/public/posts/${fakeId}/view`)
+        .expect(404);
+    });
+
+    it('should return 404 for unpublished post', async () => {
+      const unpublishedPost = await Post.create({
+        title: 'Unpublished Post',
+        content: 'This is an unpublished post',
+        excerpt: 'Unpublished',
+        author: testUser._id,
+        isPublished: false
+      });
+
+      await request(app)
+        .post(`/api/public/posts/${unpublishedPost._id}/view`)
+        .expect(404);
+    });
+
+    it('should return 404 for invalid post ID', async () => {
+      await request(app)
+        .post('/api/public/posts/invalid-id/view')
+        .expect(404);
+    });
+
+    it('should handle multiple concurrent view increments correctly', async () => {
+      // Make multiple concurrent requests
+      const requests = Array(5).fill(null).map(() =>
+        request(app).post(`/api/public/posts/${testPost._id}/view`)
+      );
+
+      const responses = await Promise.all(requests);
+
+      // All should succeed
+      responses.forEach(response => {
+        expect(response.status).toBe(200);
+        expect(response.body.views).toBeGreaterThan(0);
+      });
+
+      // Verify final count
+      const finalResponse = await request(app)
+        .post(`/api/public/posts/${testPost._id}/view`)
+        .expect(200);
+
+      expect(finalResponse.body.views).toBe(6);
     });
   });
 });

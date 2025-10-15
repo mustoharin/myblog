@@ -85,6 +85,7 @@ describe('Admin Routes', () => {
         excerpt: 'Excerpt 1',
         author: adminUser._id,
         tags: ['test'],
+        views: 10,
         comments: []
       });
 
@@ -94,6 +95,7 @@ describe('Admin Routes', () => {
         excerpt: 'Excerpt 2',
         author: adminUser._id,
         tags: ['test'],
+        views: 20,
         comments: [
           { content: 'Comment 1', authorName: 'User1' },
           { content: 'Comment 2', authorName: 'User2' }
@@ -106,7 +108,7 @@ describe('Admin Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.totalPosts).toBe(2);
-      expect(response.body.totalViews).toBe(0); // Views not implemented yet
+      expect(response.body.totalViews).toBe(30); // 10 + 20
       expect(response.body.totalComments).toBe(2);
     });
 
@@ -120,7 +122,7 @@ describe('Admin Routes', () => {
         excerpt: 'Excerpt',
         author: adminUser._id,
         tags: ['test']
-        // No views field
+        // No views field - should default to 0
       });
 
       const response = await request(app)
@@ -129,7 +131,7 @@ describe('Admin Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.totalPosts).toBe(1);
-      expect(response.body.totalViews).toBe(0);
+      expect(response.body.totalViews).toBe(0); // Defaults to 0
     });
 
     it('should handle posts with no comments', async () => {
@@ -164,21 +166,24 @@ describe('Admin Routes', () => {
           content: 'Content 1',
           excerpt: 'Excerpt 1',
           author: adminUser._id,
-          tags: ['test']
+          tags: ['test'],
+          views: 100
         },
         {
           title: 'Post 2',
           content: 'Content 2',
           excerpt: 'Excerpt 2',
           author: adminUser._id,
-          tags: ['test']
+          tags: ['test'],
+          views: 250
         },
         {
           title: 'Post 3',
           content: 'Content 3',
           excerpt: 'Excerpt 3',
           author: adminUser._id,
-          tags: ['test']
+          tags: ['test'],
+          views: 50
         }
       ]);
 
@@ -188,7 +193,7 @@ describe('Admin Routes', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.totalPosts).toBe(3);
-      expect(response.body.totalViews).toBe(0); // Views not implemented yet
+      expect(response.body.totalViews).toBe(400); // 100 + 250 + 50
     });
 
     it('should aggregate comments from multiple posts correctly', async () => {

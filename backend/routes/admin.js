@@ -13,9 +13,16 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
     const totalPosts = await Post.countDocuments();
     const totalUsers = await User.countDocuments();
     
-    // Since views field doesn't exist in Post model yet, return 0
-    // TODO: Add views tracking to Post model in future
-    const totalViews = 0;
+    // Get total views from all posts
+    const viewsAggregation = await Post.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: '$views' }
+        }
+      }
+    ]);
+    const totalViews = viewsAggregation.length > 0 ? viewsAggregation[0].totalViews : 0;
     
     // Get total comments from all posts
     const commentsAggregation = await Post.aggregate([

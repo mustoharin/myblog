@@ -95,6 +95,11 @@ const PostSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  views: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   comments: [CommentSchema]
 });
 
@@ -102,5 +107,7 @@ const PostSchema = new mongoose.Schema({
 PostSchema.index({ title: 'text', content: 'text' });
 // Add tag index for efficient tag filtering
 PostSchema.index({ tags: 1 });
+// Add views index for sorting by popularity
+PostSchema.index({ views: -1 });
 
 module.exports = mongoose.model('Post', PostSchema);
