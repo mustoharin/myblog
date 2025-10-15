@@ -212,9 +212,18 @@ const RoleList = ({ onEdit }) => {
                         </Stack>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">
-                          {role.usersCount || 0}
-                        </Typography>
+                        <Tooltip 
+                          title={`${role.usersCount || 0} user${(role.usersCount || 0) !== 1 ? 's' : ''} assigned to this role`}
+                          arrow
+                        >
+                          <Chip
+                            label={role.usersCount || 0}
+                            size="small"
+                            color={role.usersCount > 0 ? 'primary' : 'default'}
+                            variant="outlined"
+                            sx={{ minWidth: 50, cursor: 'help' }}
+                          />
+                        </Tooltip>
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1} justifyContent="center">

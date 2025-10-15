@@ -241,6 +241,100 @@ describe('Role Routes', () => {
     });
   });
 
+  describe('User Count by Role', () => {
+    it('should include usersCount in role list', async () => {
+      const response = await request(app)
+        .get('/api/roles')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.items).toBeDefined();
+      expect(response.body.items.length).toBeGreaterThan(0);
+      
+      // Check that each role has usersCount property
+      response.body.items.forEach(role => {
+        expect(role).toHaveProperty('usersCount');
+        expect(typeof role.usersCount).toBe('number');
+        expect(role.usersCount).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    it('should show correct user count for each role', async () => {
+      const response = await request(app)
+        .get('/api/roles')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      // Find the roles we created in setup
+      const superadminRole = response.body.items.find(r => r.name === 'superadmin');
+      const adminRole = response.body.items.find(r => r.name === 'admin');
+      
+      // We created one superadmin user and one admin user in beforeEach
+      expect(superadminRole.usersCount).toBe(1);
+      expect(adminRole.usersCount).toBe(1);
+    });
+
+    it('should include usersCount in single role endpoint', async () => {
+      const response = await request(app)
+        .get(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('usersCount');
+      expect(typeof response.body.usersCount).toBe('number');
+      expect(response.body.usersCount).toBe(1); // One admin user created in setup
+    });
+
+    it('should show zero users for newly created role', async () => {
+      // Create a new role
+      const newRole = await request(app)
+        .post('/api/roles')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'test_role',
+          description: 'Test Role',
+          privileges: [privileges[0]._id]
+        });
+
+      expect(newRole.status).toBe(201);
+
+      // Get the role and check user count
+      const response = await request(app)
+        .get(`/api/roles/${newRole.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.usersCount).toBe(0);
+    });
+
+    it('should update user count when users are created', async () => {
+      const User = require('../models/User');
+      
+      // Get initial count for admin role
+      const initialResponse = await request(app)
+        .get(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      const initialCount = initialResponse.body.usersCount;
+
+      // Create a new admin user directly in database
+      await User.create({
+        username: 'newadmin',
+        email: 'newadmin@example.com',
+        password: 'hashedpassword',
+        role: roles.adminRole._id
+      });
+
+      // Get updated count
+      const updatedResponse = await request(app)
+        .get(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(updatedResponse.body.usersCount).toBe(initialCount + 1);
+    });
+  });
+
   describe('Role Data Integrity', () => {
     it('should maintain privilege references after role update', async () => {
       // Create a new role

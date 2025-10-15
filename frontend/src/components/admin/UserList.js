@@ -107,11 +107,43 @@ const UserList = ({ onEdit }) => {
   };
 
   const formatDate = (date) => {
+    if (!date) return 'Never';
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const formatDateTime = (date) => {
+    if (!date) return 'Never';
+    return new Date(date).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getLastLoginDisplay = (lastLogin) => {
+    if (!lastLogin) return 'Never';
+    
+    const now = new Date();
+    const loginDate = new Date(lastLogin);
+    const diffMs = now - loginDate;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    // Show relative time if recent
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    
+    // Otherwise show formatted date
+    return formatDateTime(lastLogin);
   };
 
   return (
@@ -207,9 +239,14 @@ const UserList = ({ onEdit }) => {
                         <Typography variant="caption" color="text.secondary">
                           Created: {formatDate(user.createdAt)}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Last Login: {user.lastLogin ? formatDate(user.lastLogin) : 'Never'}
-                        </Typography>
+                        <Tooltip 
+                          title={user.lastLogin ? formatDateTime(user.lastLogin) : 'User has never logged in'} 
+                          arrow
+                        >
+                          <Typography variant="caption" color="text.secondary" sx={{ cursor: 'help' }}>
+                            Last Login: {getLastLoginDisplay(user.lastLogin)}
+                          </Typography>
+                        </Tooltip>
                       </Stack>
                     </TableCell>
                     <TableCell>

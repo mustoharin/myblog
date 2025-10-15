@@ -8,6 +8,7 @@ const checkRole = require('../middleware/roleAuth');
 router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
   try {
     const paginateResults = require('../utils/pagination');
+    const User = require('../models/User');
     const { page, limit, sort = 'name' } = req.query;
 
     const result = await paginateResults(Role, {}, {
@@ -17,7 +18,21 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
       populate: 'privileges'
     });
 
-    res.json(result);
+    // Add user counts for each role
+    const rolesWithCounts = await Promise.all(
+      result.items.map(async (role) => {
+        const usersCount = await User.countDocuments({ role: role._id });
+        return {
+          ...role.toObject(),
+          usersCount
+        };
+      })
+    );
+
+    res.json({
+      ...result,
+      items: rolesWithCounts
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -26,13 +41,21 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
 // Get single role by ID (superadmin only)
 router.get('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
   try {
+    const User = require('../models/User');
     const role = await Role.findById(req.params.id).populate('privileges');
     
     if (!role) {
       return res.status(404).json({ message: 'Role not found' });
     }
 
-    res.json(role);
+    // Add user count
+    const usersCount = await User.countDocuments({ role: role._id });
+    const roleWithCount = {
+      ...role.toObject(),
+      usersCount
+    };
+
+    res.json(roleWithCount);
   } catch (error) {
     if (error.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Role not found' });
