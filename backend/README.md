@@ -3,6 +3,20 @@
 ## Overview
 This is a RESTful API for a blog application with role-based access control (RBAC). It provides both public and protected endpoints for managing users, posts, roles, and privileges.
 
+## Key Features
+- 🔐 **JWT Authentication** with CAPTCHA protection
+- 👥 **Role-Based Access Control (RBAC)** with granular privileges
+- 📝 **Rich Content Support** with XSS sanitization
+- 🔍 **Full-text Search** for posts (title and content)
+- 🏷️ **Tag-based Filtering** for posts
+- 📊 **Post Analytics** with view tracking and popular posts
+- 👤 **User Management** with fullName display and account status
+- 📧 **Password Recovery** via email with reset tokens
+- 💬 **Public Comments** with CAPTCHA and rate limiting
+- 🚦 **Rate Limiting** on sensitive endpoints
+- ⏱️ **Last Login Tracking** for security auditing
+- 🔒 **Inactive User Control** - deactivated accounts cannot login
+
 ## Authentication
 
 ### Get Captcha
@@ -281,8 +295,12 @@ The system implements RBAC with three default roles:
           "title": "string",
           "excerpt": "string",
           "createdAt": "date",
-          "author": { "username": "string" },
-          "tags": ["string"]
+          "author": { 
+            "username": "string",
+            "fullName": "string"
+          },
+          "tags": ["string"],
+          "views": "number"
         }
       ],
       "pagination": {
@@ -295,8 +313,30 @@ The system implements RBAC with three default roles:
     ```
 
 - **GET /api/public/posts/:id**
-  - Get a single published post
-  - Returns: Post object with comments
+  - Get a single published post with full details
+  - Returns: Post object with comments and populated author
+    ```json
+    {
+      "title": "string",
+      "content": "string (HTML)",
+      "excerpt": "string",
+      "author": {
+        "username": "string",
+        "fullName": "string"
+      },
+      "tags": ["string"],
+      "views": "number",
+      "comments": [
+        {
+          "content": "string",
+          "authorName": "string",
+          "createdAt": "date"
+        }
+      ],
+      "createdAt": "date",
+      "updatedAt": "date"
+    }
+    ```
 
 - **POST /api/public/posts/:id/comments**
   - Add a comment to a post
@@ -325,7 +365,10 @@ The system implements RBAC with three default roles:
 ### Users
 - **GET /api/users**
   - List all users (requires `read_user` privilege)
-  - Returns: Array of user objects
+  - Query parameters:
+    - `page`: Page number (default: 1)
+    - `limit`: Items per page (default: 10, max: 50)
+  - Returns: Paginated array of user objects with fullName, isActive, and lastLogin
 
 - **GET /api/users/:id**
   - Get user by ID (requires `read_user` privilege)
@@ -336,21 +379,34 @@ The system implements RBAC with three default roles:
   - Request body:
     ```json
     {
-      "username": "string",
-      "email": "string",
-      "password": "string",
-      "role": "role_id"
+      "username": "string (required, unique)",
+      "fullName": "string (optional)",
+      "email": "string (required, unique)",
+      "password": "string (required, min 8 chars)",
+      "role": "role_id (required)",
+      "isActive": "boolean (optional, default: true)"
     }
     ```
   - Returns: Created user object
 
 - **PUT /api/users/:id**
   - Update user (requires `update_user` privilege)
-  - Request body: Any of `{ "username", "email", "password", "role" }`
+  - Request body: Any of:
+    ```json
+    {
+      "username": "string",
+      "fullName": "string",
+      "email": "string",
+      "password": "string",
+      "role": "role_id",
+      "isActive": "boolean"
+    }
+    ```
   - Returns: Updated user object
 
 - **DELETE /api/users/:id**
   - Delete user (requires `delete_user` privilege)
+  - Cannot delete the last superadmin
   - Returns: 204 No Content
 
 ### Posts
@@ -626,6 +682,65 @@ Records when users last successfully logged in to the system.
 - Failed login attempts don't update timestamp
 - Prevents attackers from determining valid usernames
 
+### User Full Name Display
+Users can now have a full name that is displayed as the author name on public blog posts.
+
+**Backend Implementation:**
+- `fullName` field added to User model (String, optional, XSS protected)
+- Included in user create and update endpoints
+- Public posts API populates author with both `username` and `fullName`
+- Falls back to username if fullName is not set
+
+**Frontend Integration:**
+- User form includes fullName input field (optional)
+- User list displays fullName below username when available
+- Blog posts display author's fullName instead of username
+- Fallback hierarchy: fullName → username → "Anonymous"
+
+**Use Cases:**
+- Professional author attribution on blog posts
+- Display real names instead of usernames
+- Better user experience for public-facing content
+- Maintain username for login while showing friendly names
+
+**Data Migration:**
+- No migration required - field is optional
+- Existing users work without fullName (shows username)
+- Can be added/updated at any time via admin panel
+
+### User Account Status Management
+Administrators can activate or deactivate user accounts to control system access.
+
+**Backend Implementation:**
+- `isActive` field added to User model (Boolean, default: true)
+- Login endpoint blocks inactive users (returns 403)
+- Auth middleware validates user status on every protected request
+- Included in user create, update, and list endpoints
+
+**Frontend Integration:**
+- User form includes Active/Inactive toggle switch
+- User list displays status badge (green "Active" / gray "Inactive")
+- Admin panel allows toggling user status
+- Clear visual indication of account status
+
+**Access Control:**
+- Inactive users cannot login (receives "account deactivated" message)
+- Inactive users with valid tokens are blocked on all API requests
+- Prevents system access without deleting user data
+- Preserves user's posts, comments, and history
+
+**Use Cases:**
+- Temporarily suspend problematic users
+- Deactivate former employees
+- Block spam accounts
+- Maintain audit trail while preventing access
+
+**Security:**
+- Status check on every authenticated request
+- Cannot be bypassed with cached tokens
+- Clear error message for inactive users
+- Only users with `update_user` privilege can change status
+
 ## Error Handling
 The API uses standard HTTP status codes:
 - 200: Success
@@ -651,17 +766,30 @@ Error responses include a message:
 ```javascript
 {
   _id: ObjectId,
-  username: String, // XSS protected
-  email: String, // Validated email format
-  password: String, // Hashed with bcrypt
-  role: ObjectId (ref: 'Role'),
+  username: String, // XSS protected, required, unique
+  fullName: String, // XSS protected, optional, author's display name
+  email: String, // Validated email format, required, unique
+  password: String, // Hashed with bcrypt, required
+  role: ObjectId (ref: 'Role'), // Required
+  isActive: Boolean, // User account status (default: true)
   resetPasswordToken: String,
   resetPasswordExpires: Date,
-  lastLogin: Date, // NEW: Tracks last successful login timestamp
+  lastLogin: Date, // Tracks last successful login timestamp
   createdAt: Date,
   updatedAt: Date
 }
 ```
+
+**User Fields:**
+- `username`: Unique identifier for the user (used for login)
+- `fullName`: Optional display name shown as author on blog posts (e.g., "John Doe")
+- `email`: User's email address for notifications and password recovery
+- `password`: Securely hashed using bcrypt
+- `role`: Reference to the user's role (defines permissions)
+- `isActive`: Account status - inactive users cannot login
+- `lastLogin`: Timestamp of the last successful authentication
+- `resetPasswordToken`: Temporary token for password reset flow
+- `resetPasswordExpires`: Expiration time for reset token
 
 ### Post
 ```javascript
@@ -935,11 +1063,6 @@ Future versions will use URL versioning: `/api/v2/...`
 
 ## Documentation
 - Backend API: This README
-- Detailed Feature Docs:
-  - `VIEW_TRACKING_IMPLEMENTATION.md` - Post views tracking feature
-  - `LAST_LOGIN_FEATURE.md` - Last login tracking feature
-  - `POPULAR_POSTS_WIDGET_FIX.md` - Popular posts widget implementation
-  - `ADMIN_STATS_ENDPOINT_FIX.md` - Admin statistics endpoint
 
 ## Contributing
 1. Fork the repository

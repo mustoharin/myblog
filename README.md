@@ -18,13 +18,17 @@ A full-stack blogging platform built with the MERN stack (MongoDB, Express.js, R
 - User registration with email verification
 - Secure password reset flow with time-limited tokens
 - Profile management with role assignment
+- **Full name display for professional author attribution**
+- **Account status management (active/inactive users)**
 - Last login tracking for user activity monitoring
 - Admin dashboard with user statistics
 - Role-based permissions with customizable privileges
+- Inactive user access control (blocked login and API access)
 
 ### Blog Features
 - Create, edit, and delete blog posts with rich HTML content
 - Rich text editor with DOMPurify sanitization
+- **Author display with full name or username fallback**
 - Comment system with rate limiting
 - Post views tracking for analytics
 - Popular posts widget with timeframe filtering (day/week/month/year)
@@ -61,7 +65,7 @@ myblog/
 - **Mongoose**: MongoDB ODM with schema validation
 - **JWT**: Authentication tokens
 - **bcrypt**: Password hashing
-- **Jest**: Testing framework (183/185 tests passing)
+- **Jest**: Testing framework (205/207 tests passing, 2 skipped)
 - **express-rate-limit**: Rate limiting middleware
 - **DOMPurify**: HTML sanitization
 - **nodemailer**: Email service for password reset
@@ -134,7 +138,7 @@ myblog/
 
 ### Testing
 ```bash
-# Backend tests (185 tests: 183 passing, 2 skipped)
+# Backend tests (207 tests: 205 passing, 2 skipped)
 cd backend
 npm test
 
@@ -150,15 +154,15 @@ npm test -- --testNamePattern="Last Login"
 
 ### Test Coverage
 The backend includes comprehensive test coverage:
-- **Authentication** (18 tests) - Login, registration, CAPTCHA, last login tracking
+- **Authentication** (18 tests) - Login, registration, CAPTCHA, last login tracking, inactive users
 - **Admin Dashboard** (21 tests) - Statistics, popular posts, user management
 - **Posts** (17 tests) - CRUD operations, view tracking, rich content
-- **Users** (17 tests) - User management, role assignment
-- **Public API** (17 tests) - Public post access, view tracking
+- **Users** (28 tests) - User management, role assignment, fullName, isActive status
+- **Public API** (19 tests) - Public post access, view tracking, author fullName
 - **Security** (20+ tests) - Rate limiting, XSS protection, input validation
-- **And more...** - Pagination, search, password validation, etc.
+- **And more...** - Pagination, search, password validation, roles, privileges
 
-**Total: 183 tests passing, 2 skipped**
+**Total: 205 tests passing, 2 skipped**
 
 ## Service URLs
 - Frontend: http://localhost:3000
@@ -176,9 +180,10 @@ Detailed API documentation is available in the backend README. Key endpoint cate
 - `POST /api/auth/logout` - Logout user
 
 ### User Endpoints (Admin)
-- `GET /api/users` - List users with lastLogin information
+- `GET /api/users` - List users with lastLogin, fullName, and isActive status
 - `GET /api/users/:id` - Get user details
-- `PUT /api/users/:id` - Update user
+- `POST /api/users` - Create user with fullName and isActive fields
+- `PUT /api/users/:id` - Update user (including fullName and status)
 - `DELETE /api/users/:id` - Delete user
 
 ### Post Endpoints
@@ -194,8 +199,8 @@ Detailed API documentation is available in the backend README. Key endpoint cate
   - Query params: `timeframe` (day/week/month/year), `limit` (max 50)
 
 ### Public Endpoints
-- `GET /api/public/posts` - Get published posts
-- `GET /api/public/posts/:id` - Get published post details
+- `GET /api/public/posts` - Get published posts (includes author fullName)
+- `GET /api/public/posts/:id` - Get published post details (includes author fullName)
 - `POST /api/public/posts/:id/view` - Track post view (atomic increment)
 - `POST /api/public/posts/:id/comments` - Add comment (rate limited)
 
@@ -223,6 +228,7 @@ For complete API documentation with request/response examples, see [Backend READ
 - ✅ Password complexity requirements (12+ chars, mixed case, numbers, symbols)
 - ✅ Failed login attempts don't reveal user existence
 - ✅ Last login tracking for security auditing
+- ✅ Inactive user access control (blocked login and API requests)
 - ✅ Atomic database operations to prevent race conditions
 - ✅ Environment variables for sensitive configuration
 - ✅ Password reset tokens with time-based expiration
@@ -247,6 +253,21 @@ For complete API documentation with request/response examples, see [Backend READ
 - **User Management**: View last login times for all users
 - **System Health**: Monitor content engagement and user activity
 
+### User Full Name Display (October 2025)
+- **Professional Author Attribution**: Users can have a display name for blog posts
+- **Flexible Display**: Shows full name if set, otherwise falls back to username
+- **Admin Management**: Create and edit user full names via admin panel
+- **Public Integration**: Blog posts display author's full name prominently
+- **Backward Compatible**: Optional field, existing users work without changes
+
+### Account Status Management (October 2025)
+- **Active/Inactive Toggle**: Administrators can deactivate user accounts
+- **Access Control**: Inactive users cannot login to the system
+- **Token Validation**: Existing tokens are invalidated for inactive users
+- **Audit Trail**: Maintains user data while preventing system access
+- **Visual Indicators**: Status badges in admin panel (Active/Inactive)
+- **Security**: Only users with `update_user` privilege can change status
+
 ## Performance Features
 
 ### Database Optimization
@@ -266,10 +287,28 @@ For complete API documentation with request/response examples, see [Backend READ
 - **[Backend API Documentation](./backend/README.md)** - Comprehensive backend API guide
 - **[Frontend Documentation](./frontend/README.md)** - React component documentation
 - **[Contributing Guide](./CONTRIBUTING.md)** - Development workflow and guidelines
-- **Feature Implementation Docs**:
-  - `backend/VIEW_TRACKING_IMPLEMENTATION.md` - Post views feature
-  - `backend/LAST_LOGIN_FEATURE.md` - Last login tracking
-  - `backend/POPULAR_POSTS_WIDGET_FIX.md` - Popular posts widget
+
+## Key Technologies & Patterns
+
+### Backend Architecture
+- **RESTful API Design**: Clean, intuitive endpoints
+- **Middleware Pattern**: Modular authentication, validation, and rate limiting
+- **Repository Pattern**: Mongoose models with schema validation
+- **Error Handling**: Centralized error handling with meaningful messages
+- **Testing**: Comprehensive Jest test suite with 99%+ coverage
+
+### Frontend Architecture
+- **Component-Based**: Reusable React components
+- **Context API**: Global state management for authentication
+- **Protected Routes**: Role-based component rendering
+- **Form Validation**: Formik + Yup for robust validation
+- **Responsive Design**: Material-UI Grid system for all devices
+
+### Database Design
+- **Schema Validation**: Mongoose schemas with XSS protection
+- **Strategic Indexing**: Optimized queries for search and sorting
+- **Atomic Operations**: Thread-safe counters and updates
+- **Reference Relationships**: Populated joins for related data
 
 ## Contributing
 1. Fork the repository
