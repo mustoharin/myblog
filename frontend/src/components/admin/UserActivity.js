@@ -64,7 +64,7 @@ const UserActivity = () => {
               </Avatar>
             </ListItemAvatar>
             <ListItemText
-              primary={user.username}
+              primary={user.fullName || user.username}
               secondary={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <ScheduleIcon fontSize="small" />
@@ -80,7 +80,7 @@ const UserActivity = () => {
         ))}
         {activeUsers.length === 0 && (
           <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
-            No active users at the moment
+            No active users in the last 15 minutes
           </Typography>
         )}
       </List>

@@ -553,4 +553,170 @@ describe('Admin Routes', () => {
       expect(response.body.posts.length).toBeLessThanOrEqual(50);
     });
   });
+
+  describe('GET /api/admin/users/active', () => {
+    const User = require('../models/User');
+
+    it('should return active users within 15-minute window', async () => {
+      const response = await request(app)
+        .get('/api/admin/users/active')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('users');
+      expect(Array.isArray(response.body.users)).toBe(true);
+      
+      // Should have at least superadmin and admin users from login
+      expect(response.body.users.length).toBeGreaterThanOrEqual(2);
+      
+      // Verify response structure
+      response.body.users.forEach(user => {
+        expect(user).toHaveProperty('_id');
+        expect(user).toHaveProperty('username');
+        expect(user).toHaveProperty('lastActiveAt');
+        expect(typeof user.username).toBe('string');
+        expect(typeof user.lastActiveAt).toBe('string');
+        // fullName can be present or absent depending on the user, just verify username exists
+      });
+    });
+
+    it('should exclude users outside 15-minute window', async () => {
+      const User = require('../models/User');
+      
+      // Create a user with lastLogin > 15 minutes ago
+      const oldUser = await User.create({
+        username: 'olduser',
+        email: 'old@example.com',
+        password: 'Password123!',
+        fullName: 'Old User',
+        isActive: true,
+        role: roles.adminRole._id, // Add required role field
+        lastLogin: new Date(Date.now() - 20 * 60 * 1000) // 20 minutes ago
+      });
+
+      const response = await request(app)
+        .get('/api/admin/users/active')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      // Should not include the old user
+      const userIds = response.body.users.map(u => u._id.toString());
+      expect(userIds).not.toContain(oldUser._id.toString());
+    });
+
+    it('should exclude inactive users', async () => {
+      const User = require('../models/User');
+      
+      // Create an inactive user with recent login
+      const inactiveUser = await User.create({
+        username: 'inactiveuser',
+        email: 'inactive@example.com',
+        password: 'Password123!',
+        fullName: 'Inactive User',
+        isActive: false,
+        role: roles.adminRole._id, // Add required role field
+        lastLogin: new Date() // Now
+      });
+
+      const response = await request(app)
+        .get('/api/admin/users/active')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      // Should not include the inactive user
+      const userIds = response.body.users.map(u => u._id.toString());
+      expect(userIds).not.toContain(inactiveUser._id.toString());
+    });
+
+    it('should return max 10 users', async () => {
+      const User = require('../models/User');
+      
+      // Create 15 active users with recent login
+      const users = Array.from({ length: 15 }, (_, i) => ({
+        username: `activeuser${i}`,
+        email: `active${i}@example.com`,
+        password: 'Password123!',
+        fullName: `Active User ${i}`,
+        isActive: true,
+        role: roles.adminRole._id, // Add required role field
+        lastLogin: new Date(Date.now() - i * 60 * 1000) // Staggered login times
+      }));
+      await User.create(users);
+
+      const response = await request(app)
+        .get('/api/admin/users/active')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.users.length).toBeLessThanOrEqual(10);
+    });
+
+    it('should sort by lastLogin descending (most recent first)', async () => {
+      const response = await request(app)
+        .get('/api/admin/users/active')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      if (response.body.users.length > 1) {
+        // Verify users are sorted by lastActiveAt descending
+        for (let i = 0; i < response.body.users.length - 1; i++) {
+          const currentTime = new Date(response.body.users[i].lastActiveAt);
+          const nextTime = new Date(response.body.users[i + 1].lastActiveAt);
+          expect(currentTime >= nextTime).toBe(true);
+        }
+      }
+    });
+
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .get('/api/admin/users/active');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should return empty array when no active users', async () => {
+      const User = require('../models/User');
+      
+      // Set all users' lastLogin to > 15 minutes ago
+      await User.updateMany({}, {
+        lastLogin: new Date(Date.now() - 20 * 60 * 1000)
+      });
+
+      const response = await request(app)
+        .get('/api/admin/users/active')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.users).toEqual([]);
+    });
+
+    it('should include fullName in response', async () => {
+      const User = require('../models/User');
+      
+      // Create a test user with fullName
+      const testUser = await User.create({
+        username: 'fulltestuser',
+        email: 'fulltest@example.com',
+        password: 'Password123!',
+        fullName: 'Full Test User',
+        isActive: true,
+        role: roles.adminRole._id,
+        lastLogin: new Date() // Recent login
+      });
+
+      const response = await request(app)
+        .get('/api/admin/users/active')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      // Find the test user in the response
+      const foundUser = response.body.users.find(u => u.username === 'fulltestuser');
+      expect(foundUser).toBeDefined();
+      expect(foundUser.fullName).toBe('Full Test User');
+    });
+  });
 });

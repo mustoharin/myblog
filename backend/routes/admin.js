@@ -123,4 +123,133 @@ router.get('/posts/popular', auth, checkRole(['read_post']), async (req, res) =>
   }
 });
 
+// Get active users (recently logged in within last 15 minutes)
+// Require at least read_user privilege
+router.get('/users/active', auth, checkRole(['read_user']), async (req, res) => {
+  try {
+    // Calculate time threshold (15 minutes ago)
+    const timeThreshold = new Date(Date.now() - 15 * 60 * 1000);
+    
+    // Find users who logged in recently and are active
+    const activeUsers = await User.find({
+      lastLogin: { $gte: timeThreshold },
+      isActive: true
+    })
+    .select('username fullName lastLogin')
+    .sort({ lastLogin: -1 })
+    .limit(10)
+    .lean();
+    
+    // Format response with lastActiveAt field
+    const users = activeUsers.map(user => ({
+      _id: user._id,
+      username: user.username,
+      fullName: user.fullName,
+      lastActiveAt: user.lastLogin
+    }));
+    
+    res.json({ users });
+  } catch (error) {
+    console.error('Active users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get recent activities (posts, users, comments)
+// Require at least read_post or read_user privilege
+router.get('/activities', auth, checkRole(['read_post', 'read_user']), async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const activities = [];
+
+    // Get recent posts (created or updated)
+    const recentPosts = await Post.find()
+      .select('title createdAt updatedAt author isPublished')
+      .populate('author', 'username fullName')
+      .sort({ updatedAt: -1 })
+      .limit(limit)
+      .lean();
+
+    recentPosts.forEach(post => {
+      const isNew = new Date(post.createdAt).getTime() === new Date(post.updatedAt).getTime();
+      activities.push({
+        _id: `post_${post._id}_${isNew ? 'create' : 'update'}`,
+        type: isNew ? 'post_create' : 'post_update',
+        user: post.author,
+        data: {
+          id: post._id,
+          title: post.title,
+          status: post.isPublished ? 'published' : 'draft'
+        },
+        createdAt: isNew ? post.createdAt : post.updatedAt
+      });
+    });
+
+    // Get recent users
+    const recentUsers = await User.find()
+      .select('username fullName createdAt')
+      .sort({ createdAt: -1 })
+      .limit(Math.ceil(limit / 2))
+      .lean();
+
+    recentUsers.forEach(user => {
+      activities.push({
+        _id: `user_${user._id}_create`,
+        type: 'user_create',
+        user: { username: 'System', fullName: 'System' },
+        data: {
+          id: user._id,
+          username: user.username,
+          fullName: user.fullName
+        },
+        createdAt: user.createdAt
+      });
+    });
+
+    // Get recent comments from posts
+    const postsWithComments = await Post.find({
+      'comments.0': { $exists: true }
+    })
+      .select('title comments')
+      .sort({ 'comments.createdAt': -1 })
+      .limit(Math.ceil(limit / 2))
+      .lean();
+
+    postsWithComments.forEach(post => {
+      if (post.comments && post.comments.length > 0) {
+        // Get the most recent comment
+        const sortedComments = [...post.comments].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        const recentComment = sortedComments[0];
+        
+        activities.push({
+          _id: `comment_${post._id}_${recentComment._id}`,
+          type: 'comment_create',
+          user: {
+            username: recentComment.authorName || 'Anonymous',
+            fullName: recentComment.authorName || 'Anonymous'
+          },
+          data: {
+            postId: post._id,
+            postTitle: post.title,
+            commentText: recentComment.content.substring(0, 100)
+          },
+          createdAt: recentComment.createdAt
+        });
+      }
+    });
+
+    // Sort all activities by createdAt descending and limit
+    const sortedActivities = activities
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, limit);
+
+    res.json({ activities: sortedActivities });
+  } catch (error) {
+    console.error('Activities error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
