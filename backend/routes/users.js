@@ -79,7 +79,7 @@ router.get('/:id', auth, checkRole(['read_user']), async (req, res) => {
  */
 router.post('/', auth, checkRole(['create_user']), async (req, res) => {
   try {
-    const { username, email, password, role, isActive } = req.body;
+    const { username, fullName, email, password, role, isActive } = req.body;
 
     // Validate required fields
     if (!username || !email || !password || !role) {
@@ -108,6 +108,7 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
     // Create the new user
     const newUser = new User({
       username,
+      fullName: fullName || null,
       email,
       password,  // Will be hashed by mongoose pre-save hook
       role,
@@ -159,7 +160,7 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
   
   while (tries > 0) {
     try {
-      const { username, email, password, role, isActive } = req.body;
+      const { username, fullName, email, password, role, isActive } = req.body;
       
       // First get the current user
       const user = await User.findById(req.params.id);
@@ -171,6 +172,7 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
       const updateData = {};
 
       if (username) updateData.username = username;
+      if (fullName !== undefined) updateData.fullName = fullName || null;
       if (email) updateData.email = email;
       if (password) {
         const salt = await bcrypt.genSalt(10);

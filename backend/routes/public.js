@@ -30,7 +30,7 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
     // Execute query with pagination
     const posts = await Post.find(query)
       .select('title excerpt createdAt author tags')
-      .populate('author', 'username')
+      .populate('author', 'username fullName')
       .sort(search ? { score: { $meta: 'textScore' } } : { createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -78,8 +78,8 @@ router.get('/tags', baseRateLimiter, async (req, res) => {
 router.get('/posts/:id', baseRateLimiter, async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.id, isPublished: true })
-      .populate('author', 'username')
-      .populate('comments.author', 'username');
+      .populate('author', 'username fullName')
+      .populate('comments.author', 'username fullName');
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });

@@ -95,6 +95,34 @@ describe('Public API', () => {
       expect(response.body.author.username).toBe('testuser');
     });
 
+    it('should return author fullName when available', async () => {
+      // Create a user with fullName (using existing test user's role)
+      const userWithFullName = await User.create({
+        username: 'authoruser',
+        email: 'author@test.com',
+        password: 'password123',
+        fullName: 'John Doe Author',
+        role: testUser.role
+      });
+
+      // Create a post with this author
+      const postWithFullName = await Post.create({
+        title: 'Post by Author with Full Name',
+        content: '<p>Content by author with full name</p>',
+        excerpt: 'Excerpt by author',
+        author: userWithFullName._id,
+        isPublished: true
+      });
+
+      const response = await request(app)
+        .get(`/api/public/posts/${postWithFullName._id}`)
+        .expect(200);
+
+      expect(response.body.author.username).toBe('authoruser');
+      expect(response.body.author.fullName).toBe('John Doe Author');
+      expect(response.body.author).toHaveProperty('fullName');
+    });
+
     it('should not return an unpublished post', async () => {
       // Create an unpublished post
       const unpublishedPost = await Post.create({

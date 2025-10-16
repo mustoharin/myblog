@@ -415,4 +415,105 @@ describe('User Routes', () => {
       expect(typeof response.body.isActive).toBe('boolean');
     });
   });
+
+  describe('User Full Name Management', () => {
+    it('should create user with fullName', async () => {
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'johndoe',
+          fullName: 'John Doe',
+          email: 'johndoe@test.com',
+          password: 'password123',
+          role: roles.adminRole._id
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('username', 'johndoe');
+      expect(response.body).toHaveProperty('fullName', 'John Doe');
+    });
+
+    it('should create user without fullName (optional field)', async () => {
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'janedoe',
+          email: 'janedoe@test.com',
+          password: 'password123',
+          role: roles.adminRole._id
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('username', 'janedoe');
+      expect(response.body.fullName).toBeNull();
+    });
+
+    it('should update user fullName', async () => {
+      // Create user
+      const newUser = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'updatename',
+          email: 'updatename@test.com',
+          password: 'password123',
+          role: roles.adminRole._id
+        });
+
+      // Update fullName
+      const response = await request(app)
+        .put(`/api/users/${newUser.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          fullName: 'Updated Name'
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('fullName', 'Updated Name');
+    });
+
+    it('should include fullName in user list', async () => {
+      // Create a user with fullName
+      await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'listuser',
+          fullName: 'List User',
+          email: 'listuser@test.com',
+          password: 'password123',
+          role: roles.adminRole._id
+        });
+
+      const response = await request(app)
+        .get('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.items).toBeDefined();
+      
+      // Find the user with fullName
+      const userWithFullName = response.body.items.find(u => u.username === 'listuser');
+      expect(userWithFullName).toBeDefined();
+      expect(userWithFullName).toHaveProperty('fullName', 'List User');
+    });
+
+    it('should validate fullName against XSS', async () => {
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'xsstest',
+          fullName: '<script>alert("xss")</script>Malicious Name',
+          email: 'xsstest@test.com',
+          password: 'password123',
+          role: roles.adminRole._id
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('unsafe content');
+    });
+  });
 });

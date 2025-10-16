@@ -16,6 +16,19 @@ const UserSchema = new mongoose.Schema({
       message: () => 'Username contains potentially unsafe content'
     }
   },
+  fullName: {
+    type: String,
+    required: false,
+    trim: true,
+    validate: {
+      validator: function(v) {
+        if (!v) return true; // Optional field
+        const error = validateNoXss(v);
+        return error === '';
+      },
+      message: () => 'Full name contains potentially unsafe content'
+    }
+  },
   email: {
     type: String,
     required: true,

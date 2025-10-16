@@ -145,7 +145,7 @@ const BlogPost = () => {
             <PersonIcon />
           </Avatar>
           <Typography variant="subtitle1">
-            {post.author?.username || 'Anonymous'}
+            {post.author?.fullName || post.author?.username || 'Anonymous'}
           </Typography>
         </Box>
         

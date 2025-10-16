@@ -206,9 +206,16 @@ const UserList = ({ onEdit }) => {
                     }}
                   >
                     <TableCell>
-                      <Typography variant="body2" fontWeight={500}>
-                        {user.username}
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500}>
+                          {user.username}
+                        </Typography>
+                        {user.fullName && (
+                          <Typography variant="caption" color="text.secondary">
+                            {user.fullName}
+                          </Typography>
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">{user.email}</Typography>

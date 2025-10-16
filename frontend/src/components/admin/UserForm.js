@@ -25,6 +25,9 @@ const validationSchema = Yup.object({
   username: Yup.string()
     .min(3, 'Username must be at least 3 characters')
     .required('Username is required'),
+  fullName: Yup.string()
+    .min(2, 'Full name must be at least 2 characters')
+    .notRequired(),
   email: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
@@ -91,6 +94,7 @@ const UserForm = ({ onBack }) => {
 
   const initialValues = {
     username: user?.username || '',
+    fullName: user?.fullName || '',
     email: user?.email || '',
     password: '',
     confirmPassword: '',
@@ -104,6 +108,7 @@ const UserForm = ({ onBack }) => {
     try {
       const userData = {
         username: values.username,
+        fullName: values.fullName || null,
         email: values.email,
         isActive: values.isActive,
         role: values.role,
@@ -169,6 +174,19 @@ const UserForm = ({ onBack }) => {
                 error={formik.touched.username && Boolean(formik.errors.username)}
                 helperText={formik.touched.username && formik.errors.username}
                 disabled={user?.username === 'admin'}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                id="fullName"
+                name="fullName"
+                label="Full Name (optional)"
+                value={formik.values.fullName}
+                onChange={formik.handleChange}
+                error={formik.touched.fullName && Boolean(formik.errors.fullName)}
+                helperText={formik.touched.fullName && formik.errors.fullName}
               />
             </Grid>
 
