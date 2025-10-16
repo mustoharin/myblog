@@ -358,4 +358,70 @@ describe('Public API', () => {
       expect(finalResponse.body.views).toBe(6);
     });
   });
+
+  describe('POST /api/public/posts/:id/share', () => {
+    it('should increment share count for published post', async () => {
+      const response = await request(app)
+        .post(`/api/public/posts/${testPost._id}/share`)
+        .expect(200);
+
+      expect(response.body.shares).toBe(1);
+
+      // Verify it increments again
+      const response2 = await request(app)
+        .post(`/api/public/posts/${testPost._id}/share`)
+        .expect(200);
+
+      expect(response2.body.shares).toBe(2);
+    });
+
+    it('should return 404 for non-existent post', async () => {
+      const fakeId = new mongoose.Types.ObjectId();
+      await request(app)
+        .post(`/api/public/posts/${fakeId}/share`)
+        .expect(404);
+    });
+
+    it('should return 404 for unpublished post', async () => {
+      const unpublishedPost = await Post.create({
+        title: 'Unpublished Post for Share',
+        content: '<p>This is an unpublished post</p>',
+        excerpt: 'Unpublished',
+        author: testUser._id,
+        isPublished: false
+      });
+
+      await request(app)
+        .post(`/api/public/posts/${unpublishedPost._id}/share`)
+        .expect(404);
+    });
+
+    it('should return 404 for invalid post ID', async () => {
+      await request(app)
+        .post('/api/public/posts/invalid-id/share')
+        .expect(404);
+    });
+
+    it('should handle multiple concurrent share increments correctly', async () => {
+      // Make multiple concurrent requests
+      const requests = Array(3).fill(null).map(() =>
+        request(app).post(`/api/public/posts/${testPost._id}/share`)
+      );
+
+      const responses = await Promise.all(requests);
+
+      // All should succeed
+      responses.forEach(response => {
+        expect(response.status).toBe(200);
+        expect(response.body.shares).toBeGreaterThan(0);
+      });
+
+      // Verify final count
+      const finalResponse = await request(app)
+        .post(`/api/public/posts/${testPost._id}/share`)
+        .expect(200);
+
+      expect(finalResponse.body.shares).toBe(4);
+    });
+  });
 });

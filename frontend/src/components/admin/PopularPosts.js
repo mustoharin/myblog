@@ -77,7 +77,7 @@ const PopularPosts = () => {
   };
 
   const handleView = () => {
-    window.open(`/blog/${selectedPost._id}`, '_blank');
+    window.open(`/post/${selectedPost._id}`, '_blank');
     handleMenuClose();
   };
 

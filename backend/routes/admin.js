@@ -24,6 +24,17 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
     ]);
     const totalViews = viewsAggregation.length > 0 ? viewsAggregation[0].totalViews : 0;
     
+    // Get total shares from all posts
+    const sharesAggregation = await Post.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalShares: { $sum: '$shares' }
+        }
+      }
+    ]);
+    const totalShares = sharesAggregation.length > 0 ? sharesAggregation[0].totalShares : 0;
+    
     // Get total comments from all posts
     const commentsAggregation = await Post.aggregate([
       {
@@ -44,6 +55,7 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
       totalPosts,
       totalUsers,
       totalViews,
+      totalShares,
       totalComments
     });
   } catch (error) {
@@ -86,7 +98,7 @@ router.get('/posts/popular', auth, checkRole(['read_post']), async (req, res) =>
     
     // Get popular posts sorted by views, then comments
     const posts = await Post.find(dateFilter)
-      .select('title views isPublished createdAt comments')
+      .select('title views shares isPublished createdAt comments')
       .populate('author', 'username')
       .sort({ views: -1, createdAt: -1 })
       .limit(limit)
@@ -98,7 +110,7 @@ router.get('/posts/popular', auth, checkRole(['read_post']), async (req, res) =>
       title: post.title,
       views: post.views || 0,
       commentsCount: Array.isArray(post.comments) ? post.comments.length : 0,
-      sharesCount: 0, // TODO: implement shares tracking if needed
+      sharesCount: post.shares || 0,
       status: post.isPublished ? 'published' : 'draft',
       createdAt: post.createdAt,
       author: post.author

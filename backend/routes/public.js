@@ -162,4 +162,26 @@ router.post('/posts/:id/view', baseRateLimiter, async (req, res) => {
   }
 });
 
+// Track post share (increment share count)
+router.post('/posts/:id/share', baseRateLimiter, async (req, res) => {
+  try {
+    const post = await Post.findOneAndUpdate(
+      { _id: req.params.id, isPublished: true },
+      { $inc: { shares: 1 } },
+      { new: true, select: 'shares' }
+    );
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json({ shares: post.shares });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

@@ -11,6 +11,7 @@ import {
   Person as PersonIcon,
   Visibility as ViewsIcon,
   Comment as CommentIcon,
+  Share as ShareIcon,
 } from '@mui/icons-material';
 import api from '../../services/api';
 
@@ -50,6 +51,7 @@ const AdminStats = () => {
     posts: { value: 0, loading: true },
     users: { value: 0, loading: true },
     views: { value: 0, loading: true },
+    shares: { value: 0, loading: true },
     comments: { value: 0, loading: true },
   });
 
@@ -61,6 +63,7 @@ const AdminStats = () => {
           posts: { value: response.data.totalPosts, loading: false },
           users: { value: response.data.totalUsers, loading: false },
           views: { value: response.data.totalViews, loading: false },
+          shares: { value: response.data.totalShares, loading: false },
           comments: { value: response.data.totalComments, loading: false },
         });
       } catch (error) {
@@ -68,6 +71,7 @@ const AdminStats = () => {
           posts: { ...prev.posts, loading: false, error: true },
           users: { ...prev.users, loading: false, error: true },
           views: { ...prev.views, loading: false, error: true },
+          shares: { ...prev.shares, loading: false, error: true },
           comments: { ...prev.comments, loading: false, error: true },
         }));
       }
@@ -103,6 +107,15 @@ const AdminStats = () => {
           icon={ViewsIcon}
           loading={stats.views.loading}
           error={stats.views.error}
+        />
+      </Grid>
+      <Grid item xs={12} sm={6} md={3}>
+        <StatCard
+          title="Total Shares"
+          value={stats.shares.value}
+          icon={ShareIcon}
+          loading={stats.shares.loading}
+          error={stats.shares.error}
         />
       </Grid>
       <Grid item xs={12} sm={6} md={3}>

@@ -93,13 +93,31 @@ const BlogPost = () => {
 
   const handleShare = async () => {
     try {
-      await navigator.share({
-        title: post.title,
-        text: post.excerpt || '',
-        url: window.location.href,
-      });
+      // Track the share on backend first
+      await api.post(`/public/posts/${post._id}/share`);
+      
+      // Update local share count
+      setPost(prevPost => ({
+        ...prevPost,
+        shares: (prevPost.shares || 0) + 1
+      }));
+
+      // Try to use native share if available
+      if (navigator.share) {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt || post.title,
+          url: window.location.href,
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        // You could show a toast notification here
+        console.log('Link copied to clipboard!');
+      }
     } catch (error) {
-      console.error('Error sharing:', error);
+      // User cancelled share or other error
+      console.debug('Share cancelled or failed:', error);
     }
   };
 
@@ -163,11 +181,21 @@ const BlogPost = () => {
           </Typography>
         </Box>
 
-        {navigator.share && (
-          <IconButton onClick={handleShare} sx={{ ml: 'auto' }}>
-            <ShareIcon />
-          </IconButton>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <ShareIcon sx={{ mr: 1 }} />
+          <Typography variant="subtitle1">
+            {post.shares || 0} shares
+          </Typography>
+        </Box>
+
+        <IconButton 
+          onClick={handleShare} 
+          sx={{ ml: 'auto' }}
+          color="primary"
+          aria-label="share post"
+        >
+          <ShareIcon />
+        </IconButton>
       </Box>
 
       {/* Tags */}

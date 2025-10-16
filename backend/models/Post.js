@@ -100,6 +100,11 @@ const PostSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  shares: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   comments: [CommentSchema]
 });
 
@@ -109,5 +114,7 @@ PostSchema.index({ title: 'text', content: 'text' });
 PostSchema.index({ tags: 1 });
 // Add views index for sorting by popularity
 PostSchema.index({ views: -1 });
+// Add shares index for sorting by popularity
+PostSchema.index({ shares: -1 });
 
 module.exports = mongoose.model('Post', PostSchema);
