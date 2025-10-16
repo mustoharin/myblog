@@ -307,4 +307,112 @@ describe('User Routes', () => {
       expect(finalUser.body.email).toMatch(/^test[12]@test\.com$/);
     });
   });
+
+  describe('User Status Management', () => {
+    it('should create user with isActive set to true by default', async () => {
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'newuser',
+          email: 'newuser@test.com',
+          password: 'password123',
+          role: roles.adminRole._id
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('isActive', true);
+    });
+
+    it('should create user with isActive set to false when specified', async () => {
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'inactiveuser',
+          email: 'inactive@test.com',
+          password: 'password123',
+          role: roles.adminRole._id,
+          isActive: false
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('isActive', false);
+    });
+
+    it('should update user status from active to inactive', async () => {
+      // Create a user
+      const newUser = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'activeuser',
+          email: 'active@test.com',
+          password: 'password123',
+          role: roles.adminRole._id,
+          isActive: true
+        });
+
+      // Update to inactive
+      const response = await request(app)
+        .put(`/api/users/${newUser.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          isActive: false
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('isActive', false);
+    });
+
+    it('should update user status from inactive to active', async () => {
+      // Create an inactive user
+      const newUser = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'deactivateduser',
+          email: 'deactivated@test.com',
+          password: 'password123',
+          role: roles.adminRole._id,
+          isActive: false
+        });
+
+      // Update to active
+      const response = await request(app)
+        .put(`/api/users/${newUser.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          isActive: true
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('isActive', true);
+    });
+
+    it('should include isActive in user list', async () => {
+      const response = await request(app)
+        .get('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.items).toBeDefined();
+      
+      // Check that each user has isActive property
+      response.body.items.forEach(user => {
+        expect(user).toHaveProperty('isActive');
+        expect(typeof user.isActive).toBe('boolean');
+      });
+    });
+
+    it('should include isActive in single user endpoint', async () => {
+      const response = await request(app)
+        .get(`/api/users/${adminUser._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('isActive');
+      expect(typeof response.body.isActive).toBe('boolean');
+    });
+  });
 });

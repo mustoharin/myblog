@@ -397,4 +397,162 @@ describe('Auth Routes', () => {
       expect(new Date(secondLogin).getTime()).toBeGreaterThan(new Date(firstLogin).getTime());
     });
   });
+
+  describe('Inactive User Access Control', () => {
+    it('should prevent inactive user from logging in', async () => {
+      const User = require('../models/User');
+      
+      // Create an inactive user
+      const inactiveUser = await User.create({
+        username: 'inactiveuser',
+        email: 'inactive@test.com',
+        password: 'Password#12345!',
+        role: roles.adminRole._id,
+        isActive: false
+      });
+
+      // Attempt to login
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'inactiveuser',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toContain('deactivated');
+    });
+
+    it('should allow active user to login normally', async () => {
+      const User = require('../models/User');
+      
+      // Create an active user
+      const activeUser = await User.create({
+        username: 'activeuser',
+        email: 'active@test.com',
+        password: 'Password#12345!',
+        role: roles.adminRole._id,
+        isActive: true
+      });
+
+      // Attempt to login
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'activeuser',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('token');
+      expect(response.body.user.username).toBe('activeuser');
+    });
+
+    it('should not update lastLogin for inactive user', async () => {
+      const User = require('../models/User');
+      
+      // Create an inactive user
+      const inactiveUser = await User.create({
+        username: 'testinactive',
+        email: 'testinactive@test.com',
+        password: 'Password#12345!',
+        role: roles.adminRole._id,
+        isActive: false
+      });
+
+      const lastLoginBefore = inactiveUser.lastLogin;
+
+      // Attempt to login
+      await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'testinactive',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      // Check that lastLogin was not updated
+      const userAfter = await User.findById(inactiveUser._id);
+      expect(userAfter.lastLogin).toEqual(lastLoginBefore);
+    });
+
+    it('should prevent inactive user from accessing protected routes', async () => {
+      const User = require('../models/User');
+      
+      // Create an active user and get token
+      const activeUser = await User.create({
+        username: 'tokenuser',
+        email: 'tokenuser@test.com',
+        password: 'Password#12345!',
+        role: roles.superadminRole._id,
+        isActive: true
+      });
+
+      // Login to get token
+      const loginResponse = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'tokenuser',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      const token = loginResponse.body.token;
+
+      // Deactivate the user
+      activeUser.isActive = false;
+      await activeUser.save();
+
+      // Try to access protected route with valid token but inactive account
+      const response = await request(app)
+        .get('/api/users')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('deactivated');
+    });
+
+    it('should allow user to login after reactivation', async () => {
+      const User = require('../models/User');
+      
+      // Create an inactive user
+      const user = await User.create({
+        username: 'reactivateuser',
+        email: 'reactivate@test.com',
+        password: 'Password#12345!',
+        role: roles.adminRole._id,
+        isActive: false
+      });
+
+      // First attempt should fail
+      const failResponse = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'reactivateuser',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      expect(failResponse.status).toBe(403);
+
+      // Reactivate user
+      user.isActive = true;
+      await user.save();
+
+      // Second attempt should succeed
+      const successResponse = await request(app)
+        .post('/api/auth/login')
+        .send({
+          username: 'reactivateuser',
+          password: 'Password#12345!',
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
+
+      expect(successResponse.status).toBe(200);
+      expect(successResponse.body).toHaveProperty('token');
+    });
+  });
 });

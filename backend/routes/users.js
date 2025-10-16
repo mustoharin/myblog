@@ -79,7 +79,7 @@ router.get('/:id', auth, checkRole(['read_user']), async (req, res) => {
  */
 router.post('/', auth, checkRole(['create_user']), async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, isActive } = req.body;
 
     // Validate required fields
     if (!username || !email || !password || !role) {
@@ -110,7 +110,8 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
       username,
       email,
       password,  // Will be hashed by mongoose pre-save hook
-      role
+      role,
+      isActive: isActive !== undefined ? isActive : true
     });
 
     await newUser.save();
@@ -158,7 +159,7 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
   
   while (tries > 0) {
     try {
-      const { username, email, password, role } = req.body;
+      const { username, email, password, role, isActive } = req.body;
       
       // First get the current user
       const user = await User.findById(req.params.id);
@@ -181,6 +182,9 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
           return res.status(400).json({ message: 'Invalid role' });
         }
         updateData.role = role;
+      }
+      if (isActive !== undefined) {
+        updateData.isActive = isActive;
       }
 
       // Use findOneAndUpdate with optimistic concurrency control

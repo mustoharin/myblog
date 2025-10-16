@@ -25,6 +25,14 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+    } else if (error.response?.status === 403) {
+      // Handle deactivated account
+      const message = error.response?.data?.message || '';
+      if (message.includes('deactivated')) {
+        localStorage.removeItem('token');
+        localStorage.setItem('deactivationMessage', message);
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

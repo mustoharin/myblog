@@ -43,6 +43,13 @@ const Login = () => {
 
   useEffect(() => {
     fetchCaptcha();
+    
+    // Check for deactivation message
+    const deactivationMessage = localStorage.getItem('deactivationMessage');
+    if (deactivationMessage) {
+      setError(deactivationMessage);
+      localStorage.removeItem('deactivationMessage');
+    }
   }, []);
 
   const handleSubmit = async (e) => {

@@ -46,6 +46,13 @@ const auth = async (req, res, next) => {
       if (!user.role) {
         return res.status(401).json({ message: 'User role not found' });
       }
+
+      // Check if user account is active
+      if (!user.isActive) {
+        return res.status(403).json({ 
+          message: 'Your account has been deactivated. Please contact the administrator.' 
+        });
+      }
       
       req.user = user;
       next();

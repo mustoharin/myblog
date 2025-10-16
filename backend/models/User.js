@@ -40,6 +40,10 @@ const UserSchema = new mongoose.Schema({
     ref: 'Role',
     required: true
   },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
   resetPasswordToken: {
     type: String,
     default: null

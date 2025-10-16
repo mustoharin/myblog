@@ -89,6 +89,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Check if user account is active
+    if (!user.isActive) {
+      return res.status(403).json({ 
+        message: 'Your account has been deactivated. Please contact the administrator.' 
+      });
+    }
+
     // Update last login timestamp
     user.lastLogin = new Date();
     await user.save();
