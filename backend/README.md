@@ -633,6 +633,177 @@ Increment the view count for a post. Called automatically when users view a post
 **Use Case:**
 Frontend automatically calls this endpoint when a user views a blog post, enabling accurate view tracking analytics.
 
+#### Get Active Users
+```http
+GET /api/admin/users/active
+```
+Get a list of users who have logged in within the last 15 minutes, useful for monitoring real-time user activity.
+
+**Authentication Required:** JWT token with `read_user` privilege
+
+**Response:**
+```json
+{
+  "users": [
+    {
+      "_id": "user_id",
+      "username": "john_doe",
+      "fullName": "John Doe",
+      "email": "john@example.com",
+      "lastLogin": "2025-11-15T14:30:00.000Z",
+      "role": {
+        "_id": "role_id",
+        "name": "admin"
+      }
+    }
+  ]
+}
+```
+
+**Features:**
+- Returns users logged in within the last 15 minutes
+- Maximum 10 users returned
+- Sorted by most recent login first (lastLogin descending)
+- Only includes active users (isActive: true)
+- Populates user role information
+- Returns empty array if no active users
+
+**Use Case:**
+Admin dashboard widget displays currently active users in real-time, providing visibility into who is using the system.
+
+#### Get Recent Activities
+```http
+GET /api/admin/activities
+```
+Get recent system activities including post creation/updates, user registrations, and comments for activity monitoring.
+
+**Authentication Required:** JWT token with `read_post` privilege
+
+**Query Parameters:**
+- `limit` (optional): Number of activities to return (default: 10, max: 50)
+
+**Response:**
+```json
+{
+  "activities": [
+    {
+      "_id": "activity_id",
+      "type": "post_create",
+      "description": "New post created",
+      "user": {
+        "username": "john_doe",
+        "fullName": "John Doe"
+      },
+      "timestamp": "2025-11-15T14:45:00.000Z",
+      "metadata": {
+        "postTitle": "My New Blog Post"
+      }
+    },
+    {
+      "_id": "activity_id",
+      "type": "user_create",
+      "description": "New user registered",
+      "user": {
+        "username": "jane_smith",
+        "fullName": "Jane Smith"
+      },
+      "timestamp": "2025-11-15T14:30:00.000Z"
+    },
+    {
+      "_id": "activity_id",
+      "type": "comment_create",
+      "description": "New comment added",
+      "user": {
+        "username": "Unknown",
+        "fullName": "Guest User"
+      },
+      "timestamp": "2025-11-15T14:15:00.000Z",
+      "metadata": {
+        "postTitle": "Existing Post"
+      }
+    }
+  ]
+}
+```
+
+**Activity Types:**
+- `post_create`: New blog post created
+- `post_update`: Existing post modified
+- `user_create`: New user registered
+- `comment_create`: New comment added to post
+
+**Features:**
+- Aggregates activities from multiple sources (posts, users, comments)
+- Sorted by timestamp descending (most recent first)
+- Handles posts without updatedAt field (treats as new posts)
+- Null-safe handling for deleted/missing authors
+- Includes relevant metadata (post titles, etc.)
+- Configurable result limit
+
+**Use Case:**
+Admin dashboard Recent Activity widget displays system-wide activity feed for monitoring user engagement and content creation.
+
+#### Get System Status
+```http
+GET /api/admin/system/status
+```
+Get comprehensive system health metrics including database statistics, memory usage, and performance data.
+
+**Authentication Required:** JWT token with `read_post` privilege
+
+**Response:**
+```json
+{
+  "database": {
+    "storageSize": 10485760,
+    "dataSize": 8388608,
+    "indexSize": 2097152,
+    "collections": 5,
+    "objects": 1250,
+    "avgObjSize": 6710
+  },
+  "memory": {
+    "heapUsed": 52428800,
+    "heapTotal": 104857600,
+    "rss": 157286400,
+    "external": 2097152
+  },
+  "performance": {
+    "uptime": 86400,
+    "responseTime": 42
+  },
+  "timestamp": "2025-11-15T14:50:00.000Z"
+}
+```
+
+**Response Fields:**
+- `database`:
+  - `storageSize`: Total database storage in bytes
+  - `dataSize`: Actual data size in bytes
+  - `indexSize`: Index size in bytes
+  - `collections`: Number of collections
+  - `objects`: Total number of documents
+  - `avgObjSize`: Average object size in bytes
+- `memory`:
+  - `heapUsed`: V8 heap memory used in bytes
+  - `heapTotal`: V8 total heap size in bytes
+  - `rss`: Resident Set Size (total memory) in bytes
+  - `external`: Memory used by C++ objects in bytes
+- `performance`:
+  - `uptime`: Server uptime in seconds
+  - `responseTime`: Estimated response time in milliseconds
+- `timestamp`: Server time when status was collected
+
+**Features:**
+- Real-time database statistics using MongoDB stats()
+- Node.js process memory usage metrics
+- Server uptime tracking since startup
+- Response time measurement
+- Atomic operation timing for accuracy
+
+**Use Case:**
+Admin dashboard System Status widget provides real-time server health monitoring, helping administrators identify performance issues and resource constraints.
+
 ## New Features
 
 ### Post Views Tracking
@@ -871,16 +1042,16 @@ npm test -- --testNamePattern="Last Login"
 ```
 
 ### Test Suite
-The project includes comprehensive test coverage with 185 tests:
+The project includes comprehensive test coverage with 237 tests:
 
 **Test Files:**
 - `auth.test.js` (18 tests) - Authentication and last login tracking
-- `admin.test.js` (21 tests) - Admin dashboard statistics and popular posts
-- `users.test.js` (17 tests) - User CRUD operations
+- `admin.test.js` (46 tests) - Admin dashboard statistics, popular posts, active users, recent activity, system status
+- `users.test.js` (28 tests) - User CRUD operations, fullName, isActive status
 - `posts.test.js` (17 tests) - Post management and rich content validation
 - `roles.test.js` (20 tests) - Role management and data integrity
 - `privileges.test.js` (8 tests) - Privilege management
-- `public.test.js` (17 tests) - Public API and view tracking
+- `public.test.js` (19 tests) - Public API and view tracking
 - `captcha.test.js` (11 tests) - CAPTCHA generation and validation
 - `password.test.js` (9 tests) - Password reset functionality
 - `change-password.test.js` (7 tests) - Password change validation
@@ -891,7 +1062,7 @@ The project includes comprehensive test coverage with 185 tests:
 - `roles.content.test.js` (4 tests) - Rich content in role descriptions
 - `privileges.content.test.js` (4 tests) - Rich content in privilege descriptions
 
-**Test Results:** 183 tests passing, 2 skipped
+**Test Results:** 235 tests passing, 2 skipped
 
 **Key Test Coverage:**
 - ✅ Authentication with CAPTCHA validation
@@ -899,6 +1070,9 @@ The project includes comprehensive test coverage with 185 tests:
 - ✅ Post view tracking (5 tests)
 - ✅ Admin statistics aggregation (11 tests)
 - ✅ Popular posts with timeframe filtering (10 tests)
+- ✅ Active users monitoring (8 tests)
+- ✅ Recent activity tracking (9 tests)
+- ✅ System status metrics (8 tests)
 - ✅ Role-based access control
 - ✅ XSS protection and input validation
 - ✅ Rich content sanitization

@@ -27,7 +27,10 @@ A modern React-based frontend for a blog platform with role-based admin panel an
 #### Dashboard
 - **System Statistics** (total users, posts, roles, views)
 - **Popular Posts Widget** (top 5 by views with timeframe filter)
-- **Recent Activity** tracking
+- **Active Users Widget** (users logged in within last 15 minutes)
+- **Recent Activity Widget** (track posts, users, comments activities)
+- **System Status Widget** (database, memory, performance monitoring)
+- Real-time updates with auto-refresh
 
 #### User Management
 - Create, read, update, delete users
@@ -151,7 +154,9 @@ REACT_APP_API_URL=http://localhost:5000/api
 #### Dashboard
 - System overview statistics
 - Popular posts widget with 7/30/all-time filters
-- Recent activity feed
+- **Active Users Widget** - Shows users logged in within last 15 minutes
+- **Recent Activity Widget** - System-wide activity feed with post/user/comment tracking
+- **System Status Widget** - Real-time server health monitoring
 - Quick navigation to management sections
 
 #### UserForm
@@ -200,6 +205,50 @@ REACT_APP_API_URL=http://localhost:5000/api
 - Privilege assignment (checkboxes)
 - Rich content descriptions
 - Delete protection for roles with users
+
+#### UserActivity (Active Users Widget)
+- Real-time monitoring of active users
+- Shows users logged in within last 15 minutes
+- Displays fullName or username fallback
+- Relative time display (e.g., "5 minutes ago")
+- Auto-refreshes every 30 seconds
+- Maximum 10 most recently active users
+- Empty state message when no activity
+- Material-UI Card with list presentation
+
+#### RecentActivity (Recent Activity Widget)
+- System-wide activity feed
+- Activity types tracked:
+  - Post creation (new posts)
+  - Post updates (edited posts)
+  - User registrations (new users)
+  - Comment additions (new comments)
+- Displays activity type, user name, and timestamp
+- Relative time formatting (e.g., "2 hours ago")
+- Auto-refreshes every 60 seconds
+- Configurable activity limit
+- View details action menu for each activity
+- Empty state with informative message
+- Color-coded activity type icons
+
+#### SystemStatus (System Status Widget)
+- Comprehensive server health monitoring
+- **Database Statistics:**
+  - Storage used vs total (progress bar)
+  - Data size and index size
+  - Number of collections (posts, users, comments)
+  - Total documents count
+- **Memory Monitoring:**
+  - Heap memory used vs total (progress bar)
+  - RSS (Resident Set Size) memory tracking
+  - Percentage calculations
+- **Performance Metrics:**
+  - Server uptime in human-readable format (e.g., "5d 12h" or "3h 45m")
+  - Response time in milliseconds
+- Auto-refreshes every 60 seconds
+- Byte formatting with proper units (KB, MB, GB)
+- Real-time timestamp from server
+- Material-UI Grid layout with multiple panels
 
 ## Authentication Flow
 
@@ -269,6 +318,75 @@ Blog posts now track view counts for analytics.
 - Blog Post: View count with eye icon
 - Dashboard: Total views stat
 - Popular Posts Widget: Sorted by views with counts
+
+### Admin Dashboard Monitoring (November 2025)
+Three new real-time monitoring widgets enhance the admin dashboard.
+
+#### Active Users Widget
+Displays users who have logged in within the last 15 minutes.
+
+**Implementation:**
+- API: `GET /api/admin/users/active`
+- Component: `UserActivity.js`
+- Auto-refresh: Every 30 seconds
+- Max users: 10 (most recent first)
+
+**Features:**
+- Shows fullName or username
+- Relative time display (e.g., "5 minutes ago")
+- Empty state: "No active users in the last 15 minutes"
+- Material-UI List with user avatars
+- Real-time activity monitoring
+
+#### Recent Activity Widget
+Tracks recent system activities including posts, users, and comments.
+
+**Implementation:**
+- API: `GET /api/admin/activities?limit=10`
+- Component: `RecentActivity.js`
+- Auto-refresh: Every 60 seconds
+- Configurable limit (default 10)
+
+**Features:**
+- Activity types: post_create, post_update, user_create, comment_create
+- Color-coded activity icons
+- User fullName display when available
+- Relative timestamps (e.g., "2 hours ago")
+- View details action menu
+- Empty state with informative message
+
+#### System Status Widget
+Comprehensive server health and performance monitoring.
+
+**Implementation:**
+- API: `GET /api/admin/system/status`
+- Component: `SystemStatus.js`
+- Auto-refresh: Every 60 seconds
+
+**Features:**
+- **Database Panel:**
+  - Storage usage with progress bar
+  - Collections count (posts, users, comments)
+  - Data and index sizes
+  - Total documents count
+- **Memory Panel:**
+  - Heap memory with progress bar and percentage
+  - RSS memory monitoring
+  - Byte formatting (KB/MB/GB)
+- **Performance Panel:**
+  - Server uptime in human-readable format (e.g., "2d 5h" or "3h 30m")
+  - Response time in milliseconds
+- Real-time server timestamp
+- Format helper functions:
+  - `formatBytes()` - Converts bytes to readable units
+  - `formatUptime()` - Formats seconds to days/hours or hours/minutes
+
+**UI Design:**
+- Material-UI Grid layout (3 columns)
+- LinearProgress bars for resource usage
+- Typography hierarchy for metrics
+- Responsive on all screen sizes
+- Auto-updating last refresh timestamp
 
 ## API Integration
 

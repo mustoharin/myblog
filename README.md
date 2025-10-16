@@ -155,14 +155,14 @@ npm test -- --testNamePattern="Last Login"
 ### Test Coverage
 The backend includes comprehensive test coverage:
 - **Authentication** (18 tests) - Login, registration, CAPTCHA, last login tracking, inactive users
-- **Admin Dashboard** (21 tests) - Statistics, popular posts, user management
+- **Admin Dashboard** (46 tests) - Statistics, popular posts, active users, recent activity, system status
 - **Posts** (17 tests) - CRUD operations, view tracking, rich content
 - **Users** (28 tests) - User management, role assignment, fullName, isActive status
 - **Public API** (19 tests) - Public post access, view tracking, author fullName
 - **Security** (20+ tests) - Rate limiting, XSS protection, input validation
 - **And more...** - Pagination, search, password validation, roles, privileges
 
-**Total: 205 tests passing, 2 skipped**
+**Total: 235 tests passing, 2 skipped**
 
 ## Service URLs
 - Frontend: http://localhost:3000
@@ -197,6 +197,15 @@ Detailed API documentation is available in the backend README. Key endpoint cate
 - `GET /api/admin/stats` - Get dashboard statistics (posts, users, views, comments)
 - `GET /api/admin/posts/popular` - Get popular posts with timeframe filtering
   - Query params: `timeframe` (day/week/month/year), `limit` (max 50)
+- `GET /api/admin/users/active` - Get recently active users (last 15 minutes)
+  - Returns up to 10 users sorted by last login
+- `GET /api/admin/activities` - Get recent system activities
+  - Query params: `limit` (max 50)
+  - Returns recent posts, users, and comments with activity tracking
+- `GET /api/admin/system/status` - Get comprehensive system health metrics
+  - Database statistics (storage, collections)
+  - Memory usage (heap, RSS)
+  - Performance metrics (uptime, response time)
 
 ### Public Endpoints
 - `GET /api/public/posts` - Get published posts (includes author fullName)
@@ -251,7 +260,10 @@ For complete API documentation with request/response examples, see [Backend READ
 - **Real-time Statistics**: Total posts, users, views, and comments
 - **Popular Posts**: Sortable list with timeframe filters
 - **User Management**: View last login times for all users
-- **System Health**: Monitor content engagement and user activity
+- **Active Users Widget**: Live monitoring of users active in the last 15 minutes
+- **Recent Activity Widget**: Track recent posts, user registrations, and comments
+- **System Status Widget**: Real-time system health monitoring with database stats, memory usage, and uptime
+- **System Health**: Comprehensive monitoring of content engagement, user activity, and server performance
 
 ### User Full Name Display (October 2025)
 - **Professional Author Attribution**: Users can have a display name for blog posts
@@ -267,6 +279,28 @@ For complete API documentation with request/response examples, see [Backend READ
 - **Audit Trail**: Maintains user data while preventing system access
 - **Visual Indicators**: Status badges in admin panel (Active/Inactive)
 - **Security**: Only users with `update_user` privilege can change status
+
+### Admin Dashboard Monitoring (November 2025)
+- **Active Users Widget**: Real-time monitoring of user activity
+  - Shows users logged in within the last 15 minutes
+  - Displays full name or username
+  - Auto-refreshes every 30 seconds
+  - Maximum 10 most recently active users
+  - Empty state message when no activity
+- **Recent Activity Widget**: System activity tracking and monitoring
+  - Tracks post creation, post updates, user registrations, and comment activity
+  - Configurable limit (default 10, max 50)
+  - Auto-refreshes every 60 seconds
+  - Displays activity type, user name, and relative timestamps
+  - View details action menu for each activity
+- **System Status Widget**: Comprehensive server health monitoring
+  - Database statistics (storage used, total size, collections count)
+  - Memory usage monitoring (heap, RSS with percentage bars)
+  - Performance metrics (server uptime, response times)
+  - Collections overview (posts, users, comments counts)
+  - Auto-refreshes every 60 seconds
+  - Human-readable uptime format (days/hours or hours/minutes)
+  - Real-time server timestamp for sync verification
 
 ## Performance Features
 
