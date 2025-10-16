@@ -73,7 +73,7 @@ const RecentActivity = () => {
   };
 
   const getActivityDescription = (activity) => {
-    const actor = activity.user?.username || 'System';
+    const actor = activity.user?.fullName || activity.user?.username || 'System';
     switch (activity.type) {
       case 'post_create':
         return `${actor} created a new post "${activity.data.title}"`;
@@ -82,7 +82,7 @@ const RecentActivity = () => {
       case 'post_delete':
         return `${actor} deleted post "${activity.data.title}"`;
       case 'user_create':
-        return `${actor} created a new user account for ${activity.data.username}`;
+        return `New user account created: ${activity.data.fullName || activity.data.username}`;
       case 'user_update':
         return `${actor} updated user ${activity.data.username}`;
       case 'user_delete':
@@ -147,51 +147,59 @@ const RecentActivity = () => {
         />
       </Box>
 
-      <List>
-        {activities.map((activity) => (
-          <ListItem
-            key={activity._id}
-            alignItems="flex-start"
-            secondaryAction={
-              <IconButton 
-                edge="end" 
-                size="small"
-                onClick={(e) => handleMenuOpen(e, activity)}
-              >
-                <MoreVertIcon />
-              </IconButton>
-            }
-          >
-            <ListItemAvatar>
-              <Avatar>
-                {ACTIVITY_ICONS[activity.type]}
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              primary={getActivityDescription(activity)}
-              secondary={
-                <React.Fragment>
-                  <Typography
-                    sx={{ display: 'block' }}
-                    component="span"
-                    variant="caption"
-                    color="text.secondary"
-                  >
-                    {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
-                  </Typography>
-                  <Typography
-                    component="span"
-                    variant="caption"
-                    color="text.secondary"
-                  >
-                    {format(new Date(activity.createdAt), 'MMM d, yyyy HH:mm:ss')}
-                  </Typography>
-                </React.Fragment>
+      {activities.length === 0 ? (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            No recent activity
+          </Typography>
+        </Box>
+      ) : (
+        <List>
+          {activities.map((activity) => (
+            <ListItem
+              key={activity._id}
+              alignItems="flex-start"
+              secondaryAction={
+                <IconButton 
+                  edge="end" 
+                  size="small"
+                  onClick={(e) => handleMenuOpen(e, activity)}
+                >
+                  <MoreVertIcon />
+                </IconButton>
               }
-            />
-          </ListItem>
-        ))}
-      </List>
+            >
+              <ListItemAvatar>
+                <Avatar>
+                  {ACTIVITY_ICONS[activity.type]}
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={getActivityDescription(activity)}
+                secondary={
+                  <React.Fragment>
+                    <Typography
+                      sx={{ display: 'block' }}
+                      component="span"
+                      variant="caption"
+                      color="text.secondary"
+                    >
+                      {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                    </Typography>
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      color="text.secondary"
+                    >
+                      {format(new Date(activity.createdAt), 'MMM d, yyyy HH:mm:ss')}
+                    </Typography>
+                  </React.Fragment>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
+      )}
 
       <Menu
         anchorEl={menuAnchorEl}

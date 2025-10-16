@@ -44,10 +44,22 @@ const SystemStatus = () => {
 
   const formatBytes = (bytes) => {
     if (bytes === 0) return '0 B';
+    if (bytes === undefined || bytes === null) return 'N/A';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  };
+
+  const formatUptime = (seconds) => {
+    if (!seconds) return '0s';
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
   };
 
   const getStatusColor = (value, threshold) => {
@@ -141,22 +153,39 @@ const SystemStatus = () => {
               </Tooltip>
             </Grid>
             <Grid item xs={6}>
-              <Tooltip title="Requests per minute">
+              <Tooltip title="Server uptime">
                 <Box sx={{ textAlign: 'center' }}>
                   <NetworkIcon color="action" />
                   <Typography variant="h6">
-                    {status?.performance?.requestsPerMinute || 0}
+                    {formatUptime(status?.performance?.uptime)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Requests/min
+                    Uptime
                   </Typography>
                 </Box>
               </Tooltip>
             </Grid>
           </Grid>
 
+          <Box sx={{ mt: 2, p: 1, bgcolor: 'background.default', borderRadius: 1 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              Database Collections
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+              <Typography variant="caption">
+                Posts: {status?.database?.collections?.posts || 0}
+              </Typography>
+              <Typography variant="caption">
+                Users: {status?.database?.collections?.users || 0}
+              </Typography>
+              <Typography variant="caption">
+                Comments: {status?.database?.collections?.comments || 0}
+              </Typography>
+            </Box>
+          </Box>
+
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-            Last updated: {new Date().toLocaleTimeString()}
+            Last updated: {status?.timestamp ? new Date(status.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString()}
           </Typography>
         </Box>
       )}

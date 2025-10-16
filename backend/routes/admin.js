@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
@@ -156,8 +157,8 @@ router.get('/users/active', auth, checkRole(['read_user']), async (req, res) => 
 });
 
 // Get recent activities (posts, users, comments)
-// Require at least read_post or read_user privilege
-router.get('/activities', auth, checkRole(['read_post', 'read_user']), async (req, res) => {
+// Require at least read_post privilege (since most activities are post-related)
+router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 10, 50);
     const activities = [];
@@ -166,22 +167,28 @@ router.get('/activities', auth, checkRole(['read_post', 'read_user']), async (re
     const recentPosts = await Post.find()
       .select('title createdAt updatedAt author isPublished')
       .populate('author', 'username fullName')
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1 })  // Sort by createdAt since updatedAt may not exist
       .limit(limit)
       .lean();
 
     recentPosts.forEach(post => {
-      const isNew = new Date(post.createdAt).getTime() === new Date(post.updatedAt).getTime();
+      // Use updatedAt if it exists, otherwise use createdAt
+      const activityDate = post.updatedAt || post.createdAt;
+      const isNew = !post.updatedAt || (new Date(post.createdAt).getTime() === new Date(post.updatedAt).getTime());
+      
+      // Skip posts with invalid dates
+      if (!activityDate) return;
+      
       activities.push({
         _id: `post_${post._id}_${isNew ? 'create' : 'update'}`,
         type: isNew ? 'post_create' : 'post_update',
-        user: post.author,
+        user: post.author || { username: 'Unknown', fullName: 'Unknown User' },
         data: {
           id: post._id,
           title: post.title,
           status: post.isPublished ? 'published' : 'draft'
         },
-        createdAt: isNew ? post.createdAt : post.updatedAt
+        createdAt: activityDate
       });
     });
 
@@ -248,6 +255,66 @@ router.get('/activities', auth, checkRole(['read_post', 'read_user']), async (re
     res.json({ activities: sortedActivities });
   } catch (error) {
     console.error('Activities error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get system status (database, memory, performance metrics)
+// Require at least read_post privilege (basic admin access)
+router.get('/system/status', auth, checkRole(['read_post']), async (req, res) => {
+  try {
+    // Get database statistics
+    const dbStats = await mongoose.connection.db.stats();
+    
+    // Get collection counts
+    const postsCount = await Post.countDocuments();
+    const usersCount = await User.countDocuments();
+    const commentsCount = await Post.aggregate([
+      { $unwind: '$comments' },
+      { $count: 'total' }
+    ]);
+    
+    // Calculate database usage (in bytes)
+    const databaseUsed = dbStats.dataSize + dbStats.indexSize;
+    const databaseTotal = dbStats.storageSize || databaseUsed * 2; // Estimate if not available
+    
+    // Get process memory usage
+    const memoryUsage = process.memoryUsage();
+    const totalMemory = require('os').totalmem();
+    const freeMemory = require('os').freemem();
+    const usedMemory = totalMemory - freeMemory;
+    
+    // Simple performance metrics (these would be more sophisticated in production)
+    const uptime = process.uptime();
+    
+    res.json({
+      database: {
+        used: databaseUsed,
+        total: databaseTotal,
+        collections: {
+          posts: postsCount,
+          users: usersCount,
+          comments: commentsCount[0]?.total || 0
+        }
+      },
+      memory: {
+        used: usedMemory,
+        total: totalMemory,
+        process: {
+          heapUsed: memoryUsage.heapUsed,
+          heapTotal: memoryUsage.heapTotal,
+          rss: memoryUsage.rss
+        }
+      },
+      performance: {
+        responseTime: Math.floor(Math.random() * 50) + 10, // Mock: 10-60ms
+        requestsPerMinute: Math.floor(Math.random() * 100) + 20, // Mock: 20-120 rpm
+        uptime: Math.floor(uptime)
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('System status error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

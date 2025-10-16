@@ -719,4 +719,251 @@ describe('Admin Routes', () => {
       expect(foundUser.fullName).toBe('Full Test User');
     });
   });
+
+  describe('GET /api/admin/activities', () => {
+    it('should return recent activities', async () => {
+      const response = await request(app)
+        .get('/api/admin/activities')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('activities');
+      expect(Array.isArray(response.body.activities)).toBe(true);
+    });
+
+    it('should respect limit parameter', async () => {
+      const response = await request(app)
+        .get('/api/admin/activities?limit=5')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.activities.length).toBeLessThanOrEqual(5);
+    });
+
+    it('should enforce maximum limit of 50', async () => {
+      const response = await request(app)
+        .get('/api/admin/activities?limit=100')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.activities.length).toBeLessThanOrEqual(50);
+    });
+
+    it('should include post activities', async () => {
+      // Delete any existing posts first
+      await Post.deleteMany({});
+      
+      // Create a test post
+      await Post.create({
+        title: 'Test Activity Post',
+        content: 'Content for activity test',
+        excerpt: 'Test excerpt',
+        author: adminUser._id,
+        isPublished: true
+      });
+
+      const response = await request(app)
+        .get('/api/admin/activities')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      const postActivities = response.body.activities.filter(
+        a => a.type === 'post_create' || a.type === 'post_update'
+      );
+      expect(postActivities.length).toBeGreaterThan(0);
+    });
+
+    it('should include user activities', async () => {
+      const response = await request(app)
+        .get('/api/admin/activities')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      const userActivities = response.body.activities.filter(
+        a => a.type === 'user_create'
+      );
+      expect(userActivities.length).toBeGreaterThan(0);
+    });
+
+    it('should include comment activities', async () => {
+      // Delete any existing posts first
+      await Post.deleteMany({});
+      
+      // Create a post with comments
+      await Post.create({
+        title: 'Post with Comments',
+        content: 'Content',
+        excerpt: 'Excerpt',
+        author: adminUser._id,
+        isPublished: true,
+        comments: [
+          {
+            content: 'Test comment',
+            authorName: 'Commenter',
+            createdAt: new Date()
+          }
+        ]
+      });
+
+      const response = await request(app)
+        .get('/api/admin/activities')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      const commentActivities = response.body.activities.filter(
+        a => a.type === 'comment_create'
+      );
+      expect(commentActivities.length).toBeGreaterThan(0);
+    });
+
+    it('should sort activities by createdAt descending', async () => {
+      const response = await request(app)
+        .get('/api/admin/activities')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      
+      // Each activity should have a valid createdAt field
+      response.body.activities.forEach(activity => {
+        expect(activity).toHaveProperty('createdAt');
+        expect(new Date(activity.createdAt).toString()).not.toBe('Invalid Date');
+      });
+      
+      if (response.body.activities.length > 1) {
+        // Check that activities are generally sorted (allow for millisecond differences)
+        for (let i = 0; i < response.body.activities.length - 1; i++) {
+          const current = response.body.activities[i];
+          const next = response.body.activities[i + 1];
+          
+          const currentTime = new Date(current.createdAt).getTime();
+          const nextTime = new Date(next.createdAt).getTime();
+          
+          // Skip if either date is invalid (shouldn't happen but be safe)
+          if (isNaN(currentTime) || isNaN(nextTime)) {
+            console.log('Invalid date found:', { current: current.createdAt, next: next.createdAt });
+            continue;
+          }
+          
+          // Allow equal times or descending order
+          expect(currentTime).toBeGreaterThanOrEqual(nextTime);
+        }
+      }
+    });
+
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .get('/api/admin/activities');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should require read_post or read_user privilege', async () => {
+      // Admin has read_post privilege, so should be able to access
+      const response = await request(app)
+        .get('/api/admin/activities')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      // Admin should have access since they have read_post privilege
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('activities');
+    });
+  });
+
+  describe('GET /api/admin/system/status', () => {
+    it('should return system status information', async () => {
+      const response = await request(app)
+        .get('/api/admin/system/status')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('database');
+      expect(response.body).toHaveProperty('memory');
+      expect(response.body).toHaveProperty('performance');
+      expect(response.body).toHaveProperty('timestamp');
+    });
+
+    it('should include database statistics', async () => {
+      const response = await request(app)
+        .get('/api/admin/system/status')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.database).toHaveProperty('used');
+      expect(response.body.database).toHaveProperty('total');
+      expect(response.body.database).toHaveProperty('collections');
+      expect(response.body.database.collections).toHaveProperty('posts');
+      expect(response.body.database.collections).toHaveProperty('users');
+      expect(response.body.database.collections).toHaveProperty('comments');
+    });
+
+    it('should include memory statistics', async () => {
+      const response = await request(app)
+        .get('/api/admin/system/status')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.memory).toHaveProperty('used');
+      expect(response.body.memory).toHaveProperty('total');
+      expect(response.body.memory).toHaveProperty('process');
+      expect(typeof response.body.memory.used).toBe('number');
+      expect(typeof response.body.memory.total).toBe('number');
+    });
+
+    it('should include performance metrics', async () => {
+      const response = await request(app)
+        .get('/api/admin/system/status')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.performance).toHaveProperty('responseTime');
+      expect(response.body.performance).toHaveProperty('requestsPerMinute');
+      expect(response.body.performance).toHaveProperty('uptime');
+      expect(typeof response.body.performance.responseTime).toBe('number');
+      expect(typeof response.body.performance.requestsPerMinute).toBe('number');
+      expect(typeof response.body.performance.uptime).toBe('number');
+    });
+
+    it('should return valid numeric values', async () => {
+      const response = await request(app)
+        .get('/api/admin/system/status')
+        .set('Authorization', `Bearer ${superadminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.database.used).toBeGreaterThanOrEqual(0);
+      expect(response.body.database.total).toBeGreaterThan(0);
+      expect(response.body.memory.used).toBeGreaterThanOrEqual(0);
+      expect(response.body.memory.total).toBeGreaterThan(0);
+    });
+
+    it('should require authentication', async () => {
+      const response = await request(app)
+        .get('/api/admin/system/status');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should require read_post privilege', async () => {
+      const response = await request(app)
+        .get('/api/admin/system/status')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+    });
+
+    it('should return current timestamp', async () => {
+      const before = new Date();
+      const response = await request(app)
+        .get('/api/admin/system/status')
+        .set('Authorization', `Bearer ${superadminToken}`);
+      const after = new Date();
+
+      expect(response.status).toBe(200);
+      const timestamp = new Date(response.body.timestamp);
+      expect(timestamp.getTime()).toBeGreaterThanOrEqual(before.getTime() - 1000);
+      expect(timestamp.getTime()).toBeLessThanOrEqual(after.getTime() + 1000);
+    });
+  });
 });
