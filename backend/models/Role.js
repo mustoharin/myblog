@@ -39,9 +39,27 @@ const RoleSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
+});
+
+// Middleware to automatically update updatedAt on save
+RoleSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+// Middleware to automatically update updatedAt on findOneAndUpdate
+RoleSchema.pre('findOneAndUpdate', function(next) {
+  this.set({ updatedAt: new Date() });
+  next();
 });
 
 module.exports = mongoose.model('Role', RoleSchema);

@@ -91,10 +91,6 @@ const PostSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
   views: {
     type: Number,
     default: 0,
@@ -105,7 +101,27 @@ const PostSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  },
   comments: [CommentSchema]
+});
+
+// Middleware to automatically update updatedAt on save
+PostSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+// Middleware to automatically update updatedAt on findOneAndUpdate
+PostSchema.pre('findOneAndUpdate', function(next) {
+  this.set({ updatedAt: new Date() });
+  next();
 });
 
 // Add text search indexes

@@ -238,7 +238,7 @@ const CommentSection = ({ postId }) => {
                 {comment.authorName}
               </Typography>
               <Typography variant="caption" sx={{ ml: 2 }}>
-                {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                {comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) : 'No timestamp'}
               </Typography>
             </Box>
             <Typography variant="body1">{comment.content}</Typography>

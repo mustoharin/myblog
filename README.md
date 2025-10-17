@@ -302,6 +302,20 @@ For complete API documentation with request/response examples, see [Backend READ
   - Human-readable uptime format (days/hours or hours/minutes)
   - Real-time server timestamp for sync verification
 
+### Automatic Timestamps (November 2025)
+- **All Models**: Consistent explicit timestamp field pattern across the application
+  - `createdAt`: Explicitly defined Date field with `default: Date.now`
+  - `updatedAt`: Explicitly defined Date field with `default: Date.now`
+  - **Automatic Updates**: Pre-save middleware automatically updates `updatedAt` on any modification
+- **Post Model**: Explicit timestamp fields replace Mongoose `timestamps: true`
+  - Includes middleware for both `save()` and `findOneAndUpdate()` operations
+- **User Model**: Converted from `timestamps: true` to explicit fields with middleware
+- **Role Model**: Converted from `timestamps: true` to explicit fields with middleware  
+- **Privilege Model**: Added explicit timestamp fields with middleware for consistency
+- **Recent Activity Widget**: Enhanced to properly utilize explicit `updatedAt` for tracking modifications
+  - Distinguishes between new content and updates based on timestamp comparison
+  - Maintains compatibility with existing data
+
 ## Performance Features
 
 ### Database Optimization

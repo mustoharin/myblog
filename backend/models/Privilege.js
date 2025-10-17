@@ -33,9 +33,27 @@ const PrivilegeSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
+});
+
+// Middleware to automatically update updatedAt on save
+PrivilegeSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
+});
+
+// Middleware to automatically update updatedAt on findOneAndUpdate
+PrivilegeSchema.pre('findOneAndUpdate', function(next) {
+  this.set({ updatedAt: new Date() });
+  next();
 });
 
 module.exports = mongoose.model('Privilege', PrivilegeSchema);

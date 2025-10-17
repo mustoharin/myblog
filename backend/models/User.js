@@ -68,13 +68,28 @@ const UserSchema = new mongoose.Schema({
   lastLogin: {
     type: Date,
     default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
   }
-}, {
-  timestamps: true
+});
+
+// Middleware to automatically update updatedAt on save
+UserSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  next();
 });
 
 // Hash password for updates
 UserSchema.pre('findOneAndUpdate', async function(next) {
+  // Update updatedAt field
+  this.set({ updatedAt: new Date() });
+  
   const update = this.getUpdate();
   if (update.$set && update.$set.password) {
     try {

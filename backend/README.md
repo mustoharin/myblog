@@ -946,8 +946,8 @@ Error responses include a message:
   resetPasswordToken: String,
   resetPasswordExpires: Date,
   lastLogin: Date, // Tracks last successful login timestamp
-  createdAt: Date,
-  updatedAt: Date
+  createdAt: Date, // Explicit field with default: Date.now
+  updatedAt: Date  // Explicit field, updated by pre-save middleware
 }
 ```
 
@@ -961,6 +961,8 @@ Error responses include a message:
 - `lastLogin`: Timestamp of the last successful authentication
 - `resetPasswordToken`: Temporary token for password reset flow
 - `resetPasswordExpires`: Expiration time for reset token
+- `createdAt`: Explicit timestamp field set on document creation
+- `updatedAt`: Explicit timestamp field updated automatically on save operations
 
 ### Post
 ```javascript
@@ -971,7 +973,7 @@ Error responses include a message:
   excerpt: String, // Short description
   author: ObjectId (ref: 'User'),
   tags: [String], // Array of tag strings
-  views: Number, // NEW: Tracks post view count (default: 0)
+  views: Number, // Tracks post view count (default: 0)
   isPublished: Boolean,
   comments: [{
     content: String, // XSS protected
@@ -979,8 +981,8 @@ Error responses include a message:
     name: String, // For non-authenticated commenters
     createdAt: Date
   }],
-  createdAt: Date,
-  updatedAt: Date
+  createdAt: Date, // Explicit field with default: Date.now
+  updatedAt: Date  // Explicit field, updated by pre-save middleware
 }
 ```
 
@@ -989,6 +991,14 @@ Error responses include a message:
 - Index on `tags` for efficient tag filtering
 - Index on `views` (descending) for popular posts queries
 - Index on `createdAt` (descending) for chronological ordering
+- Index on `updatedAt` (descending) for recent activity tracking
+
+**Timestamp Behavior:**
+- `createdAt`: Explicit Date field with `default: Date.now`, set automatically when document is first saved
+- `updatedAt`: Explicit Date field with `default: Date.now`, updated automatically by pre-save middleware
+- **Middleware**: Both `save()` and `findOneAndUpdate()` operations trigger automatic `updatedAt` updates
+- **Consistency**: All models (Post, User, Role, Privilege) use the same explicit timestamp pattern
+- Recent activity endpoint handles timestamp comparison for distinguishing creates vs updates
 
 ### Role
 ```javascript
@@ -997,8 +1007,8 @@ Error responses include a message:
   name: String, // XSS protected
   description: String, // Supports rich HTML with sanitization
   privileges: [ObjectId] (ref: 'Privilege'),
-  createdAt: Date,
-  updatedAt: Date
+  createdAt: Date, // Explicit field with default: Date.now
+  updatedAt: Date  // Explicit field, updated by pre-save middleware
 }
 ```
 
@@ -1009,10 +1019,16 @@ Error responses include a message:
   name: String, // XSS protected
   code: String, // XSS protected, unique identifier
   description: String, // Supports rich HTML with sanitization
-  createdAt: Date,
-  updatedAt: Date
+  createdAt: Date, // Explicit field with default: Date.now
+  updatedAt: Date  // Explicit field, updated by pre-save middleware
 }
 ```
+
+**Timestamp Management:**
+All models (Post, User, Role, Privilege) use consistent explicit timestamp fields:
+- Fields are explicitly defined in schema rather than using `timestamps: true`
+- Pre-save middleware automatically updates `updatedAt` on both `save()` and `findOneAndUpdate()` operations
+- Provides consistent behavior across all model operations
 
 ## Development
 

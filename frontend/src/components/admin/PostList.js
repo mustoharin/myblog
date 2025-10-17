@@ -108,6 +108,7 @@ const PostList = ({ onEdit }) => {
   };
 
   const formatDate = (date) => {
+    if (!date) return 'No date';
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',

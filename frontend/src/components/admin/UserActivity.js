@@ -68,9 +68,9 @@ const UserActivity = () => {
               secondary={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <ScheduleIcon fontSize="small" />
-                  <Tooltip title={new Date(user.lastActiveAt).toLocaleString()}>
+                  <Tooltip title={user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : 'No activity data'}>
                     <Typography variant="caption">
-                      {formatDistanceToNow(new Date(user.lastActiveAt), { addSuffix: true })}
+                      {user.lastActiveAt ? formatDistanceToNow(new Date(user.lastActiveAt), { addSuffix: true }) : 'No recent activity'}
                     </Typography>
                   </Tooltip>
                 </Box>

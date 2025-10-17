@@ -184,14 +184,14 @@ const RecentActivity = () => {
                       variant="caption"
                       color="text.secondary"
                     >
-                      {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                      {activity.createdAt ? formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true }) : 'No timestamp'}
                     </Typography>
                     <Typography
                       component="span"
                       variant="caption"
                       color="text.secondary"
                     >
-                      {format(new Date(activity.createdAt), 'MMM d, yyyy HH:mm:ss')}
+                      {activity.createdAt ? format(new Date(activity.createdAt), 'MMM d, yyyy HH:mm:ss') : 'No timestamp'}
                     </Typography>
                   </React.Fragment>
                 }

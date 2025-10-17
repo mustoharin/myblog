@@ -167,17 +167,13 @@ router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
     const recentPosts = await Post.find()
       .select('title createdAt updatedAt author isPublished')
       .populate('author', 'username fullName')
-      .sort({ createdAt: -1 })  // Sort by createdAt since updatedAt may not exist
+      .sort({ updatedAt: -1 })  // Sort by updatedAt since it's always updated with manual timestamp management
       .limit(limit)
       .lean();
 
     recentPosts.forEach(post => {
-      // Use updatedAt if it exists, otherwise use createdAt
-      const activityDate = post.updatedAt || post.createdAt;
-      const isNew = !post.updatedAt || (new Date(post.createdAt).getTime() === new Date(post.updatedAt).getTime());
-      
-      // Skip posts with invalid dates
-      if (!activityDate) return;
+      // With manual timestamps, updatedAt is always present and updated
+      const isNew = new Date(post.createdAt).getTime() === new Date(post.updatedAt).getTime();
       
       activities.push({
         _id: `post_${post._id}_${isNew ? 'create' : 'update'}`,
@@ -188,7 +184,7 @@ router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
           title: post.title,
           status: post.isPublished ? 'published' : 'draft'
         },
-        createdAt: activityDate
+        createdAt: isNew ? post.createdAt : post.updatedAt
       });
     });
 
