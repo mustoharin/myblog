@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Role = require('../models/Role');
+const Activity = require('../models/Activity');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
 
@@ -107,6 +108,21 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
     
     // Populate privileges before sending response
     await role.populate('privileges');
+    
+    // Log activity
+    await Activity.logActivity(
+      'role_create',
+      req.user,
+      'role',
+      role._id,
+      {
+        name: role.name,
+        description: role.description,
+        privilegeCount: role.privileges.length
+      },
+      req
+    );
+    
     res.status(201).json(role);
   } catch (error) {
     if (error.code === 11000) {
@@ -142,6 +158,20 @@ router.put('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
       return res.status(404).json({ message: 'Role not found' });
     }
 
+    // Log activity
+    await Activity.logActivity(
+      'role_update',
+      req.user,
+      'role',
+      role._id,
+      {
+        name: role.name,
+        description: role.description,
+        privilegeCount: role.privileges.length
+      },
+      req
+    );
+
     res.json(role);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -168,6 +198,19 @@ router.delete('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
     // if (usersWithRole > 0) {
     //   return res.status(400).json({ message: 'Role is assigned to users and cannot be deleted' });
     // }
+
+    // Log activity before deletion
+    await Activity.logActivity(
+      'role_delete',
+      req.user,
+      'role',
+      role._id,
+      {
+        name: role.name,
+        description: role.description
+      },
+      req
+    );
 
     await role.softDelete();
     res.status(204).send();

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Activity = require('../models/Activity');
 const captcha = process.env.NODE_ENV === 'test' ? 
   require('../utils/mockCaptcha') :
   require('../utils/captcha');

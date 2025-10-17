@@ -185,18 +185,31 @@ const BlogList = () => {
                         {post.excerpt || post.content}
                       </Typography>
                       <Box sx={{ mt: 2 }}>
-                        {Array.isArray(post.tags) && post.tags.map((tag) => (
-                          <Chip
-                            key={tag}
-                            label={tag}
-                            size="small"
-                            sx={{ mr: 1, mb: 1 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/?search=${encodeURIComponent('#' + tag)}`);
-                            }}
-                          />
-                        ))}
+                        {Array.isArray(post.tags) && post.tags.map((tag) => {
+                          const tagName = typeof tag === 'string' ? tag : tag.name;
+                          const tagLabel = typeof tag === 'string' ? tag : tag.displayName || tag.name;
+                          const tagColor = typeof tag === 'string' ? '#1976d2' : tag.color || '#1976d2';
+                          
+                          return (
+                            <Chip
+                              key={tagName}
+                              label={tagLabel}
+                              size="small"
+                              sx={{ 
+                                mr: 1, 
+                                mb: 1,
+                                backgroundColor: tagColor + '20',
+                                color: tagColor,
+                                borderColor: tagColor,
+                                border: `1px solid ${tagColor}40`
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/?search=${encodeURIComponent('#' + tagName)}`);
+                              }}
+                            />
+                          );
+                        })}
                       </Box>
                     </CardContent>
                   </Card>

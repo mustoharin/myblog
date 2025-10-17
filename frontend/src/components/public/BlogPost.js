@@ -201,15 +201,31 @@ const BlogPost = () => {
       {/* Tags */}
       {Array.isArray(post.tags) && post.tags.length > 0 && (
         <Box sx={{ mb: 4 }}>
-          {post.tags.map((tag) => (
-            <Chip
-              key={tag}
-              label={tag}
-              icon={<TagIcon />}
-              onClick={() => navigate(`/?search=${encodeURIComponent('#' + tag)}`)}
-              sx={{ mr: 1, mb: 1 }}
-            />
-          ))}
+          {post.tags.map((tag) => {
+            const tagName = typeof tag === 'string' ? tag : tag.name;
+            const tagLabel = typeof tag === 'string' ? tag : tag.displayName || tag.name;
+            const tagColor = typeof tag === 'string' ? '#1976d2' : tag.color || '#1976d2';
+            
+            return (
+              <Chip
+                key={tagName}
+                label={tagLabel}
+                icon={<TagIcon />}
+                onClick={() => navigate(`/?search=${encodeURIComponent('#' + tagName)}`)}
+                sx={{ 
+                  mr: 1, 
+                  mb: 1,
+                  backgroundColor: tagColor + '20',
+                  color: tagColor,
+                  borderColor: tagColor,
+                  border: `1px solid ${tagColor}40`,
+                  '& .MuiChip-icon': {
+                    color: tagColor
+                  }
+                }}
+              />
+            );
+          })}
         </Box>
       )}
 

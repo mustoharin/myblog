@@ -10,6 +10,8 @@ import Dashboard from './components/admin/Dashboard';
 import PostsManager from './components/admin/PostsManager';
 import UserManager from './components/admin/UserManager';
 import RoleManager from './components/admin/RoleManager';
+import TagManager from './components/admin/TagManager';
+import ActivityList from './components/admin/ActivityList';
 import Overview from './components/admin/Overview';
 
 // Public Components
@@ -58,6 +60,8 @@ function App() {
               <Route path="posts/*" element={<PostsManager />} />
               <Route path="users/*" element={<UserManager />} />
               <Route path="roles/*" element={<RoleManager />} />
+              <Route path="tags/*" element={<TagManager />} />
+              <Route path="activities" element={<ActivityList />} />
             </Route>
           </Routes>
 

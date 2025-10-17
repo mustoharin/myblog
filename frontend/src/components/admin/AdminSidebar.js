@@ -13,6 +13,8 @@ import {
   Article as ArticleIcon,
   People as PeopleIcon,
   VpnKey as RolesIcon,
+  LocalOffer as TagIcon,
+  Timeline as ActivitiesIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -23,6 +25,8 @@ const menuItems = [
   { text: 'Posts', icon: <ArticleIcon />, path: '/admin/posts' },
   { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },
   { text: 'Roles', icon: <RolesIcon />, path: '/admin/roles' },
+  { text: 'Tags', icon: <TagIcon />, path: '/admin/tags' },
+  { text: 'Activities', icon: <ActivitiesIcon />, path: '/admin/activities' },
 ];
 
 const AdminSidebar = ({ mobileOpen = false, handleDrawerToggle }) => {

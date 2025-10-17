@@ -1,7 +1,6 @@
 import React from 'react';
 import { Grid } from '@mui/material';
 import AdminStats from './AdminStats';
-import RecentActivity from './RecentActivity';
 import PopularPosts from './PopularPosts';
 import SystemStatus from './SystemStatus';
 import UserActivity from './UserActivity';
@@ -14,16 +13,9 @@ const Overview = () => {
         <AdminStats />
       </Grid>
 
-      {/* Activity and Popular Posts */}
+      {/* Popular Posts */}
       <Grid item xs={12} md={8}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <RecentActivity />
-          </Grid>
-          <Grid item xs={12}>
-            <PopularPosts />
-          </Grid>
-        </Grid>
+        <PopularPosts />
       </Grid>
 
       {/* System Status and User Activity */}

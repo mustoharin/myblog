@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Role = require('../models/Role');
+const Activity = require('../models/Activity');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
 
@@ -124,6 +125,21 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
         populate: { path: 'privileges' }
       });
     
+    // Log activity
+    await Activity.logActivity(
+      'user_create',
+      req.user,
+      'user',
+      savedUser._id,
+      {
+        username: savedUser.username,
+        fullName: savedUser.fullName,
+        email: savedUser.email,
+        role: roleDoc.name
+      },
+      req
+    );
+    
     res.status(201).json(savedUser);
   } catch (error) {
     if (error.code === 11000) {
@@ -209,6 +225,21 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
         return res.status(404).json({ message: 'User not found' });
       }
 
+      // Log activity
+      await Activity.logActivity(
+        'user_update',
+        req.user,
+        'user',
+        updatedUser._id,
+        {
+          username: updatedUser.username,
+          fullName: updatedUser.fullName,
+          email: updatedUser.email,
+          role: updatedUser.role?.name
+        },
+        req
+      );
+
       res.json(updatedUser);
       return; // Successfully updated, exit the retry loop
     } catch (error) {
@@ -263,6 +294,21 @@ router.delete('/:id', auth, checkRole(['delete_user']), async (req, res) => {
     // if (postsCount > 0) {
     //   return res.status(400).json({ message: 'User has existing posts and cannot be deleted' });
     // }
+
+    // Log activity before deletion
+    await Activity.logActivity(
+      'user_delete',
+      req.user,
+      'user',
+      userToDelete._id,
+      {
+        username: userToDelete.username,
+        fullName: userToDelete.fullName,
+        email: userToDelete.email,
+        role: userToDelete.role?.name
+      },
+      req
+    );
 
     await userToDelete.softDelete();
     res.status(204).send();

@@ -1,9 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
+const Tag = require('../models/Tag');
 const validateCaptcha = require('../middleware/validateCaptcha');
 const { baseRateLimiter, commentRateLimiter } = require('../middleware/rateLimiter');
 const { validateNoXss } = require('../utils/xssValidator');
+
+// Helper function to enrich tags with metadata
+async function enrichTags(tags) {
+  if (!tags || tags.length === 0) return [];
+  
+  try {
+    const tagMetadata = await Tag.find({ 
+      name: { $in: tags }, 
+      isActive: true 
+    }).select('name displayName color');
+    
+    return tags.map(tag => {
+      const metadata = tagMetadata.find(t => t.name === tag);
+      return {
+        name: tag,
+        displayName: metadata ? metadata.displayName : tag,
+        color: metadata ? metadata.color : '#1976d2'
+      };
+    });
+  } catch (error) {
+    console.error('Error enriching tags:', error);
+    // Fallback to simple tag format
+    return tags.map(tag => ({
+      name: tag,
+      displayName: tag,
+      color: '#1976d2'
+    }));
+  }
+}
 
 // List all published posts with search and tag filtering
 router.get('/posts', baseRateLimiter, async (req, res) => {
@@ -35,11 +65,22 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Enrich tags for all posts
+    const enrichedPosts = await Promise.all(
+      posts.map(async (post) => {
+        const enrichedTags = await enrichTags(post.tags);
+        return {
+          ...post.toObject(),
+          tags: enrichedTags
+        };
+      })
+    );
+
     const total = await Post.countDocuments(query);
 
     const hasMore = skip + posts.length < total;
     res.json({
-      posts,
+      posts: enrichedPosts,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
@@ -55,8 +96,8 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
 // Get list of all available tags
 router.get('/tags', baseRateLimiter, async (req, res) => {
   try {
-    // Aggregate to get unique tags and their counts
-    const tags = await Post.aggregate([
+    // First get tag counts from posts
+    const tagCounts = await Post.aggregate([
       { $match: { isPublished: true } },
       { $unwind: '$tags' },
       { 
@@ -68,8 +109,25 @@ router.get('/tags', baseRateLimiter, async (req, res) => {
       { $sort: { count: -1 } }
     ]);
 
-    res.json(tags);
+    // Get tag metadata from Tag model
+    const Tag = require('../models/Tag');
+    const tagMetadata = await Tag.find({ isActive: true }).select('name displayName color');
+    
+    // Merge tag counts with metadata
+    const enrichedTags = tagCounts.map(tagCount => {
+      const metadata = tagMetadata.find(tag => tag.name === tagCount._id);
+      return {
+        _id: tagCount._id,
+        name: tagCount._id,
+        displayName: metadata ? metadata.displayName : tagCount._id,
+        color: metadata ? metadata.color : '#1976d2',
+        count: tagCount.count
+      };
+    });
+
+    res.json(enrichedTags);
   } catch (err) {
+    console.error('Public tags error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -85,7 +143,14 @@ router.get('/posts/:id', baseRateLimiter, async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    res.json(post);
+    // Enrich tags with metadata
+    const enrichedTags = await enrichTags(post.tags);
+    const enrichedPost = {
+      ...post.toObject(),
+      tags: enrichedTags
+    };
+
+    res.json(enrichedPost);
   } catch (err) {
     if (err.name === 'CastError') {
       return res.status(404).json({ message: 'Post not found' });

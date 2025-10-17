@@ -21,6 +21,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
+  Tag as TagIcon,
+  Security as RoleIcon,
 } from '@mui/icons-material';
 import { format, formatDistanceToNow } from 'date-fns';
 import api from '../../services/api';
@@ -32,6 +34,12 @@ const ACTIVITY_ICONS = {
   user_create: <PersonIcon color="success" />,
   user_update: <EditIcon color="success" />,
   user_delete: <DeleteIcon color="error" />,
+  tag_create: <TagIcon color="secondary" />,
+  tag_update: <EditIcon color="secondary" />,
+  tag_delete: <DeleteIcon color="error" />,
+  role_create: <RoleIcon color="warning" />,
+  role_update: <EditIcon color="warning" />,
+  role_delete: <DeleteIcon color="error" />,
   comment_create: <CommentIcon color="info" />,
   comment_delete: <DeleteIcon color="error" />,
 };
@@ -87,6 +95,18 @@ const RecentActivity = () => {
         return `${actor} updated user ${activity.data.username}`;
       case 'user_delete':
         return `${actor} deleted user ${activity.data.username}`;
+      case 'tag_create':
+        return `${actor} created tag "${activity.data.displayName || activity.data.name}"`;
+      case 'tag_update':
+        return `${actor} updated tag "${activity.data.displayName || activity.data.name}"`;
+      case 'tag_delete':
+        return `${actor} deleted tag "${activity.data.displayName || activity.data.name}"`;
+      case 'role_create':
+        return `${actor} created role "${activity.data.name}"`;
+      case 'role_update':
+        return `${actor} updated role "${activity.data.name}"`;
+      case 'role_delete':
+        return `${actor} deleted role "${activity.data.name}"`;
       case 'comment_create':
         return `${actor} commented on "${activity.data.postTitle}"`;
       case 'comment_delete':
@@ -114,6 +134,16 @@ const RecentActivity = () => {
         break;
       case 'user_delete':
         navigate('/admin/users');
+        break;
+      case 'tag_create':
+      case 'tag_update':
+      case 'tag_delete':
+        navigate('/admin/tags');
+        break;
+      case 'role_create':
+      case 'role_update':
+      case 'role_delete':
+        navigate('/admin/roles');
         break;
       case 'comment_create':
       case 'comment_delete':

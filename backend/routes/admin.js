@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Post = require('../models/Post');
 const User = require('../models/User');
+const Activity = require('../models/Activity');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
 
@@ -156,104 +157,116 @@ router.get('/users/active', auth, checkRole(['read_user']), async (req, res) => 
   }
 });
 
-// Get recent activities (posts, users, comments)
+// Get recent activities from Activity model
 // Require at least read_post privilege (since most activities are post-related)
 router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
-    const activities = [];
-
-    // Get recent posts (created or updated)
-    const recentPosts = await Post.find()
-      .select('title createdAt updatedAt author isPublished')
-      .populate('author', 'username fullName')
-      .sort({ updatedAt: -1 })  // Sort by updatedAt since it's always updated with manual timestamp management
+    const limit = Math.min(parseInt(req.query.limit) || 25, 100);
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+    const { type, search } = req.query;
+    
+    // Build query filter
+    const filter = {};
+    
+    // Filter by activity type
+    if (type && type.trim()) {
+      filter.type = type;
+    }
+    
+    // Search filter - search in data fields and actor information
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search, 'i');
+      filter.$or = [
+        { 'data.title': searchRegex },
+        { 'data.username': searchRegex },
+        { 'data.fullName': searchRegex },
+        { 'data.name': searchRegex },
+        { 'data.displayName': searchRegex },
+        { 'actor.username': searchRegex },
+        { 'actor.fullName': searchRegex }
+      ];
+    }
+    
+    // Get total count for pagination
+    const totalItems = await Activity.countDocuments(filter);
+    
+    // Get activities from the Activity model with filters
+    const activities = await Activity.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
       .limit(limit)
       .lean();
 
-    recentPosts.forEach(post => {
-      // With manual timestamps, updatedAt is always present and updated
-      const isNew = new Date(post.createdAt).getTime() === new Date(post.updatedAt).getTime();
-      
-      activities.push({
-        _id: `post_${post._id}_${isNew ? 'create' : 'update'}`,
-        type: isNew ? 'post_create' : 'post_update',
-        user: post.author || { username: 'Unknown', fullName: 'Unknown User' },
-        data: {
-          id: post._id,
-          title: post.title,
-          status: post.isPublished ? 'published' : 'draft'
-        },
-        createdAt: isNew ? post.createdAt : post.updatedAt
-      });
-    });
+    // Transform activities to match frontend expectations
+    const transformedActivities = activities.map(activity => ({
+      _id: activity._id,
+      type: activity.type,
+      user: {
+        username: activity.actor?.username || 'System',
+        fullName: activity.actor?.fullName || activity.actor?.username || 'System'
+      },
+      data: activity.data,
+      createdAt: activity.createdAt,
+      description: getActivityDescription(activity)
+    }));
 
-    // Get recent users
-    const recentUsers = await User.find()
-      .select('username fullName createdAt')
-      .sort({ createdAt: -1 })
-      .limit(Math.ceil(limit / 2))
-      .lean();
-
-    recentUsers.forEach(user => {
-      activities.push({
-        _id: `user_${user._id}_create`,
-        type: 'user_create',
-        user: { username: 'System', fullName: 'System' },
-        data: {
-          id: user._id,
-          username: user.username,
-          fullName: user.fullName
-        },
-        createdAt: user.createdAt
-      });
-    });
-
-    // Get recent comments from posts
-    const postsWithComments = await Post.find({
-      'comments.0': { $exists: true }
-    })
-      .select('title comments')
-      .sort({ 'comments.createdAt': -1 })
-      .limit(Math.ceil(limit / 2))
-      .lean();
-
-    postsWithComments.forEach(post => {
-      if (post.comments && post.comments.length > 0) {
-        // Get the most recent comment
-        const sortedComments = [...post.comments].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        const recentComment = sortedComments[0];
-        
-        activities.push({
-          _id: `comment_${post._id}_${recentComment._id}`,
-          type: 'comment_create',
-          user: {
-            username: recentComment.authorName || 'Anonymous',
-            fullName: recentComment.authorName || 'Anonymous'
-          },
-          data: {
-            postId: post._id,
-            postTitle: post.title,
-            commentText: recentComment.content.substring(0, 100)
-          },
-          createdAt: recentComment.createdAt
-        });
+    res.json({ 
+      activities: transformedActivities,
+      pagination: {
+        currentPage: page,
+        totalItems: totalItems,
+        totalPages: Math.ceil(totalItems / limit)
       }
     });
-
-    // Sort all activities by createdAt descending and limit
-    const sortedActivities = activities
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, limit);
-
-    res.json({ activities: sortedActivities });
   } catch (error) {
     console.error('Activities error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// Helper function to get activity description
+function getActivityDescription(activity) {
+  const actor = activity.actor?.fullName || activity.actor?.username || 'System';
+  
+  switch (activity.type) {
+    case 'post_create':
+      return `${actor} created post "${activity.data.title}"`;
+    case 'post_update':
+      return `${actor} updated post "${activity.data.title}"`;
+    case 'post_delete':
+      return `${actor} deleted post "${activity.data.title}"`;
+    
+    case 'user_create':
+      return `New user registered: ${activity.data.fullName || activity.data.username}`;
+    case 'user_update':
+      return `${actor} updated user ${activity.data.username}`;
+    case 'user_delete':
+      return `${actor} deleted user ${activity.data.username}`;
+    
+    case 'tag_create':
+      return `${actor} created tag "${activity.data.displayName || activity.data.name}"`;
+    case 'tag_update':
+      return `${actor} updated tag "${activity.data.displayName || activity.data.name}"`;
+    case 'tag_delete':
+      return `${actor} deleted tag "${activity.data.displayName || activity.data.name}"`;
+    
+    case 'role_create':
+      return `${actor} created role "${activity.data.name}"`;
+    case 'role_update':
+      return `${actor} updated role "${activity.data.name}"`;
+    case 'role_delete':
+      return `${actor} deleted role "${activity.data.name}"`;
+    
+    case 'comment_create':
+      return `${actor} commented on "${activity.data.postTitle}"`;
+    case 'comment_delete':
+      return `${actor} deleted a comment on "${activity.data.postTitle}"`;
+    
+    default:
+      return 'Unknown activity';
+  }
+}
 
 // Get system status (database, memory, performance metrics)
 // Require at least read_post privilege (basic admin access)

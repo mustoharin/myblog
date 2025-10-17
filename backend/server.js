@@ -40,6 +40,9 @@ app.use('/api/privileges', authMiddleware, require('./routes/privileges'));
 // Blog post routes (protected)
 app.use('/api/posts', authMiddleware, require('./routes/posts'));
 
+// Tag routes (protected)
+app.use('/api/tags', authMiddleware, require('./routes/tags'));
+
 // Admin routes (protected)
 app.use('/api/admin', authMiddleware, require('./routes/admin'));
 

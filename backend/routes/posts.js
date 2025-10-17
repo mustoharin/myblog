@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
+const Activity = require('../models/Activity');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
 const { formatTags } = require('../utils/tagFormatter');
@@ -59,6 +60,21 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
 
     const newPost = await post.save();
     const savedPost = await Post.findById(newPost._id).populate('author', 'username');
+    
+    // Log activity
+    await Activity.logActivity(
+      'post_create',
+      req.user,
+      'post',
+      savedPost._id,
+      {
+        title: savedPost.title,
+        status: savedPost.isPublished ? 'published' : 'draft',
+        tags: savedPost.tags
+      },
+      req
+    );
+    
     res.status(201).json(savedPost);
   } catch (err) {
     if (err.name === 'ValidationError') {
@@ -93,6 +109,21 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
 
     await post.save();
     const updatedPost = await Post.findById(post._id).populate('author', 'username');
+    
+    // Log activity
+    await Activity.logActivity(
+      'post_update',
+      req.user,
+      'post',
+      updatedPost._id,
+      {
+        title: updatedPost.title,
+        status: updatedPost.isPublished ? 'published' : 'draft',
+        tags: updatedPost.tags
+      },
+      req
+    );
+    
     res.json(updatedPost);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -112,6 +143,19 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
         req.user.role.name !== 'superadmin') {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
+
+    // Log activity before deletion
+    await Activity.logActivity(
+      'post_delete',
+      req.user,
+      'post',
+      post._id,
+      {
+        title: post.title,
+        status: post.isPublished ? 'published' : 'draft'
+      },
+      req
+    );
 
     await post.softDelete();
     res.json({ message: 'Post deleted' });
@@ -142,6 +186,21 @@ router.post('/:id/comments', auth, checkRole(['create_post']), async (req, res) 
     const commentedPost = await Post.findById(post._id)
       .populate('author', 'username')
       .populate('comments.author', 'username');
+    
+    // Log activity
+    await Activity.logActivity(
+      'comment_create',
+      req.user,
+      'comment',
+      commentedPost.comments[commentedPost.comments.length - 1]._id,
+      {
+        postId: commentedPost._id,
+        postTitle: commentedPost.title,
+        commentText: content.substring(0, 100)
+      },
+      req
+    );
+    
     res.status(201).json(commentedPost);
   } catch (err) {
     res.status(500).json({ message: err.message });

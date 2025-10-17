@@ -45,7 +45,7 @@ const PostSchema = new mongoose.Schema({
       validator: function(v) {
         return v.every(tag => /^[a-z0-9-]+$/.test(tag));
       },
-      message: props => 'Tags must contain only letters, numbers, and hyphens'
+      message: props => 'Tags must contain only lowercase letters, numbers, and hyphens'
     }],
     default: []
   },
