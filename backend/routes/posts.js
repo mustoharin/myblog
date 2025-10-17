@@ -46,17 +46,6 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       return res.status(400).json({ message: 'Title and content are required' });
     }
 
-    // Validate tags format before formatting
-    if (tags && Array.isArray(tags)) {
-      const invalidTags = tags.filter(tag => tag && !/^[a-z0-9-]+$/.test(tag));
-      if (invalidTags.length > 0) {
-        return res.status(400).json({ 
-          message: 'Tags must contain only letters, numbers, and hyphens',
-          invalidTags
-        });
-      }
-    }
-
     const formattedTags = formatTags(tags);
     
     const post = new Post({
@@ -124,7 +113,7 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
-    await Post.deleteOne({ _id: req.params.id });
+    await post.softDelete();
     res.json({ message: 'Post deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

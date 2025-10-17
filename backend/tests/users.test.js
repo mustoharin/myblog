@@ -208,13 +208,13 @@ describe('User Routes', () => {
           role: roles.adminRole._id
         });
 
-      // Try to delete the role assigned to the user
+      // With soft delete, we can now delete roles even if assigned to users
       const deleteRoleResponse = await request(app)
         .delete(`/api/roles/${roles.adminRole._id}`)
         .set('Authorization', `Bearer ${superadminToken}`);
 
-      expect(deleteRoleResponse.status).toBe(400);
-      expect(deleteRoleResponse.body.message).toContain('assigned to users');
+      expect(deleteRoleResponse.status).toBe(204);
+      // The role should be soft deleted, not physically removed
     });
 
     it('should properly cascade user data on deletion', async () => {
@@ -237,13 +237,13 @@ describe('User Routes', () => {
         author: newUser.body._id
       });
 
-      // Try to delete the user
+      // With soft delete, we can now delete users even if they have posts
       const deleteResponse = await request(app)
         .delete(`/api/users/${newUser.body._id}`)
         .set('Authorization', `Bearer ${superadminToken}`);
 
-      expect(deleteResponse.status).toBe(400);
-      expect(deleteResponse.body.message).toContain('has existing posts');
+      expect(deleteResponse.status).toBe(204);
+      // The user should be soft deleted, not physically removed
     });
   });
 

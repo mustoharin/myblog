@@ -24,6 +24,7 @@ A full-stack blogging platform built with the MERN stack (MongoDB, Express.js, R
 - Admin dashboard with user statistics
 - Role-based permissions with customizable privileges
 - Inactive user access control (blocked login and API access)
+- **Soft delete functionality preserving data and relationships**
 
 ### Blog Features
 - Create, edit, and delete blog posts with rich HTML content
@@ -241,6 +242,8 @@ For complete API documentation with request/response examples, see [Backend READ
 - ✅ Atomic database operations to prevent race conditions
 - ✅ Environment variables for sensitive configuration
 - ✅ Password reset tokens with time-based expiration
+- ✅ Soft delete implementation for data preservation and security
+- ✅ Referential integrity maintenance without cascading deletions
 
 ## Recent Features
 
@@ -248,6 +251,28 @@ For complete API documentation with request/response examples, see [Backend READ
 - **View Tracking**: Automatic view counting for all published posts
 - **Popular Posts Widget**: Admin dashboard widget showing trending posts
 - **Timeframe Filtering**: Filter popular posts by day, week, month, or year
+
+### Soft Delete Functionality
+- **Data Preservation**: Deleted records are marked as deleted but preserved in database
+- **Referential Integrity**: Maintains relationships between soft-deleted entities
+- **Query Filtering**: Automatic exclusion of deleted records from all queries
+- **Admin Transparency**: Deleted records hidden from both admin panel and public frontend
+- **Restore Capability**: Built-in methods to restore soft-deleted records if needed
+
+#### Soft Delete Implementation
+All core models (Posts, Users, Roles, Privileges) implement soft delete with:
+- `deletedAt` field (Date, default: null)
+- Pre-query middleware automatically filtering deleted records
+- `softDelete()` method for marking records as deleted
+- `restore()` method for undeleting records
+- `findDeleted()` static method for admin tools
+- `findWithDeleted()` static method for complete data access
+
+#### Benefits
+- **Data Recovery**: Accidental deletions can be reversed
+- **Audit Trail**: Maintains complete history of all actions
+- **Referential Safety**: No cascading deletion issues
+- **User Experience**: Instant "deletion" without data loss risk
 - **Atomic Operations**: Thread-safe view counting using MongoDB `$inc`
 
 ### User Activity

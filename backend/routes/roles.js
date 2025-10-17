@@ -162,14 +162,14 @@ router.delete('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
       return res.status(403).json({ message: 'Cannot delete superadmin role' });
     }
 
-    // Check if role is assigned to any users
-    const User = require('../models/User');
-    const usersWithRole = await User.countDocuments({ role: role._id });
-    if (usersWithRole > 0) {
-      return res.status(400).json({ message: 'Role is assigned to users and cannot be deleted' });
-    }
+    // Check if role is assigned to any users - with soft delete, we don't need to prevent role deletion
+    // const User = require('../models/User');
+    // const usersWithRole = await User.countDocuments({ role: role._id });
+    // if (usersWithRole > 0) {
+    //   return res.status(400).json({ message: 'Role is assigned to users and cannot be deleted' });
+    // }
 
-    await Role.deleteOne({ _id: role._id });
+    await role.softDelete();
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

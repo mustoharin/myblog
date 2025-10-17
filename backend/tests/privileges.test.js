@@ -119,13 +119,14 @@ describe('Privilege Routes', () => {
           privileges: [...roles.adminRole.privileges.map(p => p._id), newPrivilege.body._id]
         });
 
-      // Try to delete the privilege
+      // With soft delete, we can now delete privileges even if assigned to roles
       const response = await request(app)
         .delete(`/api/privileges/${newPrivilege.body._id}`)
         .set('Authorization', `Bearer ${superadminToken}`);
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain('assigned to roles');
+      expect(response.status).toBe(200);
+      expect(response.body.message).toContain('deleted successfully');
+      // The privilege should be soft deleted, not physically removed
     });
 
     it('should allow deletion of custom privileges by superadmin', async () => {

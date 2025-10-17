@@ -47,8 +47,39 @@ const RoleSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  deletedAt: {
+    type: Date,
+    default: null
   }
 });
+
+// Pre-query middleware to exclude deleted documents
+RoleSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'count', 'countDocuments'], function() {
+  this.where({ deletedAt: null });
+});
+
+// Soft delete method
+RoleSchema.methods.softDelete = function() {
+  this.deletedAt = new Date();
+  return this.save();
+};
+
+// Restore method
+RoleSchema.methods.restore = function() {
+  this.deletedAt = null;
+  return this.save();
+};
+
+// Static method to find deleted documents
+RoleSchema.statics.findDeleted = function() {
+  return this.find({ deletedAt: { $ne: null } });
+};
+
+// Static method to find all documents including deleted
+RoleSchema.statics.findWithDeleted = function() {
+  return this.findWithDeleted;
+};
 
 // Middleware to automatically update updatedAt on save
 RoleSchema.pre('save', function(next) {

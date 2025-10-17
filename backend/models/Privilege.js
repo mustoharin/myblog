@@ -41,8 +41,39 @@ const PrivilegeSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
+  },
+  deletedAt: {
+    type: Date,
+    default: null
   }
 });
+
+// Pre-query middleware to exclude deleted documents
+PrivilegeSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'count', 'countDocuments'], function() {
+  this.where({ deletedAt: null });
+});
+
+// Soft delete method
+PrivilegeSchema.methods.softDelete = function() {
+  this.deletedAt = new Date();
+  return this.save();
+};
+
+// Restore method
+PrivilegeSchema.methods.restore = function() {
+  this.deletedAt = null;
+  return this.save();
+};
+
+// Static method to find deleted documents
+PrivilegeSchema.statics.findDeleted = function() {
+  return this.find({ deletedAt: { $ne: null } });
+};
+
+// Static method to find all documents including deleted
+PrivilegeSchema.statics.findWithDeleted = function() {
+  return this.findWithDeleted;
+};
 
 // Middleware to automatically update updatedAt on save
 PrivilegeSchema.pre('save', function(next) {

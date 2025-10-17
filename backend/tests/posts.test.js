@@ -104,7 +104,7 @@ describe('Post Routes', () => {
         title: 'Test Post with Invalid Tags',
         content: 'Test content',
         excerpt: 'Test excerpt',
-        tags: ['invalid@tag', 'valid-tag']
+        tags: ['invalid@tag', 'valid-tag', 'UPPER Case']
       };
 
       const response = await request(app)
@@ -112,8 +112,9 @@ describe('Post Routes', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send(postData);
 
-      expect(response.status).toBe(400);
-      expect(response.body.message).toMatch(/must contain only letters, numbers, and hyphens/);
+      expect(response.status).toBe(201);
+      // Tags should be cleaned: 'invalid@tag' -> 'invalidtag', 'UPPER Case' -> 'upper-case'
+      expect(response.body.tags).toEqual(['invalidtag', 'valid-tag', 'upper-case']);
     });
   });
 

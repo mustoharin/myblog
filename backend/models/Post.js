@@ -109,6 +109,10 @@ const PostSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  deletedAt: {
+    type: Date,
+    default: null
+  },
   comments: [CommentSchema]
 });
 
@@ -123,6 +127,33 @@ PostSchema.pre('findOneAndUpdate', function(next) {
   this.set({ updatedAt: new Date() });
   next();
 });
+
+// Soft delete middleware - exclude deleted documents by default
+PostSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'count', 'countDocuments'], function() {
+  this.where({ deletedAt: null });
+});
+
+// Add soft delete method
+PostSchema.methods.softDelete = function() {
+  this.deletedAt = new Date();
+  return this.save();
+};
+
+// Add restore method
+PostSchema.methods.restore = function() {
+  this.deletedAt = null;
+  return this.save();
+};
+
+// Static method to find deleted documents
+PostSchema.statics.findDeleted = function() {
+  return this.find({ deletedAt: { $ne: null } });
+};
+
+// Static method to find with deleted documents
+PostSchema.statics.findWithDeleted = function() {
+  return this.find({});
+};
 
 // Add text search indexes
 PostSchema.index({ title: 'text', content: 'text' });

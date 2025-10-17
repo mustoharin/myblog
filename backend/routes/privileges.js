@@ -95,14 +95,14 @@ router.delete('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
       return res.status(403).json({ message: 'Cannot delete essential privilege' });
     }
 
-    // Check if privilege is assigned to any roles
-    const Role = require('../models/Role');
-    const rolesWithPrivilege = await Role.countDocuments({ privileges: privilege._id });
-    if (rolesWithPrivilege > 0) {
-      return res.status(400).json({ message: 'Privilege is assigned to roles and cannot be deleted' });
-    }
+    // Check if privilege is assigned to any roles - with soft delete, we don't need to prevent privilege deletion
+    // const Role = require('../models/Role');
+    // const rolesWithPrivilege = await Role.countDocuments({ privileges: privilege._id });
+    // if (rolesWithPrivilege > 0) {
+    //   return res.status(400).json({ message: 'Privilege is assigned to roles and cannot be deleted' });
+    // }
 
-    await Privilege.deleteOne({ _id: privilege._id });
+    await privilege.softDelete();
     res.status(200).json({ message: 'Privilege deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

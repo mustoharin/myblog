@@ -257,14 +257,14 @@ router.delete('/:id', auth, checkRole(['delete_user']), async (req, res) => {
       }
     }
 
-    // Check for existing posts
-    const Post = require('../models/Post');
-    const postsCount = await Post.countDocuments({ author: userToDelete._id });
-    if (postsCount > 0) {
-      return res.status(400).json({ message: 'User has existing posts and cannot be deleted' });
-    }
+    // Check for existing posts - with soft delete, we don't need to prevent user deletion
+    // const Post = require('../models/Post');
+    // const postsCount = await Post.countDocuments({ author: userToDelete._id });
+    // if (postsCount > 0) {
+    //   return res.status(400).json({ message: 'User has existing posts and cannot be deleted' });
+    // }
 
-    await User.findByIdAndDelete(req.params.id);
+    await userToDelete.softDelete();
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
