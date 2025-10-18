@@ -42,7 +42,13 @@ class PasswordValidator {
       'qwerty',
       'admin',
       'letmein',
-      'welcome'
+      'welcome',
+      '12345678',
+      'password123',
+      'admin123',
+      'user',
+      'test',
+      'login'
     ];
 
     if (commonPatterns.some(pattern => 

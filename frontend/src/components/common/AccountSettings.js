@@ -205,6 +205,17 @@ const AccountSettings = () => {
       // Handle specific field errors
       if (error.response?.data?.message?.includes('Current password')) {
         setErrors({ currentPassword: error.response.data.message });
+      } else if (error.response?.data?.message && error.response.status === 400) {
+        // Handle new password validation errors
+        const errorMessage = error.response.data.message;
+        if (errorMessage.includes('Password contains common patterns') ||
+            errorMessage.includes('Password must be at least') ||
+            errorMessage.includes('Password must contain at least') ||
+            errorMessage.includes('Password cannot contain repeating') ||
+            errorMessage.includes('Password cannot contain sequential') ||
+            errorMessage.includes('New password must be different')) {
+          setErrors({ newPassword: errorMessage });
+        }
       }
     } finally {
       setPasswordLoading(false);
@@ -278,6 +289,12 @@ const AccountSettings = () => {
       const sequences = ['abc', 'bcd', 'cde', 'def', 'efg', 'fgh', 'ghi', 'hij', 'ijk', 'jkl', 'klm', 'lmn', 'mno', 'nop', 'opq', 'pqr', 'qrs', 'rst', 'stu', 'tuv', 'uvw', 'vwx', 'wxy', 'xyz', '123', '234', '345', '456', '567', '678', '789'];
       const lowerPassword = password.toLowerCase();
       return !sequences.some(seq => lowerPassword.includes(seq) || lowerPassword.includes(seq.split('').reverse().join('')));
+    }
+    if (cleanReq.includes('common')) {
+      // Check for common patterns
+      const commonPatterns = ['password', '123456', 'qwerty', 'admin', 'letmein', 'welcome', '12345678', 'password123', 'admin123', 'user', 'test', 'login'];
+      const lowerPassword = password.toLowerCase();
+      return !commonPatterns.some(pattern => lowerPassword.includes(pattern));
     }
     
     // For requirements with "at least 3 of the following", check if at least 3 categories are met
