@@ -7,17 +7,38 @@ const checkRole = require('../middleware/roleAuth');
 // Get all privileges (superadmin only)
 router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
   try {
-    const paginateResults = require('../utils/pagination');
-    const { page, limit, sort = 'name' } = req.query;
+    const { grouped = 'false', page, limit, sort = 'module' } = req.query;
 
-    const result = await paginateResults(Privilege, {}, {
-      page,
-      limit,
-      sort
-    });
-
-    res.json(result);
+    if (grouped === 'true') {
+      // Return privileges grouped by module
+      const groupedPrivileges = await Privilege.getGroupedByModule();
+      res.json({ 
+        modules: groupedPrivileges,
+        totalModules: groupedPrivileges.length 
+      });
+    } else {
+      // Return paginated privileges
+      const paginateResults = require('../utils/pagination');
+      const result = await paginateResults(Privilege, {}, {
+        page,
+        limit,
+        sort
+      });
+      res.json(result);
+    }
   } catch (error) {
+    console.error('Privileges fetch error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get available modules
+router.get('/modules', auth, checkRole(['manage_roles']), async (req, res) => {
+  try {
+    const modules = Privilege.getModules();
+    res.json({ modules });
+  } catch (error) {
+    console.error('Modules fetch error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -25,26 +46,44 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
 // Create new privilege (superadmin only)
 router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
   try {
-    const { name, description, code } = req.body;
+    const { name, description, code, module, moduleDisplayName, priority } = req.body;
+
+    // Validate required fields
+    if (!name || !description || !code || !module) {
+      return res.status(400).json({ 
+        message: 'Name, description, code, and module are required' 
+      });
+    }
 
     // Check if privilege already exists
     let privilege = await Privilege.findOne({ 
       $or: [{ name }, { code }] 
     });
+    
     if (privilege) {
       return res.status(400).json({ message: 'Privilege already exists' });
+    }
+
+    // Validate module
+    const validModules = Privilege.getModules().map(m => m.code);
+    if (!validModules.includes(module)) {
+      return res.status(400).json({ message: 'Invalid module' });
     }
 
     // Create new privilege
     privilege = new Privilege({
       name,
       description,
-      code
+      code,
+      module,
+      moduleDisplayName: moduleDisplayName || Privilege.getModules().find(m => m.code === module)?.name,
+      priority: priority || 0
     });
 
     await privilege.save();
     res.status(201).json(privilege);
   } catch (error) {
+    console.error('Privilege creation error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

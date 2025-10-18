@@ -28,6 +28,7 @@ import {
   Security as SecurityIcon,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 
 // Column width constants
@@ -40,6 +41,7 @@ const COLUMN_WIDTHS = {
 };
 
 const RoleList = ({ onEdit }) => {
+  const { user } = useAuth();
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -47,6 +49,36 @@ const RoleList = ({ onEdit }) => {
   const [totalRoles, setTotalRoles] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
+
+  // Check if current user can modify a specific role
+  const canModifyRole = (role) => {
+    if (!user?.role) return false;
+    
+    // Superadmin can modify all roles except itself (to prevent system lockout)
+    if (user.role.name === 'superadmin') {
+      return role.name !== 'superadmin';
+    }
+    
+    // Admin cannot modify admin or superadmin roles
+    if (user.role.name === 'admin' && ['admin', 'superadmin'].includes(role.name)) return false;
+    
+    // Other users cannot modify any roles by default
+    return false;
+  };
+
+  // Check if current user can edit a specific role (more permissive than delete)
+  const canEditRole = (role) => {
+    if (!user?.role) return false;
+    
+    // Superadmin can edit all roles including itself
+    if (user.role.name === 'superadmin') return true;
+    
+    // Admin cannot edit admin or superadmin roles
+    if (user.role.name === 'admin' && ['admin', 'superadmin'].includes(role.name)) return false;
+    
+    // Other users cannot edit any roles by default
+    return false;
+  };
 
   const fetchRoles = useCallback(async () => {
     try {
@@ -227,23 +259,23 @@ const RoleList = ({ onEdit }) => {
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1} justifyContent="center">
-                          <Tooltip title="Edit" arrow>
+                          <Tooltip title={canEditRole(role) ? "Edit" : "You don't have permission to edit this role"} arrow>
                             <span>
                               <IconButton
                                 size="small"
                                 onClick={() => onEdit(role)}
-                                disabled={role.name === 'admin'}
+                                disabled={!canEditRole(role)}
                               >
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </span>
                           </Tooltip>
-                          <Tooltip title="Delete" arrow>
+                          <Tooltip title={canModifyRole(role) ? "Delete" : role.name === 'superadmin' ? "Cannot delete superadmin role" : "You don't have permission to delete this role"} arrow>
                             <span>
                               <IconButton
                                 size="small"
                                 onClick={() => handleDeleteClick(role)}
-                                disabled={role.name === 'admin'}
+                                disabled={!canModifyRole(role)}
                                 color="error"
                               >
                                 <DeleteIcon fontSize="small" />

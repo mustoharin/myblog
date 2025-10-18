@@ -69,34 +69,30 @@ const RoleForm = ({ onBack }) => {
 
   const fetchAvailablePrivileges = async () => {
     try {
-      // Fetch all privileges without pagination (max 50 per backend limit)
-      const response = await api.get('/privileges', {
-        params: { limit: 50 }
-      });
-      // Backend returns paginated response with 'items' array
-      const privilegesList = response.data.items || response.data.privileges || [];
+      // Fetch privileges grouped by module
+      const response = await api.get('/privileges?grouped=true');
+      const groupedData = response.data.modules || [];
       
       // Create a map of privilege names to IDs for later conversion
       const nameToIdMap = {};
-      privilegesList.forEach(priv => {
-        nameToIdMap[priv.name] = priv._id;
+      const privilegesList = [];
+      
+      groupedData.forEach(moduleGroup => {
+        moduleGroup.privileges.forEach(priv => {
+          nameToIdMap[priv.name] = priv._id;
+          privilegesList.push(priv);
+        });
       });
+      
       setPrivilegeMap(nameToIdMap);
       
-      // Group privileges by resource
-      const grouped = privilegesList.reduce((acc, priv) => {
-        const [resource] = priv.name.split('.');
-        if (!acc[resource]) {
-          acc[resource] = {
-            name: resource,
-            privileges: [],
-          };
-        }
-        acc[resource].privileges.push(priv);
-        return acc;
-      }, {});
+      // Transform grouped data for display
+      const transformedGroups = groupedData.map(moduleGroup => ({
+        name: moduleGroup.moduleDisplayName,
+        privileges: moduleGroup.privileges.sort((a, b) => (b.priority || 0) - (a.priority || 0))
+      }));
       
-      setAvailablePrivileges(Object.values(grouped));
+      setAvailablePrivileges(transformedGroups);
     } catch (error) {
       console.error('Failed to fetch privileges:', error);
       toast.error('Failed to fetch privileges');

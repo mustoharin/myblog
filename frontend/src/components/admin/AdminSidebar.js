@@ -15,6 +15,7 @@ import {
   VpnKey as RolesIcon,
   LocalOffer as TagIcon,
   Timeline as ActivitiesIcon,
+  Security as PrivilegesIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -25,6 +26,7 @@ const menuItems = [
   { text: 'Posts', icon: <ArticleIcon />, path: '/admin/posts' },
   { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },
   { text: 'Roles', icon: <RolesIcon />, path: '/admin/roles' },
+  { text: 'Privileges', icon: <PrivilegesIcon />, path: '/admin/privileges' },
   { text: 'Tags', icon: <TagIcon />, path: '/admin/tags' },
   { text: 'Activities', icon: <ActivitiesIcon />, path: '/admin/activities' },
 ];
