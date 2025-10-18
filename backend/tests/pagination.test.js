@@ -61,7 +61,9 @@ describe('Pagination', () => {
       privData.push({
         name: `TestPrivilege${i}`,
         description: `Test privilege ${i}`,
-        code: `test_priv_${i}`
+        code: `test_priv_${i}`,
+        module: 'system_administration',
+        moduleDisplayName: 'System Administration'
       });
     }
     await Privilege.insertMany(privData);

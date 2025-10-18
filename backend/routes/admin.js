@@ -78,22 +78,26 @@ router.get('/posts/popular', auth, checkRole(['read_post']), async (req, res) =>
     const now = new Date();
     
     switch (timeframe) {
-      case 'day':
+      case 'day': {
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         dateFilter = { createdAt: { $gte: oneDayAgo } };
         break;
-      case 'week':
+      }
+      case 'week': {
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         dateFilter = { createdAt: { $gte: oneWeekAgo } };
         break;
-      case 'month':
+      }
+      case 'month': {
         const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         dateFilter = { createdAt: { $gte: oneMonthAgo } };
         break;
-      case 'year':
+      }
+      case 'year': {
         const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
         dateFilter = { createdAt: { $gte: oneYearAgo } };
         break;
+      }
       default:
         dateFilter = {};
     }
@@ -176,15 +180,17 @@ router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
     
     // Search filter - search in data fields and actor information
     if (search && search.trim()) {
-      const searchRegex = new RegExp(search, 'i');
+      const safeSearch = search.trim();
+      // Use MongoDB $regex with escaped input for security
+      const searchPattern = safeSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
-        { 'data.title': searchRegex },
-        { 'data.username': searchRegex },
-        { 'data.fullName': searchRegex },
-        { 'data.name': searchRegex },
-        { 'data.displayName': searchRegex },
-        { 'actor.username': searchRegex },
-        { 'actor.fullName': searchRegex }
+        { 'data.title': { $regex: searchPattern, $options: 'i' } },
+        { 'data.username': { $regex: searchPattern, $options: 'i' } },
+        { 'data.fullName': { $regex: searchPattern, $options: 'i' } },
+        { 'data.name': { $regex: searchPattern, $options: 'i' } },
+        { 'data.displayName': { $regex: searchPattern, $options: 'i' } },
+        { 'actor.username': { $regex: searchPattern, $options: 'i' } },
+        { 'actor.fullName': { $regex: searchPattern, $options: 'i' } }
       ];
     }
     

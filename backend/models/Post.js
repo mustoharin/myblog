@@ -45,7 +45,7 @@ const PostSchema = new mongoose.Schema({
       validator: function(v) {
         return v.every(tag => /^[a-z0-9-]+$/.test(tag));
       },
-      message: props => 'Tags must contain only lowercase letters, numbers, and hyphens'
+      message: _props => 'Tags must contain only lowercase letters, numbers, and hyphens'
     }],
     default: []
   },
@@ -83,7 +83,7 @@ const PostSchema = new mongoose.Schema({
         this.content = result.clean;
         return true;
       },
-      message: props => 'Content validation failed: Invalid or unsafe HTML content'
+      message: _props => 'Content validation failed: Invalid or unsafe HTML content'
     }
   },
   author: {

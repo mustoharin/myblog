@@ -1,0 +1,14 @@
+# Prettier ignore file
+node_modules/
+*.log
+*.min.js
+build/
+dist/
+coverage/
+.nyc_output/
+*.tgz
+*.tar.gz
+.env*
+*.lock
+package-lock.json
+yarn.lock

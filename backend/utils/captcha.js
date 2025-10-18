@@ -41,7 +41,12 @@ class Captcha {
     let result = '';
     const randomBytes = crypto.randomBytes(length);
     for (let i = 0; i < length; i++) {
-      result += chars[randomBytes[i] % chars.length];
+      // Safe bounds checking to prevent potential injection
+      const byteValue = randomBytes.readUInt8(i);
+      const index = byteValue % chars.length;
+      if (Number.isInteger(index) && index >= 0 && index < chars.length) {
+        result += chars.charAt(index);
+      }
     }
     return result;
   }
@@ -108,11 +113,12 @@ class Captcha {
     for (let i = 0; i < captchaText.length; i++) {
       const x = startX + (i * (textWidth / captchaText.length));
       const y = this.height / 2 + (Math.random() * 10 - 5);
+      const char = captchaText.charAt(i); // Safer than direct array access
       
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate((Math.random() * 0.4) - 0.2); // Random rotation ±0.2 radians
-      ctx.fillText(captchaText[i], 0, 0);
+      ctx.fillText(char, 0, 0);
       ctx.restore();
     }
     

@@ -1,6 +1,8 @@
 const request = require('supertest');
 const app = require('../server');
 const Post = require('../models/Post');
+const User = require('../models/User');
+const Activity = require('../models/Activity');
 const {
   createInitialPrivileges,
   createInitialRoles,
@@ -754,13 +756,22 @@ describe('Admin Routes', () => {
       await Post.deleteMany({});
       
       // Create a test post
-      await Post.create({
+      const testPost = await Post.create({
         title: 'Test Activity Post',
         content: 'Content for activity test',
         excerpt: 'Test excerpt',
         author: adminUser._id,
         isPublished: true
       });
+
+      // Manually log the activity since we're bypassing the API
+      await Activity.logActivity(
+        'post_create',
+        adminUser,
+        'post',
+        testPost._id,
+        { title: testPost.title }
+      );
 
       const response = await request(app)
         .get('/api/admin/activities')
@@ -775,6 +786,23 @@ describe('Admin Routes', () => {
     });
 
     it('should include user activities', async () => {
+      // Create a test user and log the activity
+      const testUser = await User.create({
+        username: 'activityTestUser',
+        email: 'activitytest@example.com',
+        password: 'Password123!',
+        role: roles.regularRole._id
+      });
+
+      // Manually log the activity since we're bypassing the API
+      await Activity.logActivity(
+        'user_create',
+        superadminUser,
+        'user',
+        testUser._id,
+        { username: testUser.username, fullName: testUser.fullName }
+      );
+
       const response = await request(app)
         .get('/api/admin/activities')
         .set('Authorization', `Bearer ${superadminToken}`);
@@ -792,7 +820,7 @@ describe('Admin Routes', () => {
       await Post.deleteMany({});
       
       // Create a post with comments
-      await Post.create({
+      const postWithComments = await Post.create({
         title: 'Post with Comments',
         content: 'Content',
         excerpt: 'Excerpt',
@@ -806,6 +834,15 @@ describe('Admin Routes', () => {
           }
         ]
       });
+
+      // Manually log the comment activity since we're bypassing the API
+      await Activity.logActivity(
+        'comment_create',
+        { username: 'Commenter' }, // Mock commenter user
+        'comment',
+        postWithComments._id, // Use post ID as target
+        { postTitle: postWithComments.title, content: 'Test comment' }
+      );
 
       const response = await request(app)
         .get('/api/admin/activities')

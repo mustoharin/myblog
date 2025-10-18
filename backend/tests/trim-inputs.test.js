@@ -110,13 +110,17 @@ describe('Input Trimming', () => {
         .send({
           name: '  newprivilege  ',
           code: '  new_privilege  ',
-          description: '  New privilege description  '
+          description: '  New privilege description  ',
+          module: '  user_management  ',
+          moduleDisplayName: '  User Management  '
         });
 
       expect(response.status).toBe(201);
       expect(response.body.name).toBe('newprivilege');
       expect(response.body.code).toBe('new_privilege');
       expect(response.body.description).toBe('New privilege description');
+      expect(response.body.module).toBe('user_management');
+      expect(response.body.moduleDisplayName).toBe('User Management');
     });
   });
 });

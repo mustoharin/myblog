@@ -52,7 +52,9 @@ describe('Privilege Routes', () => {
         .send({
           name: 'Manage Categories',
           code: 'manage_categories',
-          description: 'Can manage blog categories'
+          description: 'Can manage blog categories',
+          module: 'content_management',
+          moduleDisplayName: 'Content Management'
         });
 
       expect(response.status).toBe(201);
@@ -69,7 +71,9 @@ describe('Privilege Routes', () => {
         .send({
           name: 'Manage Categories',
           code: 'manage_categories',
-          description: 'Can manage blog categories'
+          description: 'Can manage blog categories',
+          module: 'content_management',
+          moduleDisplayName: 'Content Management'
         });
 
       expect(response.status).toBe(403);
@@ -108,7 +112,9 @@ describe('Privilege Routes', () => {
         .send({
           name: 'Test Privilege',
           code: 'test_privilege',
-          description: 'Test privilege'
+          description: 'Test privilege',
+          module: 'system_administration',
+          moduleDisplayName: 'System Administration'
         });
 
       // Assign it to a role
@@ -137,7 +143,9 @@ describe('Privilege Routes', () => {
         .send({
           name: 'Custom Privilege',
           code: 'custom_privilege',
-          description: 'Custom privilege for testing'
+          description: 'Custom privilege for testing',
+          module: 'system_administration',
+          moduleDisplayName: 'System Administration'
         });
 
       const response = await request(app)

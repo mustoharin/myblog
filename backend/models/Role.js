@@ -29,7 +29,7 @@ const RoleSchema = new mongoose.Schema({
         this.description = result.clean;
         return true;
       },
-      message: props => 'Description validation failed: Invalid or unsafe HTML content'
+      message: _props => 'Description validation failed: Invalid or unsafe HTML content'
     }
   },
   privileges: [{

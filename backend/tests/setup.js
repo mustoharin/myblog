@@ -1,10 +1,10 @@
+// Set test environment first before any imports
+process.env.NODE_ENV = 'test';
+
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const Role = require('../models/Role');
 const Privilege = require('../models/Privilege');
 const User = require('../models/User');
-
-let mongoServer;
 
 // Setup before all tests
 beforeAll(async () => {
@@ -14,8 +14,13 @@ beforeAll(async () => {
   // Set up test environment variables
   process.env.TEST_BYPASS_CAPTCHA_TOKEN = 'e2e_test_bypass_captcha_2025';
   
-  mongoServer = await MongoMemoryServer.create();
-  const mongoUri = mongoServer.getUri();
+  // Disconnect any existing connection first
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+  
+  // Use the existing MongoDB container for testing with authentication
+  const mongoUri = 'mongodb://admin:password123@myblog-mongodb:27017/myblog_test?authSource=admin';
   await mongoose.connect(mongoUri);
   
   // Set up default valid token for testing
@@ -24,8 +29,11 @@ beforeAll(async () => {
 
 // Clean up after all tests
 afterAll(async () => {
+  // Clean up test database
+  if (mongoose.connection.readyState === 1) {
+    await mongoose.connection.db.dropDatabase();
+  }
   await mongoose.disconnect();
-  await mongoServer.stop();
 });
 
 // Clean up database between tests
@@ -47,52 +55,72 @@ async function createInitialPrivileges() {
     {
       name: 'Change Password',
       code: 'change_password',
-      description: 'Can change own password'
+      description: 'Can change own password',
+      module: 'authentication',
+      moduleDisplayName: 'Authentication'
     },
     {
       name: 'Create User',
       code: 'create_user',
-      description: 'Can create new users'
+      description: 'Can create new users',
+      module: 'user_management',
+      moduleDisplayName: 'User Management'
     },
     {
       name: 'Read User',
       code: 'read_user',
-      description: 'Can read user information'
+      description: 'Can read user information',
+      module: 'user_management',
+      moduleDisplayName: 'User Management'
     },
     {
       name: 'Update User',
       code: 'update_user',
-      description: 'Can update user information'
+      description: 'Can update user information',
+      module: 'user_management',
+      moduleDisplayName: 'User Management'
     },
     {
       name: 'Delete User',
       code: 'delete_user',
-      description: 'Can delete users'
+      description: 'Can delete users',
+      module: 'user_management',
+      moduleDisplayName: 'User Management'
     },
     {
       name: 'Manage Roles',
       code: 'manage_roles',
-      description: 'Can manage roles and privileges'
+      description: 'Can manage roles and privileges',
+      module: 'role_management',
+      moduleDisplayName: 'Role Management'
     },
     {
       name: 'Create Post',
       code: 'create_post',
-      description: 'Can create posts'
+      description: 'Can create posts',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management'
     },
     {
       name: 'Read Post',
       code: 'read_post',
-      description: 'Can read posts'
+      description: 'Can read posts',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management'
     },
     {
       name: 'Update Post',
       code: 'update_post',
-      description: 'Can update posts'
+      description: 'Can update posts',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management'
     },
     {
       name: 'Delete Post',
       code: 'delete_post',
-      description: 'Can delete posts'
+      description: 'Can delete posts',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management'
     }
   ];
 

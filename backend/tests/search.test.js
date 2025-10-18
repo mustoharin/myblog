@@ -87,7 +87,7 @@ describe('Search and Tag Features', () => {
 
       expect(response.body.posts.length).toBeGreaterThan(1);
       expect(response.body.posts.every(post => 
-        post.tags.includes('javascript') && post.tags.includes('programming')
+        post.tags.some(tag => tag.name === 'javascript') && post.tags.some(tag => tag.name === 'programming')
       )).toBe(true);
     });
 

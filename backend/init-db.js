@@ -3,7 +3,6 @@ const Role = require('./models/Role');
 const Privilege = require('./models/Privilege');
 const User = require('./models/User');
 const Tag = require('./models/Tag');
-const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const initializeDB = async () => {
@@ -1402,10 +1401,10 @@ window.addEventListener('load', () => {
     console.log('   Admin - Email: admin@myblog.com | Username: admin_myblog | Password: MyBl0g@dm1n2025!');
     console.log('\n🚀 Your blog is ready to use!');
     
-    process.exit(0);
+    return true;
   } catch (error) {
     console.error('❌ Error initializing database:', error);
-    process.exit(1);
+    throw error;
   }
 };
 

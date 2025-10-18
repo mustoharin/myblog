@@ -25,11 +25,11 @@ yarn.lock
 
 # Testing
 coverage/
-*.test.js
-test/
-tests/
-__tests__/
-jest.config.js
+# *.test.js
+# test/
+# tests/
+# __tests__/
+# jest.config.js
 
 # Build output
 dist/

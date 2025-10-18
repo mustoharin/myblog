@@ -144,6 +144,7 @@ router.delete('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
     await privilege.softDelete();
     res.status(200).json({ message: 'Privilege deleted successfully' });
   } catch (error) {
+    console.error('Privilege delete error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
