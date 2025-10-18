@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import api from '../services/api';
+import { setAuthToken, getUserData, setUserData, clearAuthData } from '../utils/secureAuth';
+import { devError } from '../utils/secureLogging';
 
 const AuthContext = createContext(null);
 
@@ -8,16 +10,16 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = getUserData();
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      setUser(storedUser);
     }
     setLoading(false);
   }, []);
 
   const login = async (token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    setAuthToken(token);
+    setUserData(userData);
     
     setUser(userData);
     return userData;
@@ -27,10 +29,9 @@ export const AuthProvider = ({ children }) => {
     try {
       await api.post('/auth/logout');
     } catch (error) {
-      console.error('Logout error:', error);
+      devError('Logout error:', error);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      clearAuthData();
       setUser(null);
     }
   }, []);

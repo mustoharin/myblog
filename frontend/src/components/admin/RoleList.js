@@ -138,9 +138,13 @@ const RoleList = ({ onEdit }) => {
   const formatPrivileges = privileges => {
     if (!privileges || privileges.length === 0) return [];
     
-    // Group privileges by resource
+    // Group privileges by resource with safe object access
     const grouped = privileges.reduce((acc, priv) => {
       const [resource] = priv.name.split('.');
+      // Validate that resource is a safe key before using it
+      const validResources = ['posts', 'users', 'roles', 'tags', 'privileges', 'admin', 'account'];
+      if (!validResources.includes(resource)) return acc;
+      
       if (!acc[resource]) acc[resource] = [];
       acc[resource].push(priv);
       return acc;

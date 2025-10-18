@@ -31,6 +31,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { safeSet, isValidKey } from '../../utils/safeObjectAccess';
 
 const AccountSettings = () => {
   const { user, login } = useAuth();
@@ -73,30 +74,36 @@ const AccountSettings = () => {
   }, []);
 
   const handleProfileChange = field => event => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: event.target.value,
-    }));
+    // Define allowed profile fields for security
+    const allowedProfileFields = ['firstName', 'lastName', 'email', 'bio'];
+    
+    if (!isValidKey(field, allowedProfileFields)) {
+      console.warn('Invalid profile field access attempt:', field);
+      return;
+    }
+    
+    setProfileData(prev => safeSet(prev, field, event.target.value, allowedProfileFields));
+    
     // Clear field error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: null,
-      }));
+      setErrors(prev => safeSet(prev, field, null, allowedProfileFields));
     }
   };
 
   const handlePasswordChange = field => event => {
-    setPasswordData(prev => ({
-      ...prev,
-      [field]: event.target.value,
-    }));
+    // Define allowed password fields for security
+    const allowedPasswordFields = ['currentPassword', 'newPassword', 'confirmPassword'];
+    
+    if (!isValidKey(field, allowedPasswordFields)) {
+      console.warn('Invalid password field access attempt:', field);
+      return;
+    }
+    
+    setPasswordData(prev => safeSet(prev, field, event.target.value, allowedPasswordFields));
+    
     // Clear field error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: null,
-      }));
+      setErrors(prev => safeSet(prev, field, null, allowedPasswordFields));
     }
   };
 

@@ -25,6 +25,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { createSafeMapper } from '../../utils/safeObjectAccess';
 
 const validationSchema = Yup.object({
   name: Yup.string()
@@ -45,7 +46,7 @@ const RoleForm = ({ onBack }) => {
   const [availablePrivileges, setAvailablePrivileges] = useState([]);
   const [expandedResource, setExpandedResource] = useState(null);
   const [role, setRole] = useState(null);
-  const [privilegeMap, setPrivilegeMap] = useState({}); // Map privilege names to IDs
+  const [safePrivilegeMapper, setSafePrivilegeMapper] = useState(() => () => undefined);
 
   useEffect(() => {
     fetchAvailablePrivileges();
@@ -84,7 +85,9 @@ const RoleForm = ({ onBack }) => {
         });
       });
       
-      setPrivilegeMap(nameToIdMap);
+      // Create safe mapper with allowed privilege names
+      const allowedPrivilegeNames = Object.keys(nameToIdMap);
+      setSafePrivilegeMapper(() => createSafeMapper(nameToIdMap, allowedPrivilegeNames));
       
       // Transform grouped data for display
       const transformedGroups = groupedData.map(moduleGroup => ({
@@ -114,7 +117,7 @@ const RoleForm = ({ onBack }) => {
     setLoading(true);
     try {
       // Convert privilege names to IDs before sending to backend
-      const privilegeIds = values.privileges.map(name => privilegeMap[name]).filter(Boolean);
+      const privilegeIds = values.privileges.map(name => safePrivilegeMapper(name)).filter(Boolean);
       
       const payload = {
         name: values.name,

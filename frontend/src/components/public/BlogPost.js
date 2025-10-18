@@ -22,6 +22,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import api from '../../services/api';
 import CommentSection from './CommentSection';
+import { createSafeHTML } from '../../utils/htmlSanitizer';
 
 const BlogPost = () => {
   const { id } = useParams();
@@ -235,7 +236,7 @@ const BlogPost = () => {
       <Paper sx={{ p: 4, mb: 4 }}>
         <Box
           className="blog-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={createSafeHTML(post.content)}
           sx={{
             '& img': {
               maxWidth: '100%',

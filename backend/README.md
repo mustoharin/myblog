@@ -11,13 +11,17 @@ A robust Node.js/Express.js REST API powering a modern blogging platform with en
 ## ✨ Key Features
 
 ### 🔐 Advanced Security
-- **JWT Authentication** with configurable expiration and refresh tokens
+- **JWT Authentication** with environment-validated secrets and configurable expiration
 - **CAPTCHA Protection** with session-based verification and E2E testing bypass
 - **Role-Based Access Control (RBAC)** with module-organized granular privileges
 - **Password Security** with bcrypt hashing, complexity validation, and pattern detection
 - **Rate Limiting** with IP-based tracking and progressive lockout
 - **XSS Protection** with DOMPurify sanitization for rich content
+- **NoSQL Injection Prevention** with input sanitization middleware
+- **Security Headers** with Helmet.js (CSP, HSTS, X-Frame-Options, XSS protection)
+- **Secure Error Handling** preventing information disclosure in production
 - **Brute Force Protection** with intelligent delay mechanisms
+- **Zero Dependency Vulnerabilities** with regular security audits
 
 ### 👥 User Management System
 - **Multi-role Architecture** with customizable privilege assignment
@@ -227,6 +231,29 @@ node server.js
 
 ## Testing
 
+### Comprehensive Test Suite (235+ Tests)
+The backend includes extensive test coverage with Jest:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run specific test suite
+npm test -- --testPathPattern=auth.test.js
+```
+
+### Security Testing
+- **Authentication Tests** - JWT validation, CAPTCHA protection, rate limiting
+- **Authorization Tests** - RBAC enforcement, privilege validation
+- **Input Validation Tests** - NoSQL injection prevention, XSS protection
+- **Error Handling Tests** - Secure error responses, information disclosure prevention
+
 ### Start Test Server
 ```bash
 cd backend
@@ -237,6 +264,7 @@ The test server uses an in-memory MongoDB instance and includes:
 - Mock captcha validation (always accepts "123456" as the captcha text)
 - Pre-initialized test data with the same superadmin user
 - Same API endpoints as production server
+- Security middleware testing capabilities
 
 ### Example Test Requests
 

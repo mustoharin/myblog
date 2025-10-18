@@ -13,6 +13,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
+    "dompurify": "^3.3.0",
     "file-saver": "^2.0.5",
     "formik": "^2.4.6",
     "papaparse": "^5.5.3",
@@ -57,11 +58,14 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "prettier": "^3.0.3",
-    "concurrently": "^9.2.1"
+    "eslint-plugin-react-security": "^0.1.0",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-security-node": "^1.1.4",
+    "prettier": "^3.0.3"
   }
 }

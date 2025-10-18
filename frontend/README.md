@@ -12,11 +12,13 @@ A modern, responsive React 18 application providing both a public blogging inter
 - **React 18** - Modern UI framework with concurrent features and hooks
 - **Material-UI v5** - Comprehensive component library with theming system
 - **React Router v6** - Declarative client-side routing with nested routes
-- **Axios** - HTTP client with request/response interceptors and error handling
+- **Axios** - HTTP client with security timeout and request/response interceptors
 - **React Context API** - Centralized state management for authentication and app state
 - **React Hot Toast** - Modern toast notification system
 - **Date-fns** - Lightweight date manipulation and formatting library
 - **React Hooks** - Custom hooks for reusable logic and state management
+- **DOMPurify** - Client-side HTML sanitization for XSS prevention
+- **ESLint Security Plugins** - Automated security vulnerability detection
 
 ## Features
 
@@ -89,6 +91,45 @@ REACT_APP_API_URL=http://localhost:5002
 REACT_APP_ENVIRONMENT=development
 REACT_APP_VERSION=1.0.0
 ```
+
+```
+
+## 🛡️ Security Features
+
+### Frontend Security Hardening
+The frontend has undergone comprehensive SAST (Static Application Security Testing) analysis and hardening:
+
+#### XSS Protection
+- **DOMPurify Integration** - All HTML content sanitized before rendering
+- **Safe dangerouslySetInnerHTML** - Custom `createSafeHTML()` utility prevents script injection
+- **Input Validation** - Client-side validation with sanitization
+
+#### Object Injection Prevention
+- **Safe Property Access** - Whitelist-based property access preventing prototype pollution
+- **Dynamic Object Validation** - Property name validation with allowed key lists
+- **Secure Form Handling** - Field validation preventing injection attacks
+
+#### Authentication Security
+- **Secure Token Management** - JWT validation and safe localStorage handling
+- **Token Structure Validation** - Basic JWT format verification
+- **Automatic Token Cleanup** - Secure logout with complete data clearing
+
+#### Communication Security
+- **HTTPS Enforcement** - Environment-based secure URL configuration
+- **Request Timeout** - 10-second timeout preventing resource exhaustion
+- **Error Handling** - Secure error responses preventing information disclosure
+
+#### Development Security
+- **ESLint Security Plugins** - Automated vulnerability detection during development
+- **Secure Logging** - Production-safe logging with sensitive data filtering
+- **Environment-based Configuration** - Secure defaults for production deployment
+
+### Security Testing Results
+- ✅ **Build Success** - Production build passes with security enhancements
+- ✅ **XSS Prevention** - All HTML content properly sanitized
+- ✅ **Injection Protection** - Object property access secured with validation
+- ✅ **Token Security** - JWT handling secured with validation
+- ✅ **HTTPS Ready** - Environment-based secure communication configuration
 
 ## 🏗️ Architecture
 

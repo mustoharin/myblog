@@ -10,6 +10,7 @@ import {
   Paper,
 } from '@mui/material';
 import { Clear as ClearIcon } from '@mui/icons-material';
+import { safeSet, isValidKey } from '../../utils/safeObjectAccess';
 
 const FilterBar = ({ 
   filters, 
@@ -18,9 +19,17 @@ const FilterBar = ({
   filterConfig, 
 }) => {
   const handleChange = (field, value) => {
+    // Extract allowed fields from filterConfig for security
+    const allowedFields = filterConfig.map(config => config.field);
+    
+    if (!isValidKey(field, allowedFields)) {
+      console.warn('Invalid filter field access attempt:', field);
+      return;
+    }
+    
+    const updatedFilters = safeSet(filters, field, value, allowedFields);
     onFilterChange({
-      ...filters,
-      [field]: value,
+      ...updatedFilters,
       page: 0, // Reset page when filter changes
     });
   };

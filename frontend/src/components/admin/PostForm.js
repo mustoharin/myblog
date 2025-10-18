@@ -27,6 +27,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
+import { createSafeHTML } from '../../utils/htmlSanitizer';
 import TagInput from './TagInput';
 
 // Constants
@@ -429,7 +430,7 @@ const PostForm = ({ onBack }) => {
               {formik.values.excerpt}
             </Typography>
             <Box
-              dangerouslySetInnerHTML={{ __html: formik.values.content }}
+              dangerouslySetInnerHTML={createSafeHTML(formik.values.content)}
               sx={{
                 '& img': {
                   maxWidth: '100%',
