@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Autocomplete,
   Chip,
   TextField,
   Box,
   Typography,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import api from '../../services/api';
@@ -26,7 +26,7 @@ const TagInput = ({ value, onChange, error, helperText, disabled }) => {
       setLoading(true);
       try {
         const response = await api.get('/tags', {
-          params: { limit: 100, sort: 'displayName' } // Get active tags sorted by name
+          params: { limit: 100, sort: 'displayName' }, // Get active tags sorted by name
         });
         if (response.data?.items) {
           setAvailableTags(response.data.items.filter(tag => tag.isActive));
@@ -40,7 +40,7 @@ const TagInput = ({ value, onChange, error, helperText, disabled }) => {
             setAvailableTags(fallbackResponse.data.map(tag => ({ 
               name: tag._id, 
               displayName: tag._id,
-              color: '#1976d2'
+              color: '#1976d2',
             })));
           }
         } catch (fallbackError) {
@@ -63,7 +63,7 @@ const TagInput = ({ value, onChange, error, helperText, disabled }) => {
     onChange(newTagNames.join(', '));
   };
 
-  const formatTagName = (input) => {
+  const formatTagName = input => {
     return input
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -83,7 +83,7 @@ const TagInput = ({ value, onChange, error, helperText, disabled }) => {
         inputValue={inputValue}
         onInputChange={(event, newValue) => setInputValue(newValue)}
         options={availableTags.map(tag => tag.name || tag)}
-        getOptionLabel={(option) => {
+        getOptionLabel={option => {
           const tag = availableTags.find(t => t.name === option);
           return tag ? tag.displayName || option : option;
         }}
@@ -119,15 +119,15 @@ const TagInput = ({ value, onChange, error, helperText, disabled }) => {
                 sx={{ 
                   mr: 0.5, 
                   mb: 0.5,
-                  backgroundColor: tag ? tag.color + '20' : '#1976d220',
+                  backgroundColor: tag ? `${tag.color}20` : '#1976d220',
                   color: tag ? tag.color : '#1976d2',
-                  border: `1px solid ${tag ? tag.color : '#1976d2'}40`
+                  border: `1px solid ${tag ? tag.color : '#1976d2'}40`,
                 }}
               />
             );
           })
         }
-        renderInput={(params) => (
+        renderInput={params => (
           <TextField
             {...params}
             label="Tags"

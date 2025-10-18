@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -8,7 +7,7 @@ import UserForm from './UserForm';
 const UserManager = () => {
   const navigate = useNavigate();
 
-  const handleEdit = (user) => {
+  const handleEdit = user => {
     navigate(`edit/${user._id}`);
   };
 
@@ -25,7 +24,7 @@ const UserManager = () => {
       <Routes>
         <Route
           path="/"
-          element={
+          element={(
             <>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4">Users</Typography>
@@ -39,7 +38,7 @@ const UserManager = () => {
               </Box>
               <UserList onEdit={handleEdit} />
             </>
-          }
+          )}
         />
         <Route
           path="/new"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -23,7 +23,7 @@ import {
   Card,
   CardContent,
   Stack,
-  Skeleton
+  Skeleton,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -36,7 +36,7 @@ import {
   Delete as DeleteIcon,
   Tag as TagIcon,
   Security as RoleIcon,
-  FilterList as FilterIcon
+  FilterList as FilterIcon,
 } from '@mui/icons-material';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -149,12 +149,12 @@ const ActivityList = () => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangeRowsPerPage = event => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const handleActivityClick = (activity) => {
+  const handleActivityClick = activity => {
     const { type, data } = activity;
     switch (type) {
       case 'post_create':
@@ -190,10 +190,10 @@ const ActivityList = () => {
     }
   };
 
-  const getActivityTypeChip = (type) => {
+  const getActivityTypeChip = type => {
     const config = ACTIVITY_TYPES.find(t => t.value === type);
     const color = type.includes('delete') ? 'error' : 
-                  type.includes('create') ? 'success' : 'primary';
+      type.includes('create') ? 'success' : 'primary';
     
     return (
       <Chip
@@ -205,7 +205,7 @@ const ActivityList = () => {
     );
   };
 
-  const formatActivityDescription = (activity) => {
+  const formatActivityDescription = activity => {
     const actor = activity.user?.fullName || activity.user?.username || 'System';
     
     switch (activity.type) {
@@ -273,7 +273,7 @@ const ActivityList = () => {
               variant="outlined"
               size="small"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -289,9 +289,9 @@ const ActivityList = () => {
               <Select
                 value={typeFilter}
                 label="Activity Type"
-                onChange={(e) => setTypeFilter(e.target.value)}
+                onChange={e => setTypeFilter(e.target.value)}
               >
-                {ACTIVITY_TYPES.map((type) => (
+                {ACTIVITY_TYPES.map(type => (
                   <MenuItem key={type.value} value={type.value}>
                     {type.label}
                   </MenuItem>
@@ -366,7 +366,7 @@ const ActivityList = () => {
                 </TableRow>
               ) : (
                 // Activity rows
-                activities.map((activity) => (
+                activities.map(activity => (
                   <TableRow 
                     key={activity._id}
                     hover

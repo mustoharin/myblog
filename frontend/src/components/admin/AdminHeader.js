@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -23,7 +23,7 @@ const AdminHeader = ({ onSidebarToggle }) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleMenu = (event) => {
+  const handleMenu = event => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -51,7 +51,7 @@ const AdminHeader = ({ onSidebarToggle }) => {
     <AppBar
       position="fixed"
       sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
+        zIndex: theme => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar>

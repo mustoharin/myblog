@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   TextField,
@@ -16,13 +15,13 @@ const FilterBar = ({
   filters, 
   onFilterChange, 
   onClearFilters,
-  filterConfig 
+  filterConfig, 
 }) => {
   const handleChange = (field, value) => {
     onFilterChange({
       ...filters,
       [field]: value,
-      page: 0 // Reset page when filter changes
+      page: 0, // Reset page when filter changes
     });
   };
 
@@ -36,7 +35,7 @@ const FilterBar = ({
                 <InputLabel>{label}</InputLabel>
                 <Select
                   value={filters[field] || ''}
-                  onChange={(e) => handleChange(field, e.target.value)}
+                  onChange={e => handleChange(field, e.target.value)}
                   label={label}
                 >
                   <MenuItem value="">All</MenuItem>
@@ -55,7 +54,7 @@ const FilterBar = ({
               label={label}
               size="small"
               value={filters[field] || ''}
-              onChange={(e) => handleChange(field, e.target.value)}
+              onChange={e => handleChange(field, e.target.value)}
               sx={{ minWidth: 200 }}
             />
           );

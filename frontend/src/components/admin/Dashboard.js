@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Box, CssBaseline, useMediaQuery, useTheme } from '@mui/material';
-
 import AdminHeader from './AdminHeader';
 import AdminSidebar from './AdminSidebar';
 
@@ -34,10 +33,10 @@ const Dashboard = () => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - 240px)` },
+          width: { sm: 'calc(100% - 240px)' },
           ml: { sm: '240px' },
           mt: '64px',
-          bgcolor: 'background.default'
+          bgcolor: 'background.default',
         }}
       >
         <Outlet />

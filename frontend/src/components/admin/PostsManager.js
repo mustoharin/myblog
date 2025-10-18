@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -8,7 +7,7 @@ import PostForm from './PostForm';
 const PostsManager = () => {
   const navigate = useNavigate();
 
-  const handleEdit = (post) => {
+  const handleEdit = post => {
     navigate(`edit/${post._id}`);
   };
 
@@ -25,7 +24,7 @@ const PostsManager = () => {
       <Routes>
         <Route
           path="/"
-          element={
+          element={(
             <>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4">Posts</Typography>
@@ -39,7 +38,7 @@ const PostsManager = () => {
               </Box>
               <PostList onEdit={handleEdit} />
             </>
-          }
+          )}
         />
         <Route
           path="/new"

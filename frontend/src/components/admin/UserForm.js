@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -37,16 +37,16 @@ const validationSchema = Yup.object({
     .min(8, 'Password must be at least 8 characters')
     .when('isNew', {
       is: true,
-      then: (schema) => schema.required('Password is required'),
-      otherwise: (schema) => schema.notRequired(),
+      then: schema => schema.required('Password is required'),
+      otherwise: schema => schema.notRequired(),
     }),
   confirmPassword: Yup.string()
     .when('password', {
-      is: (val) => val?.length > 0,
-      then: (schema) => schema
+      is: val => val?.length > 0,
+      then: schema => schema
         .oneOf([Yup.ref('password')], 'Passwords must match')
         .required('Please confirm password'),
-      otherwise: (schema) => schema.notRequired(),
+      otherwise: schema => schema.notRequired(),
     }),
 });
 
@@ -82,7 +82,7 @@ const UserForm = ({ onBack }) => {
     try {
       // Fetch all roles without pagination (max 50 per backend limit)
       const response = await api.get('/roles', {
-        params: { limit: 50 }
+        params: { limit: 50 },
       });
       // Backend returns paginated response with 'items' array
       setRoles(response.data.items || response.data.roles || []);
@@ -103,7 +103,7 @@ const UserForm = ({ onBack }) => {
     isNew: !user,
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async values => {
     setLoading(true);
     try {
       const userData = {
@@ -208,7 +208,7 @@ const UserForm = ({ onBack }) => {
                 fullWidth
                 id="password"
                 name="password"
-                label={user ? "New Password (optional)" : "Password"}
+                label={user ? 'New Password (optional)' : 'Password'}
                 type="password"
                 value={formik.values.password}
                 onChange={formik.handleChange}
@@ -245,7 +245,7 @@ const UserForm = ({ onBack }) => {
                   error={formik.touched.role && Boolean(formik.errors.role)}
                 >
                   {roles && roles.length > 0 ? (
-                    roles.map((role) => (
+                    roles.map(role => (
                       <MenuItem
                         key={role._id}
                         value={role._id}
@@ -268,14 +268,14 @@ const UserForm = ({ onBack }) => {
 
             <Grid item xs={12}>
               <FormControlLabel
-                control={
+                control={(
                   <Switch
                     name="isActive"
                     checked={formik.values.isActive}
                     onChange={formik.handleChange}
                     disabled={user?.username === 'admin'}
                   />
-                }
+                )}
                 label="Active"
               />
             </Grid>

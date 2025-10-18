@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -53,7 +53,7 @@ const RoleList = ({ onEdit }) => {
   const [roleToView, setRoleToView] = useState(null);
 
   // Check if current user can modify a specific role
-  const canModifyRole = (role) => {
+  const canModifyRole = role => {
     if (!user?.role) return false;
     
     // Superadmin can modify all roles except itself (to prevent system lockout)
@@ -69,7 +69,7 @@ const RoleList = ({ onEdit }) => {
   };
 
   // Check if current user can edit a specific role (more permissive than delete)
-  const canEditRole = (role) => {
+  const canEditRole = role => {
     if (!user?.role) return false;
     
     // Superadmin can edit all roles including itself
@@ -112,12 +112,12 @@ const RoleList = ({ onEdit }) => {
     fetchRoles();
   }, [page, rowsPerPage]); // Fetch roles when page or rowsPerPage changes
 
-  const handleDeleteClick = (role) => {
+  const handleDeleteClick = role => {
     setRoleToDelete(role);
     setDeleteDialogOpen(true);
   };
 
-  const handleViewClick = (role) => {
+  const handleViewClick = role => {
     setRoleToView(role);
     setViewDialogOpen(true);
   };
@@ -135,7 +135,7 @@ const RoleList = ({ onEdit }) => {
     }
   };
 
-  const formatPrivileges = (privileges) => {
+  const formatPrivileges = privileges => {
     if (!privileges || privileges.length === 0) return [];
     
     // Group privileges by resource
@@ -161,7 +161,7 @@ const RoleList = ({ onEdit }) => {
           mb: 2, 
           overflow: 'hidden',
           borderRadius: 1,
-          boxShadow: (theme) => theme.shadows[2]
+          boxShadow: theme => theme.shadows[2],
         }}
       >
         {loading && <LinearProgress />}
@@ -184,7 +184,7 @@ const RoleList = ({ onEdit }) => {
                 </TableCell>
               </TableRow>
             </TableHead>
-          <TableBody>
+            <TableBody>
               {loading ? (
                 [...Array(rowsPerPage)].map((_, index) => (
                   <TableRow key={`skeleton-${index}`}>
@@ -195,7 +195,7 @@ const RoleList = ({ onEdit }) => {
                   </TableRow>
                 ))
               ) : roles && roles.length > 0 ? (
-                roles.map((role) => {
+                roles.map(role => {
                   return (
                     <TableRow 
                       key={role._id}
@@ -243,7 +243,7 @@ const RoleList = ({ onEdit }) => {
                               <ViewIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title={canEditRole(role) ? "Edit" : "You don't have permission to edit this role"} arrow>
+                          <Tooltip title={canEditRole(role) ? 'Edit' : "You don't have permission to edit this role"} arrow>
                             <span>
                               <IconButton
                                 size="small"
@@ -254,7 +254,7 @@ const RoleList = ({ onEdit }) => {
                               </IconButton>
                             </span>
                           </Tooltip>
-                          <Tooltip title={canModifyRole(role) ? "Delete" : role.name === 'superadmin' ? "Cannot delete superadmin role" : "You don't have permission to delete this role"} arrow>
+                          <Tooltip title={canModifyRole(role) ? 'Delete' : role.name === 'superadmin' ? 'Cannot delete superadmin role' : "You don't have permission to delete this role"} arrow>
                             <span>
                               <IconButton
                                 size="small"
@@ -295,7 +295,7 @@ const RoleList = ({ onEdit }) => {
           page={page}
           onPageChange={(event, newPage) => setPage(newPage)}
           rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(event) => {
+          onRowsPerPageChange={event => {
             setRowsPerPage(parseInt(event.target.value, 10));
             setPage(0);
           }}
@@ -356,7 +356,7 @@ const RoleList = ({ onEdit }) => {
                           {resource.replace('_', ' ')} Module ({privileges.length} permission{privileges.length !== 1 ? 's' : ''})
                         </Typography>
                         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-                          {privileges.map((privilege) => (
+                          {privileges.map(privilege => (
                             <Chip
                               key={privilege.name}
                               label={privilege.name}
@@ -364,7 +364,7 @@ const RoleList = ({ onEdit }) => {
                               variant="outlined"
                               sx={{ 
                                 fontSize: '0.75rem',
-                                '& .MuiChip-label': { px: 1 }
+                                '& .MuiChip-label': { px: 1 },
                               }}
                             />
                           ))}
@@ -410,7 +410,7 @@ const RoleList = ({ onEdit }) => {
         </DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the role "{roleToDelete?.name}"?
+            Are you sure you want to delete the role &quot;{roleToDelete?.name}&quot;?
           </Typography>
           {roleToDelete?.usersCount > 0 && (
             <Typography color="error" sx={{ mt: 2 }}>

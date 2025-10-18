@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -42,7 +42,7 @@ const SystemStatus = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const formatBytes = (bytes) => {
+  const formatBytes = bytes => {
     if (bytes === 0) return '0 B';
     if (bytes === undefined || bytes === null) return 'N/A';
     const k = 1024;
@@ -51,7 +51,7 @@ const SystemStatus = () => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
-  const formatUptime = (seconds) => {
+  const formatUptime = seconds => {
     if (!seconds) return '0s';
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
@@ -68,7 +68,7 @@ const SystemStatus = () => {
     return 'success';
   };
 
-  const StatusItem = ({ icon: Icon, title, value, total, unit, thresholds }) => {
+  const StatusItem = ({ icon: Icon, title, value, total, thresholds }) => {
     const percentage = (value / total) * 100;
     const color = getStatusColor(percentage, thresholds);
 

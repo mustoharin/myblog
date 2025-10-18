@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Paper,
-  Typography,
   Tabs,
   Tab,
 } from '@mui/material';
-
 import TagList from './TagList';
 import TagForm from './TagForm';
 
@@ -40,7 +38,7 @@ const TagManager = () => {
     }
   };
 
-  const handleEditTag = (tag) => {
+  const handleEditTag = tag => {
     setSelectedTag(tag);
     setTabValue(1);
   };

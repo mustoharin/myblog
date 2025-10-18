@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
@@ -21,7 +21,7 @@ const Login = () => {
   const [captcha, setCaptcha] = useState({
     sessionId: '',
     imageDataUrl: '',
-    text: ''
+    text: '',
   });
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -33,7 +33,7 @@ const Login = () => {
         ...prev,
         sessionId: response.data.sessionId,
         imageDataUrl: response.data.imageDataUrl,
-        text: ''
+        text: '',
       }));
     } catch (error) {
       console.error('Failed to fetch CAPTCHA:', error);
@@ -52,7 +52,7 @@ const Login = () => {
     }
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (!username || !password) {
       setError('Username and password are required');
@@ -65,7 +65,7 @@ const Login = () => {
     try {
       const loginData = {
         username,
-        password
+        password,
       };
 
       // In test environment, use bypass token
@@ -128,9 +128,8 @@ const Login = () => {
               label="Username"
               name="username"
               autoComplete="username"
-              autoFocus
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={e => setUsername(e.target.value)}
               disabled={loading}
             />
             <TextField
@@ -143,7 +142,7 @@ const Login = () => {
               id="password"
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               disabled={loading}
             />
             <Box sx={{ mt: 2, mb: 2 }}>
@@ -156,7 +155,7 @@ const Login = () => {
                       display: 'block', 
                       marginBottom: '8px',
                       border: '1px solid #ccc',
-                      borderRadius: '4px'
+                      borderRadius: '4px',
                     }} 
                   />
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -166,14 +165,14 @@ const Login = () => {
                       name="captcha"
                       label="Enter CAPTCHA"
                       value={captcha.text}
-                      onChange={(e) => setCaptcha(prev => ({ ...prev, text: e.target.value }))}
+                      onChange={e => setCaptcha(prev => ({ ...prev, text: e.target.value }))}
                       required
                       size="small"
                       sx={{ flexGrow: 1 }}
                       disabled={loading}
                       inputProps={{
                         'data-testid': 'captcha-input',
-                        'aria-label': 'Enter CAPTCHA code'
+                        'aria-label': 'Enter CAPTCHA code',
                       }}
                     />
                     <Button

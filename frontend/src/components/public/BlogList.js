@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
@@ -75,7 +75,7 @@ const BlogList = () => {
     window.scrollTo(0, 0);
   };
 
-  const handleSearch = (event) => {
+  const handleSearch = event => {
     const value = event.target.value;
     setSearch(value);
     updateUrl(1, value);
@@ -91,7 +91,7 @@ const BlogList = () => {
     if (searchTerm) params.set('search', searchTerm);
     if (page > 1) params.set('page', page.toString());
     
-    const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+    const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
     navigate(newUrl, { replace: true });
   };
 
@@ -156,14 +156,14 @@ const BlogList = () => {
                 </Typography>
               </Grid>
             ) : (
-              posts.map((post) => (
+              posts.map(post => (
                 <Grid item key={post._id} xs={12} sm={6} md={4}>
                   <Card 
                     sx={{ 
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
                     }}
                     onClick={() => navigate(`/post/${post._id}`)}
                   >
@@ -185,7 +185,7 @@ const BlogList = () => {
                         {post.excerpt || post.content}
                       </Typography>
                       <Box sx={{ mt: 2 }}>
-                        {Array.isArray(post.tags) && post.tags.map((tag) => {
+                        {Array.isArray(post.tags) && post.tags.map(tag => {
                           const tagName = typeof tag === 'string' ? tag : tag.name;
                           const tagLabel = typeof tag === 'string' ? tag : tag.displayName || tag.name;
                           const tagColor = typeof tag === 'string' ? '#1976d2' : tag.color || '#1976d2';
@@ -198,14 +198,14 @@ const BlogList = () => {
                               sx={{ 
                                 mr: 1, 
                                 mb: 1,
-                                backgroundColor: tagColor + '20',
+                                backgroundColor: `${tagColor}20`,
                                 color: tagColor,
                                 borderColor: tagColor,
-                                border: `1px solid ${tagColor}40`
+                                border: `1px solid ${tagColor}40`,
                               }}
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.stopPropagation();
-                                navigate(`/?search=${encodeURIComponent('#' + tagName)}`);
+                                navigate(`/?search=${encodeURIComponent(`#${tagName}`)}`);
                               }}
                             />
                           );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -83,12 +83,12 @@ const UserList = ({ onEdit }) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangeRowsPerPage = event => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const handleDeleteClick = (user) => {
+  const handleDeleteClick = user => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
@@ -106,7 +106,7 @@ const UserList = ({ onEdit }) => {
     }
   };
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     if (!date) return 'Never';
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -115,7 +115,7 @@ const UserList = ({ onEdit }) => {
     });
   };
 
-  const formatDateTime = (date) => {
+  const formatDateTime = date => {
     if (!date) return 'Never';
     return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
@@ -126,7 +126,7 @@ const UserList = ({ onEdit }) => {
     });
   };
 
-  const getLastLoginDisplay = (lastLogin) => {
+  const getLastLoginDisplay = lastLogin => {
     if (!lastLogin) return 'Never';
     
     const now = new Date();
@@ -154,7 +154,7 @@ const UserList = ({ onEdit }) => {
           mb: 2, 
           overflow: 'hidden',
           borderRadius: 1,
-          boxShadow: (theme) => theme.shadows[2]
+          boxShadow: theme => theme.shadows[2],
         }}
       >
         {loading && <LinearProgress />}
@@ -183,7 +183,7 @@ const UserList = ({ onEdit }) => {
                 </TableCell>
               </TableRow>
             </TableHead>
-          <TableBody>
+            <TableBody>
               {loading ? (
                 [...Array(rowsPerPage)].map((_, index) => (
                   <TableRow key={`skeleton-${index}`}>
@@ -196,7 +196,7 @@ const UserList = ({ onEdit }) => {
                   </TableRow>
                 ))
               ) : users && users.length > 0 ? (
-                users.map((user) => (
+                users.map(user => (
                   <TableRow 
                     key={user._id}
                     hover
@@ -325,7 +325,7 @@ const UserList = ({ onEdit }) => {
         </DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the user "{userToDelete?.username}"?
+            Are you sure you want to delete the user &quot;{userToDelete?.username}&quot;?
             This action cannot be undone.
           </Typography>
         </DialogContent>

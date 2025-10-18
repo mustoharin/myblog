@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Paper,
   Typography,
@@ -43,7 +43,7 @@ const PopularPosts = () => {
   const fetchPosts = useCallback(async () => {
     try {
       const response = await api.get('/admin/posts/popular', {
-        params: { timeframe, limit: 5 }
+        params: { timeframe, limit: 5 },
       });
       setPosts(response.data.posts);
     } catch (error) {
@@ -115,15 +115,15 @@ const PopularPosts = () => {
           <ListItem
             key={post._id}
             alignItems="flex-start"
-            secondaryAction={
+            secondaryAction={(
               <IconButton 
                 edge="end" 
                 size="small"
-                onClick={(e) => handleMenuOpen(e, post)}
+                onClick={e => handleMenuOpen(e, post)}
               >
                 <OpenIcon />
               </IconButton>
-            }
+            )}
           >
             <ListItemAvatar>
               <Avatar sx={{ bgcolor: 'primary.main' }}>
@@ -132,7 +132,7 @@ const PopularPosts = () => {
             </ListItemAvatar>
             <ListItemText
               primary={post.title}
-              secondary={
+              secondary={(
                 <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <ViewsIcon fontSize="small" sx={{ mr: 0.5 }} />
@@ -158,7 +158,7 @@ const PopularPosts = () => {
                     color={post.status === 'published' ? 'success' : 'default'}
                   />
                 </Box>
-              }
+              )}
             />
           </ListItem>
         ))}

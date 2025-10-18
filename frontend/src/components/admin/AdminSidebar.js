@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Drawer,
   List,
@@ -43,7 +42,7 @@ const AdminSidebar = ({ mobileOpen = false, handleDrawerToggle }) => {
       <Toolbar />
       <Divider />
       <List>
-        {menuItems.map((item) => (
+        {menuItems.map(item => (
           <ListItem
             button
             key={item.text}

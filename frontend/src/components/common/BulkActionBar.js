@@ -5,7 +5,6 @@ import {
   IconButton,
   Tooltip,
   alpha,
-  Button,
   Menu,
   MenuItem,
 } from '@mui/material';
@@ -21,7 +20,7 @@ const BulkActionBar = ({
 }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
-  const handleMenuOpen = (event) => {
+  const handleMenuOpen = event => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -29,7 +28,7 @@ const BulkActionBar = ({
     setAnchorEl(null);
   };
 
-  const handleActionClick = (action) => {
+  const handleActionClick = action => {
     handleMenuClose();
     action.handler();
   };
@@ -42,7 +41,7 @@ const BulkActionBar = ({
         pl: { sm: 2 },
         pr: { xs: 1, sm: 1 },
         mb: 2,
-        bgcolor: (theme) =>
+        bgcolor: theme =>
           alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
       }}
     >
@@ -75,7 +74,7 @@ const BulkActionBar = ({
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
-            {additionalActions.map((action) => (
+            {additionalActions.map(action => (
               <MenuItem
                 key={action.label}
                 onClick={() => handleActionClick(action)}

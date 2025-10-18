@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -6,7 +6,6 @@ import {
   TextField,
   Button,
   Typography,
-  FormControl,
   Grid,
   Switch,
   FormControlLabel,
@@ -18,7 +17,6 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
-  Preview as PreviewIcon,
   Save as SaveIcon,
   Publish as PublishIcon,
   VisibilityOff as DraftIcon,
@@ -49,12 +47,12 @@ const validationSchema = Yup.object({
     .trim()
     .max(MAX_EXCERPT_LENGTH, `Excerpt must be at most ${MAX_EXCERPT_LENGTH} characters`),
   tags: Yup.string()
-    .test('tags-validation', 'Each tag must be less than 50 characters', function(value) {
+    .test('tags-validation', 'Each tag must be less than 50 characters', value => {
       if (!value) return true;
       const tags = value.split(',').map(tag => tag.trim());
       return tags.every(tag => tag.length <= 50);
     }),
-  isPublished: Yup.boolean()
+  isPublished: Yup.boolean(),
 });
 
 const PostForm = ({ onBack }) => {
@@ -70,23 +68,23 @@ const PostForm = ({ onBack }) => {
 
   // Fetch post data if editing
   useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        setFetchingPost(true);
+        const response = await api.get(`/posts/${id}`);
+        setPost(response.data);
+      } catch (error) {
+        toast.error('Failed to fetch post');
+        navigate('/admin/posts');
+      } finally {
+        setFetchingPost(false);
+      }
+    };
+
     if (id) {
       fetchPost();
     }
-  }, [id]);
-
-  const fetchPost = async () => {
-    try {
-      setFetchingPost(true);
-      const response = await api.get(`/posts/${id}`);
-      setPost(response.data);
-    } catch (error) {
-      toast.error('Failed to fetch post');
-      navigate('/admin/posts');
-    } finally {
-      setFetchingPost(false);
-    }
-  };
+  }, [id, navigate]);
 
   const initialValues = {
     title: post?.title || '',
@@ -96,14 +94,14 @@ const PostForm = ({ onBack }) => {
     tags: Array.isArray(post?.tags) ? post.tags.join(', ') : '',
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async values => {
     setLoading(true);
     try {
       // Process tags: split by comma, trim whitespace, remove empty tags, and remove duplicates
       const processedTags = values.tags
         ? [...new Set(values.tags.split(',')
-            .map(tag => tag.trim())
-            .filter(tag => tag.length > 0))]
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0))]
         : [];
 
       const formData = {
@@ -161,15 +159,15 @@ const PostForm = ({ onBack }) => {
     if (JSON.stringify(formik.values) !== JSON.stringify(initialValues)) {
       setHasUnsavedChanges(true);
     }
-  }, [formik.values]);
+  }, [formik.values, initialValues]);
 
   const handleSave = async (values, isAutoSave = false) => {
     if (!post) return; // Only for existing posts
 
     const processedTags = values.tags
       ? [...new Set(values.tags.split(',')
-          .map(tag => tag.trim())
-          .filter(tag => tag.length > 0))]
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0))]
       : [];
 
     const formData = {
@@ -231,15 +229,18 @@ const PostForm = ({ onBack }) => {
       <Box sx={{ mb: 4 }}>
         <Grid container alignItems="center" spacing={2}>
           <Grid item>
-            <Button startIcon={<ArrowBackIcon />} onClick={() => {
-              if (hasUnsavedChanges) {
-                if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => {
+                if (hasUnsavedChanges) {
+                  if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                    onBack();
+                  }
+                } else {
                   onBack();
                 }
-              } else {
-                onBack();
-              }
-            }}>
+              }}
+            >
               Back
             </Button>
           </Grid>
@@ -269,144 +270,144 @@ const PostForm = ({ onBack }) => {
           <form onSubmit={formik.handleSubmit}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="title"
-                name="title"
-                label="Title"
-                value={formik.values.title}
-                onChange={(e) => {
-                  if (e.target.value.length <= MAX_TITLE_LENGTH) {
-                    formik.handleChange(e);
-                  }
-                }}
-                error={formik.touched.title && Boolean(formik.errors.title)}
-                helperText={
-                  (formik.touched.title && formik.errors.title) ||
-                  `${formik.values.title.length}/${MAX_TITLE_LENGTH} characters`
-                }
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="excerpt"
-                name="excerpt"
-                label="Excerpt"
-                multiline
-                rows={3}
-                value={formik.values.excerpt}
-                onChange={(e) => {
-                  if (e.target.value.length <= MAX_EXCERPT_LENGTH) {
-                    formik.handleChange(e);
-                  }
-                }}
-                error={formik.touched.excerpt && Boolean(formik.errors.excerpt)}
-                helperText={
-                  (formik.touched.excerpt && formik.errors.excerpt) ||
-                  `${formik.values.excerpt.length}/${MAX_EXCERPT_LENGTH} characters - A brief summary of the post that will appear in the blog list`
-                }
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TagInput
-                value={formik.values.tags}
-                onChange={(newValue) => formik.setFieldValue('tags', newValue)}
-                error={formik.touched.tags && Boolean(formik.errors.tags)}
-                helperText={formik.touched.tags && formik.errors.tags}
-                disabled={loading}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formik.values.isPublished}
-                    onChange={(e) => formik.setFieldValue('isPublished', e.target.checked)}
-                    color="success"
-                  />
-                }
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    {formik.values.isPublished ? (
-                      <PublishIcon color="success" sx={{ mr: 1 }} />
-                    ) : (
-                      <DraftIcon color="action" sx={{ mr: 1 }} />
-                    )}
-                    <Typography>
-                      {formik.values.isPublished ? 'Published' : 'Draft'}
-                    </Typography>
-                  </Box>
-                }
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Content
-              </Typography>
-              <ReactQuill
-                value={formik.values.content}
-                onChange={(content) => formik.setFieldValue('content', content)}
-                style={{ height: '400px', marginBottom: '50px' }}
-                modules={{
-                  toolbar: [
-                    [{ header: [1, 2, false] }],
-                    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                    [{ list: 'ordered' }, { list: 'bullet' }],
-                    ['link', 'image', 'code-block'],
-                    ['clean'],
-                  ],
-                }}
-              />
-              {formik.touched.content && formik.errors.content && (
-                <Typography color="error" variant="caption">
-                  {formik.errors.content}
-                </Typography>
-              )}
-            </Grid>
-
-            <Grid item xs={12} sx={{ mt: 2 }}>
-              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (hasUnsavedChanges) {
-                      if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
-                        onBack();
-                      }
-                    } else {
-                      onBack();
+                <TextField
+                  fullWidth
+                  id="title"
+                  name="title"
+                  label="Title"
+                  value={formik.values.title}
+                  onChange={e => {
+                    if (e.target.value.length <= MAX_TITLE_LENGTH) {
+                      formik.handleChange(e);
                     }
                   }}
+                  error={formik.touched.title && Boolean(formik.errors.title)}
+                  helperText={
+                    (formik.touched.title && formik.errors.title) ||
+                  `${formik.values.title.length}/${MAX_TITLE_LENGTH} characters`
+                  }
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  id="excerpt"
+                  name="excerpt"
+                  label="Excerpt"
+                  multiline
+                  rows={3}
+                  value={formik.values.excerpt}
+                  onChange={e => {
+                    if (e.target.value.length <= MAX_EXCERPT_LENGTH) {
+                      formik.handleChange(e);
+                    }
+                  }}
+                  error={formik.touched.excerpt && Boolean(formik.errors.excerpt)}
+                  helperText={
+                    (formik.touched.excerpt && formik.errors.excerpt) ||
+                  `${formik.values.excerpt.length}/${MAX_EXCERPT_LENGTH} characters - A brief summary of the post that will appear in the blog list`
+                  }
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TagInput
+                  value={formik.values.tags}
+                  onChange={newValue => formik.setFieldValue('tags', newValue)}
+                  error={formik.touched.tags && Boolean(formik.errors.tags)}
+                  helperText={formik.touched.tags && formik.errors.tags}
                   disabled={loading}
-                >
-                  Cancel
-                </Button>
-                {post && (
-                  <Button
-                    startIcon={<SaveIcon />}
-                    onClick={() => handleSave(formik.values)}
-                    disabled={loading || !hasUnsavedChanges}
-                  >
-                    Save
-                  </Button>
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={(
+                    <Switch
+                      checked={formik.values.isPublished}
+                      onChange={e => formik.setFieldValue('isPublished', e.target.checked)}
+                      color="success"
+                    />
+                  )}
+                  label={(
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {formik.values.isPublished ? (
+                        <PublishIcon color="success" sx={{ mr: 1 }} />
+                      ) : (
+                        <DraftIcon color="action" sx={{ mr: 1 }} />
+                      )}
+                      <Typography>
+                        {formik.values.isPublished ? 'Published' : 'Draft'}
+                      </Typography>
+                    </Box>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Content
+                </Typography>
+                <ReactQuill
+                  value={formik.values.content}
+                  onChange={content => formik.setFieldValue('content', content)}
+                  style={{ height: '400px', marginBottom: '50px' }}
+                  modules={{
+                    toolbar: [
+                      [{ header: [1, 2, false] }],
+                      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                      [{ list: 'ordered' }, { list: 'bullet' }],
+                      ['link', 'image', 'code-block'],
+                      ['clean'],
+                    ],
+                  }}
+                />
+                {formik.touched.content && formik.errors.content && (
+                  <Typography color="error" variant="caption">
+                    {formik.errors.content}
+                  </Typography>
                 )}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={loading}
-                  startIcon={formik.values.isPublished ? <PublishIcon /> : <SaveIcon />}
-                >
-                  {loading ? 'Saving...' : (post ? 'Update' : 'Create')}
-                </Button>
-              </Box>
+              </Grid>
+
+              <Grid item xs={12} sx={{ mt: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (hasUnsavedChanges) {
+                        if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                          onBack();
+                        }
+                      } else {
+                        onBack();
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                  Cancel
+                  </Button>
+                  {post && (
+                    <Button
+                      startIcon={<SaveIcon />}
+                      onClick={() => handleSave(formik.values)}
+                      disabled={loading || !hasUnsavedChanges}
+                    >
+                    Save
+                    </Button>
+                  )}
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    startIcon={formik.values.isPublished ? <PublishIcon /> : <SaveIcon />}
+                  >
+                    {loading ? 'Saving...' : (post ? 'Update' : 'Create')}
+                  </Button>
+                </Box>
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
+          </form>
         ) : (
           <Box className="blog-preview">
             <Typography variant="h3" gutterBottom>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Paper,
   Typography,
@@ -56,7 +56,7 @@ const UserActivity = () => {
       </Box>
 
       <List>
-        {activeUsers.map((user) => (
+        {activeUsers.map(user => (
           <ListItem key={user._id}>
             <ListItemAvatar>
               <Avatar>
@@ -65,7 +65,7 @@ const UserActivity = () => {
             </ListItemAvatar>
             <ListItemText
               primary={user.fullName || user.username}
-              secondary={
+              secondary={(
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <ScheduleIcon fontSize="small" />
                   <Tooltip title={user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString() : 'No activity data'}>
@@ -74,7 +74,7 @@ const UserActivity = () => {
                     </Typography>
                   </Tooltip>
                 </Box>
-              }
+              )}
             />
           </ListItem>
         ))}

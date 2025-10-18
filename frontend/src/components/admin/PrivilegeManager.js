@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -30,7 +30,7 @@ import {
   Paper,
   Skeleton,
   Alert,
-  Stack
+  Stack,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -39,7 +39,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Group as GroupIcon,
-  Assignment as AssignmentIcon
+  Assignment as AssignmentIcon,
 } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -52,7 +52,7 @@ const MODULE_ICONS = {
   role_management: <AssignmentIcon />,
   content_management: <EditIcon />,
   comment_management: <EditIcon />,
-  system_administration: <SecurityIcon />
+  system_administration: <SecurityIcon />,
 };
 
 const validationSchema = yup.object({
@@ -75,7 +75,7 @@ const validationSchema = yup.object({
   priority: yup
     .number()
     .min(0, 'Priority must be at least 0')
-    .max(100, 'Priority must be at most 100')
+    .max(100, 'Priority must be at most 100'),
 });
 
 const PrivilegeManager = () => {
@@ -97,7 +97,7 @@ const PrivilegeManager = () => {
     try {
       const [privilegesResponse, modulesResponse] = await Promise.all([
         api.get('/privileges?grouped=true'),
-        api.get('/privileges/modules')
+        api.get('/privileges/modules'),
       ]);
       
       setGroupedPrivileges(privilegesResponse.data.modules || []);
@@ -116,7 +116,7 @@ const PrivilegeManager = () => {
       description: '',
       code: '',
       module: '',
-      priority: 0
+      priority: 0,
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -124,7 +124,7 @@ const PrivilegeManager = () => {
         const moduleInfo = modules.find(m => m.code === values.module);
         const payload = {
           ...values,
-          moduleDisplayName: moduleInfo?.name
+          moduleDisplayName: moduleInfo?.name,
         };
 
         if (editingPrivilege) {
@@ -142,17 +142,17 @@ const PrivilegeManager = () => {
       } catch (error) {
         toast.error(error.response?.data?.message || 'Failed to save privilege');
       }
-    }
+    },
   });
 
-  const handleEdit = (privilege) => {
+  const handleEdit = privilege => {
     setEditingPrivilege(privilege);
     formik.setValues({
       name: privilege.name,
       description: privilege.description,
       code: privilege.code,
       module: privilege.module,
-      priority: privilege.priority || 0
+      priority: privilege.priority || 0,
     });
     setCreateDialogOpen(true);
   };
@@ -176,11 +176,11 @@ const PrivilegeManager = () => {
     setCreateDialogOpen(true);
   };
 
-  const handleAccordionChange = (moduleCode) => (event, isExpanded) => {
+  const handleAccordionChange = moduleCode => (event, isExpanded) => {
     setExpandedModule(isExpanded ? moduleCode : null);
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = priority => {
     if (priority >= 80) return 'error';
     if (priority >= 60) return 'warning';
     if (priority >= 40) return 'info';
@@ -241,7 +241,7 @@ const PrivilegeManager = () => {
           </Typography>
         </Paper>
       ) : (
-        groupedPrivileges.map((moduleGroup) => (
+        groupedPrivileges.map(moduleGroup => (
           <Accordion
             key={moduleGroup.module}
             expanded={expandedModule === moduleGroup.module}
@@ -290,7 +290,7 @@ const PrivilegeManager = () => {
                   <TableBody>
                     {moduleGroup.privileges
                       .sort((a, b) => (b.priority || 0) - (a.priority || 0))
-                      .map((privilege) => (
+                      .map(privilege => (
                         <TableRow key={privilege._id} hover>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
@@ -418,7 +418,7 @@ const PrivilegeManager = () => {
                     onChange={formik.handleChange}
                     error={formik.touched.module && Boolean(formik.errors.module)}
                   >
-                    {modules.map((module) => (
+                    {modules.map(module => (
                       <MenuItem key={module.code} value={module.code}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {MODULE_ICONS[module.code] || <SecurityIcon />}
@@ -472,7 +472,7 @@ const PrivilegeManager = () => {
         <DialogTitle>Delete Privilege</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete the privilege "{privilegeToDelete?.name}"?
+            Are you sure you want to delete the privilege &quot;{privilegeToDelete?.name}&quot;?
             This action cannot be undone.
           </Typography>
         </DialogContent>

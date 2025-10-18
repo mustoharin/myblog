@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -42,7 +42,7 @@ const BlogPost = () => {
       if (!/^[0-9a-fA-F]{24}$/.test(id)) {
         throw new Error('Invalid post ID');
       }
-            const response = await api.get(`/public/posts/${id}`);
+      const response = await api.get(`/public/posts/${id}`);
       if (!response.data) {
         throw new Error('Post not found');
       }
@@ -78,7 +78,7 @@ const BlogPost = () => {
           if (response.data?.views !== undefined) {
             setPost(prevPost => ({
               ...prevPost,
-              views: response.data.views
+              views: response.data.views,
             }));
           }
         } catch (error) {
@@ -99,7 +99,7 @@ const BlogPost = () => {
       // Update local share count
       setPost(prevPost => ({
         ...prevPost,
-        shares: (prevPost.shares || 0) + 1
+        shares: (prevPost.shares || 0) + 1,
       }));
 
       // Try to use native share if available
@@ -201,7 +201,7 @@ const BlogPost = () => {
       {/* Tags */}
       {Array.isArray(post.tags) && post.tags.length > 0 && (
         <Box sx={{ mb: 4 }}>
-          {post.tags.map((tag) => {
+          {post.tags.map(tag => {
             const tagName = typeof tag === 'string' ? tag : tag.name;
             const tagLabel = typeof tag === 'string' ? tag : tag.displayName || tag.name;
             const tagColor = typeof tag === 'string' ? '#1976d2' : tag.color || '#1976d2';
@@ -211,17 +211,17 @@ const BlogPost = () => {
                 key={tagName}
                 label={tagLabel}
                 icon={<TagIcon />}
-                onClick={() => navigate(`/?search=${encodeURIComponent('#' + tagName)}`)}
+                onClick={() => navigate(`/?search=${encodeURIComponent(`#${tagName}`)}`)}
                 sx={{ 
                   mr: 1, 
                   mb: 1,
-                  backgroundColor: tagColor + '20',
+                  backgroundColor: `${tagColor}20`,
                   color: tagColor,
                   borderColor: tagColor,
                   border: `1px solid ${tagColor}40`,
                   '& .MuiChip-icon': {
-                    color: tagColor
-                  }
+                    color: tagColor,
+                  },
                 }}
               />
             );

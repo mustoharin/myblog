@@ -9,7 +9,7 @@ export const useLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleLogin = async (credentials) => {
+  const handleLogin = async credentials => {
     try {
       setLoading(true);
       setError('');

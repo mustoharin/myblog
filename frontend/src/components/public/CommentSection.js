@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -17,13 +17,13 @@ const CommentSection = ({ postId }) => {
   const [error, setError] = useState(null);
   const [commentForm, setCommentForm] = useState({
     name: '',
-    content: ''
+    content: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [captcha, setCaptcha] = useState({
     sessionId: '',
     imageDataUrl: '',
-    text: ''
+    text: '',
   });
 
   const fetchCaptcha = async () => {
@@ -33,7 +33,7 @@ const CommentSection = ({ postId }) => {
         ...prev,
         sessionId: response.data.sessionId,
         imageDataUrl: response.data.imageDataUrl,
-        text: ''
+        text: '',
       }));
     } catch (error) {
       console.error('Failed to fetch CAPTCHA:', error);
@@ -62,7 +62,7 @@ const CommentSection = ({ postId }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     const { name, content } = commentForm;
     
@@ -86,7 +86,7 @@ const CommentSection = ({ postId }) => {
 
     const commentData = {
       name,
-      content
+      content,
     };
 
     // In test environment, use bypass token
@@ -118,11 +118,11 @@ const CommentSection = ({ postId }) => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = e => {
     const { name, value } = e.target;
     setCommentForm(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     setError(null);
   };
@@ -190,14 +190,14 @@ const CommentSection = ({ postId }) => {
                   display: 'block', 
                   marginBottom: '8px',
                   border: '1px solid #ccc',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
                 }} 
               />
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <TextField
                   label="Enter CAPTCHA"
                   value={captcha.text}
-                  onChange={(e) => setCaptcha(prev => ({ ...prev, text: e.target.value }))}
+                  onChange={e => setCaptcha(prev => ({ ...prev, text: e.target.value }))}
                   required
                   size="small"
                   sx={{ flexGrow: 1 }}

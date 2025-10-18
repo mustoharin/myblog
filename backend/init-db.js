@@ -1408,4 +1408,14 @@ window.addEventListener('load', () => {
   }
 };
 
-initializeDB();
+initializeDB()
+  .then(() => {
+    console.log('\n✅ Database initialization completed successfully');
+    mongoose.disconnect();
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('❌ Database initialization failed:', error);
+    mongoose.disconnect();
+    process.exit(1);
+  });

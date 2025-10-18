@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -89,7 +89,7 @@ const RoleForm = ({ onBack }) => {
       // Transform grouped data for display
       const transformedGroups = groupedData.map(moduleGroup => ({
         name: moduleGroup.moduleDisplayName,
-        privileges: moduleGroup.privileges.sort((a, b) => (b.priority || 0) - (a.priority || 0))
+        privileges: moduleGroup.privileges.sort((a, b) => (b.priority || 0) - (a.priority || 0)),
       }));
       
       setAvailablePrivileges(transformedGroups);
@@ -105,7 +105,7 @@ const RoleForm = ({ onBack }) => {
     privileges: role?.privileges?.map(p => p.name) || [],
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async values => {
     if (values.name.toLowerCase() === 'admin' && !role) {
       toast.error('Cannot create a role named "admin"');
       return;
@@ -119,7 +119,7 @@ const RoleForm = ({ onBack }) => {
       const payload = {
         name: values.name,
         description: values.description,
-        privileges: privilegeIds
+        privileges: privilegeIds,
       };
       
       if (role) {
@@ -159,15 +159,15 @@ const RoleForm = ({ onBack }) => {
     formik.setFieldValue('privileges', Array.from(currentPrivileges));
   };
 
-  const isResourceChecked = (privileges) => {
+  const isResourceChecked = privileges => {
     return privileges.every(priv => 
-      formik.values.privileges.includes(priv.name)
+      formik.values.privileges.includes(priv.name),
     );
   };
 
-  const isResourceIndeterminate = (privileges) => {
+  const isResourceIndeterminate = privileges => {
     const checkedCount = privileges.filter(priv => 
-      formik.values.privileges.includes(priv.name)
+      formik.values.privileges.includes(priv.name),
     ).length;
     return checkedCount > 0 && checkedCount < privileges.length;
   };
@@ -194,7 +194,7 @@ const RoleForm = ({ onBack }) => {
 
       {role?.name === 'admin' && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          The admin role's name and core privileges cannot be modified for security reasons.
+          The admin role&apos;s name and core privileges cannot be modified for security reasons.
         </Alert>
       )}
 
@@ -233,45 +233,45 @@ const RoleForm = ({ onBack }) => {
                 Privileges
               </Typography>
               <Box>
-                {availablePrivileges.map((resource) => (
+                {availablePrivileges.map(resource => (
                   <Accordion
                     key={resource.name}
                     expanded={expandedResource === resource.name}
                     onChange={() => setExpandedResource(
-                      expandedResource === resource.name ? null : resource.name
+                      expandedResource === resource.name ? null : resource.name,
                     )}
                   >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <FormGroup>
                         <FormControlLabel
-                          control={
+                          control={(
                             <Checkbox
                               checked={isResourceChecked(resource.privileges)}
                               indeterminate={isResourceIndeterminate(resource.privileges)}
-                              onChange={(e) => handleResourcePrivilegesChange(
+                              onChange={e => handleResourcePrivilegesChange(
                                 resource.name,
                                 e.target.checked,
-                                resource.privileges
+                                resource.privileges,
                               )}
                               disabled={role?.name === 'admin'}
                             />
-                          }
-                          label={
+                          )}
+                          label={(
                             <Typography sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
                               {resource.name}
                             </Typography>
-                          }
-                          onClick={(e) => e.stopPropagation()}
+                          )}
+                          onClick={e => e.stopPropagation()}
                         />
                       </FormGroup>
                     </AccordionSummary>
                     <AccordionDetails>
                       <Divider sx={{ mb: 2 }} />
                       <FormGroup>
-                        {resource.privileges.map((privilege) => (
+                        {resource.privileges.map(privilege => (
                           <FormControlLabel
                             key={privilege.name}
-                            control={
+                            control={(
                               <Checkbox
                                 name="privileges"
                                 value={privilege.name}
@@ -279,15 +279,15 @@ const RoleForm = ({ onBack }) => {
                                 onChange={formik.handleChange}
                                 disabled={role?.name === 'admin'}
                               />
-                            }
-                            label={
+                            )}
+                            label={(
                               <Box>
                                 <Typography variant="body2">{privilege.name}</Typography>
                                 <Typography variant="caption" color="text.secondary">
                                   {privilege.description}
                                 </Typography>
                               </Box>
-                            }
+                            )}
                           />
                         ))}
                       </FormGroup>

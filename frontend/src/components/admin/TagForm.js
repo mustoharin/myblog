@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Paper,
   TextField,
@@ -11,7 +11,7 @@ import {
   Alert,
   CircularProgress,
   Chip,
-  Stack
+  Stack,
 } from '@mui/material';
 import { HexColorPicker } from 'react-colorful';
 import { toast } from 'react-hot-toast';
@@ -23,7 +23,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
     displayName: '',
     description: '',
     color: '#1976d2',
-    isActive: true
+    isActive: true,
   });
   const [loading, setLoading] = useState(false);
   const [namePreview, setNamePreview] = useState('');
@@ -35,7 +35,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
         displayName: tag.displayName,
         description: tag.description || '',
         color: tag.color,
-        isActive: tag.isActive
+        isActive: tag.isActive,
       });
       setNamePreview(tag.name);
     } else {
@@ -44,13 +44,13 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
         displayName: '',
         description: '',
         color: '#1976d2',
-        isActive: true
+        isActive: true,
       });
       setNamePreview('');
     }
   }, [tag]);
 
-  const formatTagName = (input) => {
+  const formatTagName = input => {
     return input
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -62,7 +62,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
   const handleChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
 
     // Auto-generate tag name from display name
@@ -72,13 +72,13 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
       if (!tag) { // Only auto-update name for new tags
         setFormData(prev => ({
           ...prev,
-          name: generatedName
+          name: generatedName,
         }));
       }
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     
     if (!formData.displayName.trim()) {
@@ -98,7 +98,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
         ...formData,
         name: finalName,
         displayName: formData.displayName.trim(),
-        description: formData.description.trim() || undefined
+        description: formData.description.trim() || undefined,
       };
 
       if (tag) {
@@ -125,7 +125,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
         displayName: tag.displayName,
         description: tag.description || '',
         color: tag.color,
-        isActive: tag.isActive
+        isActive: tag.isActive,
       });
     } else {
       setFormData({
@@ -133,7 +133,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
         displayName: '',
         description: '',
         color: '#1976d2',
-        isActive: true
+        isActive: true,
       });
       setNamePreview('');
     }
@@ -152,7 +152,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
               <TextField
                 label="Display Name"
                 value={formData.displayName}
-                onChange={(e) => handleChange('displayName', e.target.value)}
+                onChange={e => handleChange('displayName', e.target.value)}
                 required
                 fullWidth
                 helperText="The name shown to users (e.g., 'JavaScript', 'Web Development')"
@@ -184,7 +184,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
               <TextField
                 label="Description"
                 value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
+                onChange={e => handleChange('description', e.target.value)}
                 multiline
                 rows={3}
                 fullWidth
@@ -193,12 +193,12 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
               />
 
               <FormControlLabel
-                control={
+                control={(
                   <Switch
                     checked={formData.isActive}
-                    onChange={(e) => handleChange('isActive', e.target.checked)}
+                    onChange={e => handleChange('isActive', e.target.checked)}
                   />
-                }
+                )}
                 label="Active"
                 helperText="Inactive tags won't be suggested when creating posts"
               />
@@ -213,14 +213,14 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
               <Box sx={{ mb: 2 }}>
                 <HexColorPicker
                   color={formData.color}
-                  onChange={(color) => handleChange('color', color)}
+                  onChange={color => handleChange('color', color)}
                   style={{ width: '100%', height: '150px' }}
                 />
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <TextField
                   value={formData.color}
-                  onChange={(e) => handleChange('color', e.target.value)}
+                  onChange={e => handleChange('color', e.target.value)}
                   size="small"
                   inputProps={{ pattern: '^#[0-9A-Fa-f]{6}$' }}
                 />
@@ -231,7 +231,7 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
                     backgroundColor: formData.color,
                     border: 1,
                     borderColor: 'divider',
-                    borderRadius: 1
+                    borderRadius: 1,
                   }}
                 />
               </Box>
@@ -243,9 +243,9 @@ const TagForm = ({ tag, onTagSaved, onCancel }) => {
                   label={formData.displayName || 'Tag Name'}
                   size="small"
                   sx={{
-                    backgroundColor: formData.color + '20',
+                    backgroundColor: `${formData.color}20`,
                     color: formData.color,
-                    border: `1px solid ${formData.color}40`
+                    border: `1px solid ${formData.color}40`,
                   }}
                 />
               </Box>

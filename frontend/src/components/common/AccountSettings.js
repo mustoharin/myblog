@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Button,
@@ -9,9 +8,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Alert,
   Chip,
-  Divider,
   Stack,
   CircularProgress,
   Dialog,
@@ -21,17 +18,15 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon
+  ListItemIcon,
 } from '@mui/material';
 import {
   Person as PersonIcon,
   Security as SecurityIcon,
-  Email as EmailIcon,
   Badge as BadgeIcon,
-  Schedule as ScheduleIcon,
   VpnKey as VpnKeyIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
@@ -42,12 +37,12 @@ const AccountSettings = () => {
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     email: '',
-    fullName: ''
+    fullName: '',
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [passwordRequirements, setPasswordRequirements] = useState([]);
   const [passwordChangeOpen, setPasswordChangeOpen] = useState(false);
@@ -59,7 +54,7 @@ const AccountSettings = () => {
     if (user) {
       setProfileData({
         email: user.email || '',
-        fullName: user.fullName || ''
+        fullName: user.fullName || '',
       });
     }
   }, [user]);
@@ -77,30 +72,30 @@ const AccountSettings = () => {
     loadPasswordRequirements();
   }, []);
 
-  const handleProfileChange = (field) => (event) => {
+  const handleProfileChange = field => event => {
     setProfileData(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: event.target.value,
     }));
     // Clear field error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
-        [field]: null
+        [field]: null,
       }));
     }
   };
 
-  const handlePasswordChange = (field) => (event) => {
+  const handlePasswordChange = field => event => {
     setPasswordData(prev => ({
       ...prev,
-      [field]: event.target.value
+      [field]: event.target.value,
     }));
     // Clear field error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
-        [field]: null
+        [field]: null,
       }));
     }
   };
@@ -143,7 +138,7 @@ const AccountSettings = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleProfileSubmit = async (event) => {
+  const handleProfileSubmit = async event => {
     event.preventDefault();
     
     if (!validateProfile()) {
@@ -154,7 +149,7 @@ const AccountSettings = () => {
     try {
       const response = await api.put('/account/profile', {
         email: profileData.email.trim(),
-        fullName: profileData.fullName.trim()
+        fullName: profileData.fullName.trim(),
       });
 
       // Update user context with new data
@@ -175,7 +170,7 @@ const AccountSettings = () => {
     }
   };
 
-  const handlePasswordSubmit = async (event) => {
+  const handlePasswordSubmit = async event => {
     event.preventDefault();
     
     if (!validatePassword()) {
@@ -186,7 +181,7 @@ const AccountSettings = () => {
     try {
       await api.post('/account/change-password', {
         currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+        newPassword: passwordData.newPassword,
       });
 
       toast.success('Password changed successfully');
@@ -194,7 +189,7 @@ const AccountSettings = () => {
       setPasswordData({
         currentPassword: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
       });
       setErrors({});
     } catch (error) {
@@ -222,29 +217,29 @@ const AccountSettings = () => {
     }
   };
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     if (!date) return 'Never';
     try {
       const dateObj = new Date(date);
       if (isNaN(dateObj.getTime())) return 'Invalid date';
       
       // Format as: "Oct 18, 2025 at 10:30 AM"
-      return dateObj.toLocaleDateString('en-US', {
+      return `${dateObj.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
-      }) + ' at ' + dateObj.toLocaleTimeString('en-US', {
+        day: 'numeric',
+      })} at ${dateObj.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
-      });
+        hour12: true,
+      })}`;
     } catch (error) {
       console.error('Date formatting error:', error);
       return 'Invalid date';
     }
   };
 
-  const formatMemberSince = (date) => {
+  const formatMemberSince = date => {
     if (!date) return 'Unknown';
     try {
       const dateObj = new Date(date);
@@ -254,7 +249,7 @@ const AccountSettings = () => {
       return dateObj.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
       });
     } catch (error) {
       console.error('Date formatting error:', error);
@@ -359,7 +354,7 @@ const AccountSettings = () => {
                       value={profileData.email}
                       onChange={handleProfileChange('email')}
                       error={!!errors.email}
-                      helperText={errors.email || "Your primary email address"}
+                      helperText={errors.email || 'Your primary email address'}
                       required
                       variant="outlined"
                     />
@@ -371,7 +366,7 @@ const AccountSettings = () => {
                       value={profileData.fullName}
                       onChange={handleProfileChange('fullName')}
                       error={!!errors.fullName}
-                      helperText={errors.fullName || "Your display name"}
+                      helperText={errors.fullName || 'Your display name'}
                       required
                       variant="outlined"
                     />
@@ -403,94 +398,94 @@ const AccountSettings = () => {
                 subheader="Your account details and status"
                 sx={{ pb: 1 }}
               />
-            <CardContent>
-              <Stack spacing={3}>
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Username
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {user.username}
-                  </Typography>
-                </Box>
-
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Role
-                  </Typography>
-                  <Chip 
-                    label={user.role?.name ? user.role.name.charAt(0).toUpperCase() + user.role.name.slice(1) : 'No role'}
-                    color="primary"
-                    variant="outlined"
-                    size="medium"
-                  />
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Account Status
-                  </Typography>
-                  <Chip 
-                    label={user.isActive ? 'Active' : 'Inactive'}
-                    color={user.isActive ? 'success' : 'error'}
-                    variant={user.isActive ? 'filled' : 'outlined'}
-                    size="medium"
-                    icon={user.isActive ? <CheckCircleIcon /> : <CancelIcon />}
-                  />
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Member Since
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium">
-                    {formatMemberSince(user.createdAt)}
-                  </Typography>
-                </Box>
-                
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Last Login
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium" color={user.lastLogin ? 'text.primary' : 'text.secondary'}>
-                    {formatDate(user.lastLogin)}
-                  </Typography>
-                </Box>
-
-                {user.role?.privileges && user.role.privileges.length > 0 && (
+              <CardContent>
+                <Stack spacing={3}>
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Privileges
+                    Username
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {user.role.privileges.length} permission{user.role.privileges.length !== 1 ? 's' : ''} granted
+                    <Typography variant="body1" fontWeight="medium">
+                      {user.username}
                     </Typography>
                   </Box>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
 
-          {/* Security Settings */}
-          <Card elevation={2}>
-            <CardHeader
-              avatar={<SecurityIcon color="primary" />}
-              title="Security Settings"
-              subheader="Manage your password and account security"
-              sx={{ pb: 1 }}
-            />
-            <CardContent>
-              <Button
-                variant="outlined"
-                startIcon={<VpnKeyIcon />}
-                onClick={() => setPasswordChangeOpen(true)}
-                fullWidth
-                size="large"
-              >
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Role
+                    </Typography>
+                    <Chip 
+                      label={user.role?.name ? user.role.name.charAt(0).toUpperCase() + user.role.name.slice(1) : 'No role'}
+                      color="primary"
+                      variant="outlined"
+                      size="medium"
+                    />
+                  </Box>
+                
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Account Status
+                    </Typography>
+                    <Chip 
+                      label={user.isActive ? 'Active' : 'Inactive'}
+                      color={user.isActive ? 'success' : 'error'}
+                      variant={user.isActive ? 'filled' : 'outlined'}
+                      size="medium"
+                      icon={user.isActive ? <CheckCircleIcon /> : <CancelIcon />}
+                    />
+                  </Box>
+                
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Member Since
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {formatMemberSince(user.createdAt)}
+                    </Typography>
+                  </Box>
+                
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Last Login
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium" color={user.lastLogin ? 'text.primary' : 'text.secondary'}>
+                      {formatDate(user.lastLogin)}
+                    </Typography>
+                  </Box>
+
+                  {user.role?.privileges && user.role.privileges.length > 0 && (
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Privileges
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {user.role.privileges.length} permission{user.role.privileges.length !== 1 ? 's' : ''} granted
+                      </Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {/* Security Settings */}
+            <Card elevation={2}>
+              <CardHeader
+                avatar={<SecurityIcon color="primary" />}
+                title="Security Settings"
+                subheader="Manage your password and account security"
+                sx={{ pb: 1 }}
+              />
+              <CardContent>
+                <Button
+                  variant="outlined"
+                  startIcon={<VpnKeyIcon />}
+                  onClick={() => setPasswordChangeOpen(true)}
+                  fullWidth
+                  size="large"
+                >
                 Change Password
-              </Button>
-            </CardContent>
-          </Card>
+                </Button>
+              </CardContent>
+            </Card>
           </Stack>
         </Grid>
       </Grid>
@@ -564,8 +559,8 @@ const AccountSettings = () => {
                             fontSize: '0.875rem',
                             color: checkPasswordRequirement(requirement, passwordData.newPassword) 
                               ? 'success.main' 
-                              : 'text.secondary'
-                          }
+                              : 'text.secondary',
+                          },
                         }}
                       />
                     </ListItem>

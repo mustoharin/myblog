@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Paper,
@@ -82,12 +82,12 @@ const PostList = ({ onEdit }) => {
     setPage(newPage);
   };
 
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangeRowsPerPage = event => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  const handleDeleteClick = (post) => {
+  const handleDeleteClick = post => {
     setPostToDelete(post);
     setDeleteDialogOpen(true);
   };
@@ -107,7 +107,7 @@ const PostList = ({ onEdit }) => {
     }
   };
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     if (!date) return 'No date';
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -124,7 +124,7 @@ const PostList = ({ onEdit }) => {
           mb: 2, 
           overflow: 'hidden',
           borderRadius: 1,
-          boxShadow: (theme) => theme.shadows[2]
+          boxShadow: theme => theme.shadows[2],
         }}
       >
         {loading && <LinearProgress />}
@@ -162,7 +162,7 @@ const PostList = ({ onEdit }) => {
                   </TableRow>
                 ))
               ) : posts && posts.length > 0 ? (
-                posts.map((post) => (
+                posts.map(post => (
                   <TableRow 
                     key={post._id}
                     hover
@@ -195,7 +195,7 @@ const PostList = ({ onEdit }) => {
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
-                                display: 'block'
+                                display: 'block',
                               }}
                             >
                               {post.excerpt}
@@ -289,7 +289,7 @@ const PostList = ({ onEdit }) => {
         fullWidth
         PaperProps={{
           elevation: 0,
-          sx: { borderRadius: 2 }
+          sx: { borderRadius: 2 },
         }}
       >
         <DialogTitle>Delete Post</DialogTitle>
@@ -300,7 +300,7 @@ const PostList = ({ onEdit }) => {
             </Typography>
             {postToDelete && (
               <Typography variant="subtitle2" color="text.secondary">
-                "{postToDelete.title}"
+                &quot;{postToDelete.title}&quot;
               </Typography>
             )}
           </Box>

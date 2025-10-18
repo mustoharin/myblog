@@ -1,10 +1,8 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 // Admin Components
 import Dashboard from './components/admin/Dashboard';
 import PostsManager from './components/admin/PostsManager';
@@ -14,16 +12,13 @@ import TagManager from './components/admin/TagManager';
 import ActivityList from './components/admin/ActivityList';
 import PrivilegeManager from './components/admin/PrivilegeManager';
 import Overview from './components/admin/Overview';
-
 // Public Components
 import BlogList from './components/public/BlogList';
 import BlogPost from './components/public/BlogPost';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-
 // Common Components
 import AccountSettings from './components/common/AccountSettings';
-
 // Context
 import { AuthProvider } from './context/AuthContext';
 
@@ -54,11 +49,11 @@ function App() {
             {/* Admin Routes - Use nested routing */}
             <Route
               path="/admin"
-              element={
+              element={(
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              }
+              )}
             >
               <Route index element={<Overview />} />
               <Route path="posts/*" element={<PostsManager />} />
@@ -73,11 +68,11 @@ function App() {
             {/* Account Settings - Standalone for non-admin users */}
             <Route
               path="/account"
-              element={
+              element={(
                 <ProtectedRoute>
                   <AccountSettings />
                 </ProtectedRoute>
-              }
+              )}
             />
           </Routes>
 

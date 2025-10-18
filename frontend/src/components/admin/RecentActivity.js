@@ -60,7 +60,7 @@ const RecentActivity = () => {
   const fetchActivities = async () => {
     try {
       const response = await api.get('/admin/activities', {
-        params: { limit: 10 }
+        params: { limit: 10 },
       });
       setActivities(response.data.activities);
     } catch (error) {
@@ -80,7 +80,7 @@ const RecentActivity = () => {
     setSelectedActivity(null);
   };
 
-  const getActivityDescription = (activity) => {
+  const getActivityDescription = activity => {
     const actor = activity.user?.fullName || activity.user?.username || 'System';
     switch (activity.type) {
       case 'post_create':
@@ -185,19 +185,19 @@ const RecentActivity = () => {
         </Box>
       ) : (
         <List>
-          {activities.map((activity) => (
+          {activities.map(activity => (
             <ListItem
               key={activity._id}
               alignItems="flex-start"
-              secondaryAction={
+              secondaryAction={(
                 <IconButton 
                   edge="end" 
                   size="small"
-                  onClick={(e) => handleMenuOpen(e, activity)}
+                  onClick={e => handleMenuOpen(e, activity)}
                 >
                   <MoreVertIcon />
                 </IconButton>
-              }
+              )}
             >
               <ListItemAvatar>
                 <Avatar>
@@ -206,7 +206,7 @@ const RecentActivity = () => {
               </ListItemAvatar>
               <ListItemText
                 primary={getActivityDescription(activity)}
-                secondary={
+                secondary={(
                   <React.Fragment>
                     <Typography
                       sx={{ display: 'block' }}
@@ -224,7 +224,7 @@ const RecentActivity = () => {
                       {activity.createdAt ? format(new Date(activity.createdAt), 'MMM d, yyyy HH:mm:ss') : 'No timestamp'}
                     </Typography>
                   </React.Fragment>
-                }
+                )}
               />
             </ListItem>
           ))}

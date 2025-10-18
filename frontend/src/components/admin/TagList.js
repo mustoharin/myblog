@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Paper,
   Table,
@@ -22,7 +22,7 @@ import {
   Button,
   Alert,
   CircularProgress,
-  Stack
+  Stack,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -30,7 +30,7 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   Search as SearchIcon,
-  Sync as SyncIcon
+  Sync as SyncIcon,
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -61,8 +61,8 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
           page: page + 1,
           limit: rowsPerPage,
           sort: order === 'desc' ? `-${orderBy}` : orderBy,
-          search: searchTerm || undefined
-        }
+          search: searchTerm || undefined,
+        },
       });
       
       setTags(response.data.items || []);
@@ -75,7 +75,7 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
     }
   };
 
-  const handleDeleteClick = (tag) => {
+  const handleDeleteClick = tag => {
     setTagToDelete(tag);
     setDeleteDialogOpen(true);
   };
@@ -108,13 +108,13 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
     }
   };
 
-  const handleRequestSort = (property) => {
+  const handleRequestSort = property => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     if (!date) return 'Never';
     try {
       return format(new Date(date), 'MMM dd, yyyy HH:mm');
@@ -140,9 +140,9 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
           variant="outlined"
           size="small"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
           InputProps={{
-            startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />
+            startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />,
           }}
           sx={{ flexGrow: 1, maxWidth: 400 }}
         />
@@ -209,7 +209,7 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {tags.map((tag) => (
+              {tags.map(tag => (
                 <TableRow key={tag._id} hover>
                   <TableCell>
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -217,9 +217,9 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
                         label={tag.displayName}
                         size="small"
                         sx={{
-                          backgroundColor: tag.color + '20',
+                          backgroundColor: `${tag.color}20`,
                           color: tag.color,
-                          border: `1px solid ${tag.color}40`
+                          border: `1px solid ${tag.color}40`,
                         }}
                       />
                       <Typography variant="body2" color="textSecondary">
@@ -293,7 +293,7 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
           page={page}
           onPageChange={(e, newPage) => setPage(newPage)}
           rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={(e) => {
+          onRowsPerPageChange={e => {
             setRowsPerPage(parseInt(e.target.value, 10));
             setPage(0);
           }}
@@ -309,7 +309,7 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
         <DialogTitle>Delete Tag</DialogTitle>
         <DialogContent>
           <Alert severity="warning" sx={{ mb: 2 }}>
-            Are you sure you want to delete the tag "{tagToDelete?.displayName}"?
+            Are you sure you want to delete the tag &quot;{tagToDelete?.displayName}&quot;?
           </Alert>
           <Typography variant="body2">
             This will remove the tag from the system, but posts will keep their tag references.

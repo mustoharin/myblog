@@ -1,4 +1,3 @@
-import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -8,7 +7,7 @@ import RoleForm from './RoleForm';
 const RoleManager = () => {
   const navigate = useNavigate();
 
-  const handleEdit = (role) => {
+  const handleEdit = role => {
     navigate(`edit/${role._id}`);
   };
 
@@ -25,7 +24,7 @@ const RoleManager = () => {
       <Routes>
         <Route
           path="/"
-          element={
+          element={(
             <>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                 <Typography variant="h4">Roles & Permissions</Typography>
@@ -39,7 +38,7 @@ const RoleManager = () => {
               </Box>
               <RoleList onEdit={handleEdit} />
             </>
-          }
+          )}
         />
         <Route
           path="/new"

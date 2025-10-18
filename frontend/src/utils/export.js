@@ -12,14 +12,14 @@ export const exportToCSV = (data, fields, filename) => {
 
   const csv = Papa.unparse(csvData, {
     header: true,
-    columns: fields.map(f => f.field)
+    columns: fields.map(f => f.field),
   });
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   saveAs(blob, `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
 };
 
-export const formatDate = (date) => {
+export const formatDate = date => {
   if (!date) return '';
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -28,7 +28,7 @@ export const formatDate = (date) => {
   });
 };
 
-export const formatBoolean = (value) => value ? 'Yes' : 'No';
+export const formatBoolean = value => value ? 'Yes' : 'No';
 
 export const formatArray = (array, key) => {
   if (!array || !Array.isArray(array)) return '';
