@@ -19,8 +19,8 @@ router.get('/profile', auth, async (req, res) => {
       .populate({
         path: 'role',
         populate: {
-          path: 'privileges'
-        }
+          path: 'privileges',
+        },
       })
       .select('-password -resetPasswordToken -resetPasswordExpires');
     
@@ -43,9 +43,9 @@ router.get('/profile', auth, async (req, res) => {
         privileges: user.role.privileges.map(p => ({
           _id: p._id,
           name: p.name,
-          code: p.code
-        }))
-      }
+          code: p.code,
+        })),
+      },
     });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -83,7 +83,7 @@ router.put('/profile', auth, async (req, res) => {
       // Check if email is already taken by another user
       const existingUser = await User.findOne({ 
         email: email.toLowerCase().trim(),
-        _id: { $ne: userId }
+        _id: { $ne: userId },
       });
       
       if (existingUser) {
@@ -102,12 +102,12 @@ router.put('/profile', auth, async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
-      { new: true }
+      { new: true },
     ).populate({
       path: 'role',
       populate: {
-        path: 'privileges'
-      }
+        path: 'privileges',
+      },
     }).select('-password -resetPasswordToken -resetPasswordExpires');
 
     // Log activity
@@ -118,9 +118,9 @@ router.put('/profile', auth, async (req, res) => {
       userId,
       {
         email: updateData.email,
-        fullName: updateData.fullName
+        fullName: updateData.fullName,
       },
-      req
+      req,
     );
 
     res.json({
@@ -140,10 +140,10 @@ router.put('/profile', auth, async (req, res) => {
           privileges: updatedUser.role.privileges.map(p => ({
             _id: p._id,
             name: p.name,
-            code: p.code
-          }))
-        }
-      }
+            code: p.code,
+          })),
+        },
+      },
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -169,7 +169,7 @@ router.post('/change-password', auth, async (req, res) => {
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ 
-        message: 'Current password and new password are required' 
+        message: 'Current password and new password are required', 
       });
     }
 
@@ -188,7 +188,7 @@ router.post('/change-password', auth, async (req, res) => {
     // Ensure new password is different from current
     if (await user.comparePassword(newPassword)) {
       return res.status(400).json({ 
-        message: 'New password must be different from current password' 
+        message: 'New password must be different from current password', 
       });
     }
     
@@ -198,7 +198,7 @@ router.post('/change-password', auth, async (req, res) => {
     if (!validation.isValid) {
       return res.status(400).json({
         message: validation.message,
-        requirements: passwordValidator.getRequirements()
+        requirements: passwordValidator.getRequirements(),
       });
     }
 
@@ -213,7 +213,7 @@ router.post('/change-password', auth, async (req, res) => {
       'user',
       userId,
       { reason: 'User changed their own password' },
-      req
+      req,
     );
     
     res.json({ message: 'Password changed successfully' });

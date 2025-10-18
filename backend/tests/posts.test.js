@@ -5,7 +5,7 @@ const {
   createInitialRoles,
   createTestUser,
   getSuperadminToken,
-  getAdminToken
+  getAdminToken,
 } = require('./setup');
 
 describe('Post Routes', () => {
@@ -50,7 +50,7 @@ describe('Post Routes', () => {
         .send({
           title: '<script>alert("xss")</script>malicious',
           content: 'Test content with <img src="x" onerror="alert(\'xss\')">',
-          author: adminUser._id
+          author: adminUser._id,
         });
 
       expect(response.status).toBe(400);
@@ -64,7 +64,7 @@ describe('Post Routes', () => {
         .send({
           title: 'Test Post',
           content: 'Test content',
-          author: adminUser._id
+          author: adminUser._id,
         });
 
       expect(response.status).toBe(201);
@@ -86,7 +86,7 @@ describe('Post Routes', () => {
         title: 'Test Post with Excerpt and Tags',
         content: 'Test content',
         excerpt: 'This is a test excerpt',
-        tags: ['test', 'blog', 'sample']
+        tags: ['test', 'blog', 'sample'],
       };
 
       const response = await request(app)
@@ -104,7 +104,7 @@ describe('Post Routes', () => {
         title: 'Test Post with Invalid Tags',
         content: 'Test content',
         excerpt: 'Test excerpt',
-        tags: ['invalid@tag', 'valid-tag', 'UPPER Case']
+        tags: ['invalid@tag', 'valid-tag', 'UPPER Case'],
       };
 
       const response = await request(app)
@@ -132,7 +132,7 @@ describe('Post Routes', () => {
         .send({
           title: 'Original Post',
           content: 'Original content',
-          author: adminUser._id
+          author: adminUser._id,
         });
       postId = post.body._id;
     });
@@ -143,7 +143,7 @@ describe('Post Routes', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           title: 'Updated Post',
-          content: 'Updated content'
+          content: 'Updated content',
         });
 
       expect(response.status).toBe(200);
@@ -162,7 +162,7 @@ describe('Post Routes', () => {
         .send({
           title: 'Post to Delete',
           content: 'Content to delete',
-          author: adminUser._id
+          author: adminUser._id,
         });
       postId = post.body._id;
     });
@@ -197,7 +197,7 @@ describe('Post Routes', () => {
           content: 'Test content',
           excerpt: 'Initial excerpt',
           tags: ['initial-tag'],
-          author: adminUser._id
+          author: adminUser._id,
         });
       postId = post.body._id;
     });
@@ -208,7 +208,7 @@ describe('Post Routes', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           excerpt: 'Updated excerpt',
-          tags: ['updated', 'test-tag']
+          tags: ['updated', 'test-tag'],
         });
 
       expect(updateResponse.status).toBe(200);
@@ -221,7 +221,7 @@ describe('Post Routes', () => {
         .put(`/api/posts/${postId}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          excerpt: 'Updated excerpt only'
+          excerpt: 'Updated excerpt only',
         });
 
       expect(updateResponse.status).toBe(200);
@@ -263,7 +263,7 @@ describe('Post Routes', () => {
           </blockquote>
           <p><a href="https://example.com" title="Example Link">Visit Example</a></p>
           <img src="https://example.com/image.jpg" alt="Test Image" />
-        `
+        `,
       };
 
       const response = await request(app)
@@ -288,7 +288,7 @@ describe('Post Routes', () => {
           <a href="javascript:alert('xss')">Bad Link</a>
           <iframe src="http://evil.com"></iframe>
           <img src="http://example.com/image.jpg" onerror="alert('xss')" />
-        `
+        `,
       };
 
       const response = await request(app)
@@ -320,7 +320,7 @@ describe('Post Routes', () => {
                 return \`Hello, \${name}!\`;
             }
           </code></pre>
-        `
+        `,
       };
 
       const response = await request(app)
@@ -353,7 +353,7 @@ describe('Post Routes', () => {
               </tr>
             </tbody>
           </table>
-        `
+        `,
       };
 
       const response = await request(app)
@@ -370,7 +370,7 @@ describe('Post Routes', () => {
     it('should reject completely invalid content', async () => {
       const postWithInvalidContent = {
         title: 'Invalid Post',
-        content: '<script>alert("xss");</script>'
+        content: '<script>alert("xss");</script>',
       };
 
       const response = await request(app)

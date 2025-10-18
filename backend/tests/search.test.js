@@ -26,29 +26,29 @@ describe('Search and Tag Features', () => {
         content: 'Learn the basics of JavaScript programming',
         author: testAuthor._id,
         tags: ['javascript', 'programming', 'basics'],
-        isPublished: true
+        isPublished: true,
       },
       {
         title: 'Advanced Python Tips',
         content: 'Advanced programming techniques in Python',
         author: testAuthor._id,
         tags: ['python', 'programming', 'advanced'],
-        isPublished: true
+        isPublished: true,
       },
       {
         title: 'Web Development Guide',
         content: 'Complete guide to web development',
         author: testAuthor._id,
         tags: ['web', 'programming', 'javascript'],
-        isPublished: true
+        isPublished: true,
       },
       {
         title: 'Unpublished Post',
         content: 'This post should not appear in results',
         author: testAuthor._id,
         tags: ['test'],
-        isPublished: false
-      }
+        isPublished: false,
+      },
     ]);
   });
 
@@ -87,8 +87,7 @@ describe('Search and Tag Features', () => {
 
       expect(response.body.posts.length).toBeGreaterThan(1);
       expect(response.body.posts.every(post => 
-        post.tags.some(tag => tag.name === 'javascript') && post.tags.some(tag => tag.name === 'programming')
-      )).toBe(true);
+        post.tags.some(tag => tag.name === 'javascript') && post.tags.some(tag => tag.name === 'programming'))).toBe(true);
     });
 
     it('should combine search and tag filtering', async () => {

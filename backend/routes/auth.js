@@ -11,7 +11,7 @@ router.get('/captcha', (req, res) => {
   const { sessionId, imageDataUrl } = captcha.createCaptcha();
   res.json({ 
     sessionId,
-    imageDataUrl
+    imageDataUrl,
   });
 });
 
@@ -26,7 +26,7 @@ router.post('/captcha/refresh', (req, res) => {
   const { sessionId: newSessionId, imageDataUrl } = captcha.createCaptcha(sessionId);
   res.json({ 
     sessionId: newSessionId,
-    imageDataUrl
+    imageDataUrl,
   });
 });
 
@@ -75,8 +75,8 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ username }).populate({
       path: 'role',
       populate: {
-        path: 'privileges'
-      }
+        path: 'privileges',
+      },
     });
 
     if (!user) {
@@ -91,7 +91,7 @@ router.post('/login', async (req, res) => {
     // Check if user account is active
     if (!user.isActive) {
       return res.status(403).json({ 
-        message: 'Your account has been deactivated. Please contact the administrator.' 
+        message: 'Your account has been deactivated. Please contact the administrator.', 
       });
     }
 
@@ -100,10 +100,15 @@ router.post('/login', async (req, res) => {
     await user.save();
 
     // Generate token
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET environment variable is not set');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET || 'fallback_secret_key',
-      { expiresIn: '7d' }
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' },
     );
     
     // Return user data with populated role
@@ -119,10 +124,10 @@ router.post('/login', async (req, res) => {
           privileges: user.role.privileges.map(p => ({
             _id: p._id,
             name: p.name,
-            code: p.code
-          }))
-        }
-      }
+            code: p.code,
+          })),
+        },
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -150,8 +155,8 @@ router.get('/me', async (req, res) => {
       .populate({
         path: 'role',
         populate: {
-          path: 'privileges'
-        }
+          path: 'privileges',
+        },
       });
     
     if (!user) {
@@ -169,10 +174,10 @@ router.get('/me', async (req, res) => {
           privileges: user.role.privileges.map(p => ({
             _id: p._id,
             name: p.name,
-            code: p.code
-          }))
-        }
-      }
+            code: p.code,
+          })),
+        },
+      },
     });
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });

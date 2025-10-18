@@ -57,71 +57,71 @@ async function createInitialPrivileges() {
       code: 'change_password',
       description: 'Can change own password',
       module: 'authentication',
-      moduleDisplayName: 'Authentication'
+      moduleDisplayName: 'Authentication',
     },
     {
       name: 'Create User',
       code: 'create_user',
       description: 'Can create new users',
       module: 'user_management',
-      moduleDisplayName: 'User Management'
+      moduleDisplayName: 'User Management',
     },
     {
       name: 'Read User',
       code: 'read_user',
       description: 'Can read user information',
       module: 'user_management',
-      moduleDisplayName: 'User Management'
+      moduleDisplayName: 'User Management',
     },
     {
       name: 'Update User',
       code: 'update_user',
       description: 'Can update user information',
       module: 'user_management',
-      moduleDisplayName: 'User Management'
+      moduleDisplayName: 'User Management',
     },
     {
       name: 'Delete User',
       code: 'delete_user',
       description: 'Can delete users',
       module: 'user_management',
-      moduleDisplayName: 'User Management'
+      moduleDisplayName: 'User Management',
     },
     {
       name: 'Manage Roles',
       code: 'manage_roles',
       description: 'Can manage roles and privileges',
       module: 'role_management',
-      moduleDisplayName: 'Role Management'
+      moduleDisplayName: 'Role Management',
     },
     {
       name: 'Create Post',
       code: 'create_post',
       description: 'Can create posts',
       module: 'content_management',
-      moduleDisplayName: 'Content Management'
+      moduleDisplayName: 'Content Management',
     },
     {
       name: 'Read Post',
       code: 'read_post',
       description: 'Can read posts',
       module: 'content_management',
-      moduleDisplayName: 'Content Management'
+      moduleDisplayName: 'Content Management',
     },
     {
       name: 'Update Post',
       code: 'update_post',
       description: 'Can update posts',
       module: 'content_management',
-      moduleDisplayName: 'Content Management'
+      moduleDisplayName: 'Content Management',
     },
     {
       name: 'Delete Post',
       code: 'delete_post',
       description: 'Can delete posts',
       module: 'content_management',
-      moduleDisplayName: 'Content Management'
-    }
+      moduleDisplayName: 'Content Management',
+    },
   ];
 
   return await Privilege.insertMany(privileges);
@@ -132,19 +132,19 @@ async function createInitialRoles(privileges) {
   const superadminRole = await Role.create({
     name: 'superadmin',
     description: 'Super Administrator',
-    privileges: privileges.map(p => p._id)
+    privileges: privileges.map(p => p._id),
   });
 
   const adminRole = await Role.create({
     name: 'admin',
     description: 'Administrator',
-    privileges: privileges.filter(p => p.code.includes('post')).map(p => p._id)
+    privileges: privileges.filter(p => p.code.includes('post')).map(p => p._id),
   });
 
   const regularRole = await Role.create({
     name: 'regular',
     description: 'Regular User',
-    privileges: privileges.filter(p => ['read_post', 'update_user', 'change_password'].includes(p.code)).map(p => p._id)
+    privileges: privileges.filter(p => ['read_post', 'update_user', 'change_password'].includes(p.code)).map(p => p._id),
   });
 
   return { superadminRole, adminRole, regularRole };
@@ -156,14 +156,14 @@ async function createTestUser(username, roleId) {
     username,
     email: `${username}@test.com`,
     password: 'Password#12345!',
-    role: roleId
+    role: roleId,
   });
 
   return await user.save();
 }
 
 // Helper function to get auth token
-  // Helper function to get auth token
+// Helper function to get auth token
 async function getAuthToken(app, username, password) {
   try {
     // Get CAPTCHA session first
@@ -181,7 +181,7 @@ async function getAuthToken(app, username, password) {
         username,
         password,
         captchaText: '123456',
-        captchaSessionId: captchaResponse.body.sessionId
+        captchaSessionId: captchaResponse.body.sessionId,
       });
 
     if (response.status === 200 && response.body.token) {
@@ -200,7 +200,7 @@ async function createTestPost(authorId, title = 'Test Post', content = 'Test con
   return await Post.create({
     title,
     content,
-    author: authorId
+    author: authorId,
   });
 }
 
@@ -211,7 +211,7 @@ async function createTestPosts(authorId, count = 5) {
     posts.push({
       title: `Test Post ${i + 1}`,
       content: `Test content for post ${i + 1}`,
-      author: authorId
+      author: authorId,
     });
   }
   const Post = require('../models/Post');
@@ -243,5 +243,5 @@ module.exports = {
   getAdminToken,
   createTestPost,
   createTestPosts,
-  hasRequiredPrivileges
+  hasRequiredPrivileges,
 };

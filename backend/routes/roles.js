@@ -16,23 +16,23 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
       page,
       limit,
       sort,
-      populate: 'privileges'
+      populate: 'privileges',
     });
 
     // Add user counts for each role
     const rolesWithCounts = await Promise.all(
-      result.items.map(async (role) => {
+      result.items.map(async role => {
         const usersCount = await User.countDocuments({ role: role._id });
         return {
           ...role.toObject(),
-          usersCount
+          usersCount,
         };
-      })
+      }),
     );
 
     res.json({
       ...result,
-      items: rolesWithCounts
+      items: rolesWithCounts,
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -53,7 +53,7 @@ router.get('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
     const usersCount = await User.countDocuments({ role: role._id });
     const roleWithCount = {
       ...role.toObject(),
-      usersCount
+      usersCount,
     };
 
     res.json(roleWithCount);
@@ -101,7 +101,7 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
     role = new Role({
       name,
       description,
-      privileges: privileges || []
+      privileges: privileges || [],
     });
 
     await role.save();
@@ -118,9 +118,9 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
       {
         name: role.name,
         description: role.description,
-        privilegeCount: role.privileges.length
+        privilegeCount: role.privileges.length,
       },
-      req
+      req,
     );
     
     res.status(201).json(role);
@@ -151,7 +151,7 @@ router.put('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
     const role = await Role.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
-      { new: true }
+      { new: true },
     ).populate('privileges');
 
     if (!role) {
@@ -167,9 +167,9 @@ router.put('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
       {
         name: role.name,
         description: role.description,
-        privilegeCount: role.privileges.length
+        privilegeCount: role.privileges.length,
       },
-      req
+      req,
     );
 
     res.json(role);
@@ -207,9 +207,9 @@ router.delete('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
       role._id,
       {
         name: role.name,
-        description: role.description
+        description: role.description,
       },
-      req
+      req,
     );
 
     await role.softDelete();

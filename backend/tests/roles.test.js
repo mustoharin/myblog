@@ -5,7 +5,7 @@ const {
   createInitialRoles,
   createTestUser,
   getSuperadminToken,
-  getAdminToken
+  getAdminToken,
 } = require('./setup');
 
 describe('Role Routes', () => {
@@ -112,7 +112,7 @@ describe('Role Routes', () => {
         .send({
           name: '<script>alert("xss")</script>malicious',
           description: 'Test Role',
-          privileges: [privileges[0]._id] // Using first available privilege
+          privileges: [privileges[0]._id], // Using first available privilege
         });
 
       expect(response.status).toBe(400);
@@ -126,7 +126,7 @@ describe('Role Routes', () => {
         .send({
           name: 'editor',
           description: 'Content Editor',
-          privileges: [privileges[2]._id, privileges[3]._id] // post privileges
+          privileges: [privileges[2]._id, privileges[3]._id], // post privileges
         });
 
       expect(response.status).toBe(201);
@@ -140,7 +140,7 @@ describe('Role Routes', () => {
         .send({
           name: 'editor',
           description: 'Content Editor',
-          privileges: [privileges[2]._id, privileges[3]._id]
+          privileges: [privileges[2]._id, privileges[3]._id],
         });
 
       expect(response.status).toBe(403);
@@ -153,7 +153,7 @@ describe('Role Routes', () => {
         .put(`/api/roles/${roles.adminRole._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          description: 'Updated Admin Role'
+          description: 'Updated Admin Role',
         });
 
       expect(response.status).toBe(200);
@@ -188,7 +188,7 @@ describe('Role Routes', () => {
         .send({
           name: 'test_role',
           description: 'Test Role',
-          privileges: []
+          privileges: [],
         });
 
       const response = await request(app)
@@ -206,7 +206,7 @@ describe('Role Routes', () => {
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
           description: 'Test Role',
-          privileges: []
+          privileges: [],
         });
 
       expect(response.status).toBe(400);
@@ -220,7 +220,7 @@ describe('Role Routes', () => {
         .send({
           name: 'admin', // existing role name
           description: 'Test Role',
-          privileges: []
+          privileges: [],
         });
 
       expect(response.status).toBe(400);
@@ -234,7 +234,7 @@ describe('Role Routes', () => {
         .send({
           name: 'test_role',
           description: 'Test Role',
-          privileges: ['invalid_id']
+          privileges: ['invalid_id'],
         });
 
       expect(response.status).toBe(400);
@@ -295,7 +295,7 @@ describe('Role Routes', () => {
         .send({
           name: 'test_role',
           description: 'Test Role',
-          privileges: [privileges[0]._id]
+          privileges: [privileges[0]._id],
         });
 
       expect(newRole.status).toBe(201);
@@ -324,7 +324,7 @@ describe('Role Routes', () => {
         username: 'newadmin',
         email: 'newadmin@example.com',
         password: 'hashedpassword',
-        role: roles.adminRole._id
+        role: roles.adminRole._id,
       });
 
       // Get updated count
@@ -345,7 +345,7 @@ describe('Role Routes', () => {
         .send({
           name: 'test_role',
           description: 'Test Role',
-          privileges: [privileges[0]._id]
+          privileges: [privileges[0]._id],
         });
 
       // Update role privileges
@@ -353,7 +353,7 @@ describe('Role Routes', () => {
         .put(`/api/roles/${newRole.body._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          privileges: [privileges[1]._id]
+          privileges: [privileges[1]._id],
         });
 
       expect(updateResponse.status).toBe(200);
@@ -369,7 +369,7 @@ describe('Role Routes', () => {
         .send({
           name: 'test_role',
           description: 'Test Role',
-          privileges: [privileges[0]._id]
+          privileges: [privileges[0]._id],
         });
 
       // Delete the role

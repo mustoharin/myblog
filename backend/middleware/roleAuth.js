@@ -15,7 +15,7 @@ const Role = require('../models/Role');
  * // Use in route
  * router.post('/users', auth, checkRole(['create_user']), async (req, res) => {...})
  */
-const checkRole = (requiredPrivileges) => {
+const checkRole = requiredPrivileges => {
   return async (req, res, next) => {
     try {
       if (!req.user || !req.user.role) {
@@ -37,8 +37,7 @@ const checkRole = (requiredPrivileges) => {
       // Check if user's role has all required privileges
       const userPrivilegeCodes = role.privileges.map(p => p.code);
       const hasAllPrivileges = requiredPrivileges.every(privilege => 
-        userPrivilegeCodes.includes(privilege)
-      );
+        userPrivilegeCodes.includes(privilege));
 
       if (!hasAllPrivileges) {
         return res.status(403).json({ message: 'Insufficient privileges' });

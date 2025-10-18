@@ -5,7 +5,7 @@ const {
   createInitialRoles,
   createTestUser,
   getSuperadminToken,
-  getAdminToken
+  getAdminToken,
 } = require('./setup');
 
 describe('Privilege Routes', () => {
@@ -54,7 +54,7 @@ describe('Privilege Routes', () => {
           code: 'manage_categories',
           description: 'Can manage blog categories',
           module: 'content_management',
-          moduleDisplayName: 'Content Management'
+          moduleDisplayName: 'Content Management',
         });
 
       expect(response.status).toBe(201);
@@ -73,7 +73,7 @@ describe('Privilege Routes', () => {
           code: 'manage_categories',
           description: 'Can manage blog categories',
           module: 'content_management',
-          moduleDisplayName: 'Content Management'
+          moduleDisplayName: 'Content Management',
         });
 
       expect(response.status).toBe(403);
@@ -86,7 +86,7 @@ describe('Privilege Routes', () => {
         .put(`/api/privileges/${privileges[0]._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          description: 'Updated privilege description'
+          description: 'Updated privilege description',
         });
 
       expect(response.status).toBe(200);
@@ -114,7 +114,7 @@ describe('Privilege Routes', () => {
           code: 'test_privilege',
           description: 'Test privilege',
           module: 'system_administration',
-          moduleDisplayName: 'System Administration'
+          moduleDisplayName: 'System Administration',
         });
 
       // Assign it to a role
@@ -122,7 +122,7 @@ describe('Privilege Routes', () => {
         .put(`/api/roles/${roles.adminRole._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          privileges: [...roles.adminRole.privileges.map(p => p._id), newPrivilege.body._id]
+          privileges: [...roles.adminRole.privileges.map(p => p._id), newPrivilege.body._id],
         });
 
       // With soft delete, we can now delete privileges even if assigned to roles
@@ -145,7 +145,7 @@ describe('Privilege Routes', () => {
           code: 'custom_privilege',
           description: 'Custom privilege for testing',
           module: 'system_administration',
-          moduleDisplayName: 'System Administration'
+          moduleDisplayName: 'System Administration',
         });
 
       const response = await request(app)

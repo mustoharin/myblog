@@ -26,7 +26,7 @@ describe('Pagination', () => {
         username: 'admin',
         password: 'Password#12345!',
         captchaText: '123456',
-        captchaSessionId: captchaResponse.body.sessionId
+        captchaSessionId: captchaResponse.body.sessionId,
       });
 
     adminToken = loginResponse.body.token;
@@ -39,7 +39,7 @@ describe('Pagination', () => {
         username: `testuser${i}`,
         email: `test${i}@example.com`,
         password: 'Password123!',
-        role: roles.regularRole._id
+        role: roles.regularRole._id,
       });
     }
     await User.insertMany(users);
@@ -50,7 +50,7 @@ describe('Pagination', () => {
       roleData.push({
         name: `TestRole${i}`,
         description: `Test role ${i}`,
-        privileges: [privileges[0]._id]
+        privileges: [privileges[0]._id],
       });
     }
     await Role.insertMany(roleData);
@@ -63,7 +63,7 @@ describe('Pagination', () => {
         description: `Test privilege ${i}`,
         code: `test_priv_${i}`,
         module: 'system_administration',
-        moduleDisplayName: 'System Administration'
+        moduleDisplayName: 'System Administration',
       });
     }
     await Privilege.insertMany(privData);
@@ -73,7 +73,7 @@ describe('Pagination', () => {
       username: 'testauthor',
       email: 'testauthor@example.com',
       password: 'Password123!',
-      role: roles.regularRole._id
+      role: roles.regularRole._id,
     });
 
     // 4. Create 30 posts
@@ -84,7 +84,7 @@ describe('Pagination', () => {
         content: `Test content ${i}`,
         author: testAuthor._id,
         isPublished: true,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
     }
     await Post.insertMany(posts);

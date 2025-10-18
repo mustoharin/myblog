@@ -14,7 +14,7 @@ const defaultOptions = {
     // Links and images
     'a', 'img',
     // Tables
-    'table', 'thead', 'tbody', 'tr', 'th', 'td'
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
   ],
   allowedAttributes: {
     a: ['href', 'title', 'target'],
@@ -31,14 +31,14 @@ const defaultOptions = {
     p: ['class'],
     // Table alignment
     th: ['align'],
-    td: ['align']
+    td: ['align'],
   },
   // URLs that start with these protocols will be allowed
   allowedSchemes: ['http', 'https', 'mailto'],
   // Add any domains you trust for images
   allowedSchemesByTag: {
-    img: ['http', 'https', 'data']
-  }
+    img: ['http', 'https', 'data'],
+  },
 };
 
 /**
@@ -52,13 +52,13 @@ function validateRichContent(content, options = {}) {
     if (typeof content !== 'string') {
       return {
         clean: '',
-        error: 'Content must be a string'
+        error: 'Content must be a string',
       };
     }
 
     const sanitizeOptions = {
       ...defaultOptions,
-      ...options
+      ...options,
     };
 
     const clean = sanitizeHtml(content, sanitizeOptions);
@@ -68,23 +68,23 @@ function validateRichContent(content, options = {}) {
     if (clean === '' && content.trim() !== '') {
       return {
         clean: '',
-        error: 'Content contains only unsafe or unsupported HTML'
+        error: 'Content contains only unsafe or unsupported HTML',
       };
     }
 
     return {
-      clean: clean,
-      error: ''
+      clean,
+      error: '',
     };
   } catch (err) {
     return {
       clean: '',
-      error: 'Error processing content: ' + err.message
+      error: `Error processing content: ${err.message}`,
     };
   }
 }
 
 module.exports = {
   validateRichContent,
-  defaultOptions
+  defaultOptions,
 };

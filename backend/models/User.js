@@ -9,25 +9,25 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const error = validateNoXss(v);
         return error === '';
       },
-      message: () => 'Username contains potentially unsafe content'
-    }
+      message: () => 'Username contains potentially unsafe content',
+    },
   },
   fullName: {
     type: String,
     required: false,
     trim: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         if (!v) return true; // Optional field
         const error = validateNoXss(v);
         return error === '';
       },
-      message: () => 'Full name contains potentially unsafe content'
-    }
+      message: () => 'Full name contains potentially unsafe content',
+    },
   },
   email: {
     type: String,
@@ -36,51 +36,51 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     lowercase: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         // Simpler, safer email regex
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
       },
-      message: props => `${props.value} is not a valid email address!`
-    }
+      message: props => `${props.value} is not a valid email address!`,
+    },
   },
   password: {
     type: String,
     required: true,
-    minlength: 6
+    minlength: 6,
   },
   role: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role',
-    required: true
+    required: true,
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   resetPasswordToken: {
     type: String,
-    default: null
+    default: null,
   },
   resetPasswordExpires: {
     type: Date,
-    default: null
+    default: null,
   },
   lastLogin: {
     type: Date,
-    default: null
+    default: null,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   deletedAt: {
     type: Date,
-    default: null
-  }
+    default: null,
+  },
 });
 
 // Pre-query middleware to exclude deleted documents

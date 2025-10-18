@@ -5,7 +5,7 @@ const {
   createInitialRoles,
   createTestUser,
   getSuperadminToken,
-  getAdminToken
+  getAdminToken,
 } = require('./setup');
 
 describe('User Routes', () => {
@@ -53,7 +53,7 @@ describe('User Routes', () => {
           username: 'testuser',
           email: 'invalidemail',
           password: 'Password#12345!',
-          role: roles.regularRole._id
+          role: roles.regularRole._id,
         });
 
       expect(response.status).toBe(400);
@@ -68,7 +68,7 @@ describe('User Routes', () => {
           username: '<script>alert("xss")</script>malicious',
           email: 'test@example.com',
           password: 'Password#12345!',
-          role: roles.regularRole._id
+          role: roles.regularRole._id,
         });
 
       expect(response.status).toBe(400);
@@ -83,7 +83,7 @@ describe('User Routes', () => {
           username: 'newuser',
           email: 'newuser@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(201);
@@ -98,7 +98,7 @@ describe('User Routes', () => {
           username: 'admin', // Existing username
           email: 'newadmin@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(400);
@@ -113,7 +113,7 @@ describe('User Routes', () => {
           username: 'newadmin',
           email: 'admin@test.com', // Existing email
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(400);
@@ -128,7 +128,7 @@ describe('User Routes', () => {
           username: 'newuser',
           email: 'newuser@test.com',
           password: 'password123',
-          roleId: roles.adminRole._id
+          roleId: roles.adminRole._id,
         });
 
       expect(response.status).toBe(403);
@@ -141,7 +141,7 @@ describe('User Routes', () => {
         .put(`/api/users/${adminUser._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          email: 'updated@test.com'
+          email: 'updated@test.com',
         });
 
       expect(response.status).toBe(200);
@@ -185,7 +185,7 @@ describe('User Routes', () => {
           username: 'testuser',
           email: 'testuser@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(201);
@@ -205,7 +205,7 @@ describe('User Routes', () => {
           username: 'testuser',
           email: 'testuser@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       // With soft delete, we can now delete roles even if assigned to users
@@ -226,7 +226,7 @@ describe('User Routes', () => {
           username: 'testuser',
           email: 'testuser@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       // Create some posts for the user
@@ -234,7 +234,7 @@ describe('User Routes', () => {
       await Post.create({
         title: 'Test Post',
         content: 'Test Content',
-        author: newUser.body._id
+        author: newUser.body._id,
       });
 
       // With soft delete, we can now delete users even if they have posts
@@ -256,13 +256,13 @@ describe('User Routes', () => {
           username: 'concurrent_user',
           email: `concurrent_${Date.now()}@test.com`,
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       // Try to create users concurrently
       const results = await Promise.all([
         createUser(),
-        createUser()
+        createUser(),
       ]);
 
       // One should succeed, one should fail
@@ -282,22 +282,22 @@ describe('User Routes', () => {
           username: 'testuser',
           email: 'testuser@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       // Try to update the user concurrently
-      const updateUser = (email) => request(app)
+      const updateUser = email => request(app)
         .put(`/api/users/${newUser.body._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({ email });
 
       const results = await Promise.all([
         updateUser('test1@test.com'),
-        updateUser('test2@test.com')
+        updateUser('test2@test.com'),
       ]);
 
       // Both updates should process, but only one should win
-            expect(results.some(r => r.status === 200)).toBe(true);
+      expect(results.some(r => r.status === 200)).toBe(true);
       
       // Verify final state
       const finalUser = await request(app)
@@ -317,7 +317,7 @@ describe('User Routes', () => {
           username: 'newuser',
           email: 'newuser@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(201);
@@ -333,7 +333,7 @@ describe('User Routes', () => {
           email: 'inactive@test.com',
           password: 'password123',
           role: roles.adminRole._id,
-          isActive: false
+          isActive: false,
         });
 
       expect(response.status).toBe(201);
@@ -350,7 +350,7 @@ describe('User Routes', () => {
           email: 'active@test.com',
           password: 'password123',
           role: roles.adminRole._id,
-          isActive: true
+          isActive: true,
         });
 
       // Update to inactive
@@ -358,7 +358,7 @@ describe('User Routes', () => {
         .put(`/api/users/${newUser.body._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          isActive: false
+          isActive: false,
         });
 
       expect(response.status).toBe(200);
@@ -375,7 +375,7 @@ describe('User Routes', () => {
           email: 'deactivated@test.com',
           password: 'password123',
           role: roles.adminRole._id,
-          isActive: false
+          isActive: false,
         });
 
       // Update to active
@@ -383,7 +383,7 @@ describe('User Routes', () => {
         .put(`/api/users/${newUser.body._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          isActive: true
+          isActive: true,
         });
 
       expect(response.status).toBe(200);
@@ -426,7 +426,7 @@ describe('User Routes', () => {
           fullName: 'John Doe',
           email: 'johndoe@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(201);
@@ -442,7 +442,7 @@ describe('User Routes', () => {
           username: 'janedoe',
           email: 'janedoe@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(201);
@@ -459,7 +459,7 @@ describe('User Routes', () => {
           username: 'updatename',
           email: 'updatename@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       // Update fullName
@@ -467,7 +467,7 @@ describe('User Routes', () => {
         .put(`/api/users/${newUser.body._id}`)
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
-          fullName: 'Updated Name'
+          fullName: 'Updated Name',
         });
 
       expect(response.status).toBe(200);
@@ -484,7 +484,7 @@ describe('User Routes', () => {
           fullName: 'List User',
           email: 'listuser@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       const response = await request(app)
@@ -509,7 +509,7 @@ describe('User Routes', () => {
           fullName: '<script>alert("xss")</script>Malicious Name',
           email: 'xsstest@test.com',
           password: 'password123',
-          role: roles.adminRole._id
+          role: roles.adminRole._id,
         });
 
       expect(response.status).toBe(400);

@@ -12,7 +12,7 @@ const baseRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipFailedRequests: false,
-  store: createStore()
+  store: createStore(),
 });
 
 // More strict rate limiter for comment submission
@@ -23,7 +23,7 @@ const commentRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipFailedRequests: false,
-  store: createStore()
+  store: createStore(),
 });
 
 // Helper to reset all limiters (useful for testing)
@@ -43,5 +43,5 @@ const resetAllLimiters = () => {
 module.exports = {
   baseRateLimiter,
   commentRateLimiter,
-  resetAllLimiters
+  resetAllLimiters,
 };

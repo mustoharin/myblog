@@ -5,7 +5,7 @@ const { sendEmail } = require('../utils/email');
 const {
   createInitialPrivileges,
   createInitialRoles,
-  createTestUser
+  createTestUser,
 } = require('./setup');
 
 // Mock the email sending functionality
@@ -151,7 +151,7 @@ describe('Password Reset Routes', () => {
         .send({
           username: userForReset.username,
           password: newPassword,
-          captchaToken: 'valid-token'
+          captchaToken: 'valid-token',
         });
       
       expect(loginRes.status).toBe(200);

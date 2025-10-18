@@ -125,7 +125,7 @@ class Captcha {
     // Store captcha with 5 minutes expiry
     this.captchaStore.set(sessionId, {
       text: captchaText,
-      expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
     });
 
     // Clean up expired captchas
@@ -133,7 +133,7 @@ class Captcha {
 
     return {
       sessionId,
-      imageDataUrl: canvas.toDataURL('image/png')
+      imageDataUrl: canvas.toDataURL('image/png'),
     };
   }
 

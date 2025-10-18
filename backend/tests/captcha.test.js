@@ -72,7 +72,7 @@ describe('CAPTCHA and Authentication', () => {
         .post('/api/auth/login')
         .send({
           username: 'testuser',
-          password: 'Password#12345!'
+          password: 'Password#12345!',
         });
 
       expect(response.status).toBe(400);
@@ -88,7 +88,7 @@ describe('CAPTCHA and Authentication', () => {
         .send({
           username: 'testuser',
           password: 'Password#12345!',
-          captchaToken: validToken
+          captchaToken: validToken,
         });
 
       expect(response.status).toBe(200);
@@ -103,7 +103,7 @@ describe('CAPTCHA and Authentication', () => {
         .send({
           username: 'testuser',
           password: 'Password#12345!',
-          captchaToken: 'wrong-token'
+          captchaToken: 'wrong-token',
         });
 
       expect(response.status).toBe(400);
@@ -120,7 +120,7 @@ describe('CAPTCHA and Authentication', () => {
           username: 'testuser',
           password: 'Password#12345!',
           captchaSessionId: captchaRes.body.sessionId,
-          captchaText: '123456' // mockCaptcha always uses this value
+          captchaText: '123456', // mockCaptcha always uses this value
         });
 
       expect(response.status).toBe(200);
@@ -137,7 +137,7 @@ describe('CAPTCHA and Authentication', () => {
           username: 'testuser',
           password: 'Password#12345!',
           captchaSessionId: captchaRes.body.sessionId,
-          captchaText: 'wrongcaptcha'
+          captchaText: 'wrongcaptcha',
         });
 
       expect(response.status).toBe(400);
@@ -155,7 +155,7 @@ describe('CAPTCHA and Authentication', () => {
           username: 'testuser',
           password: 'Password#12345!',
           captchaSessionId: captchaRes.body.sessionId,
-          captchaText: '123456'
+          captchaText: '123456',
         });
 
       expect(firstRes.status).toBe(200);
@@ -168,7 +168,7 @@ describe('CAPTCHA and Authentication', () => {
           username: 'testuser',
           password: 'Password#12345!',
           captchaSessionId: captchaRes.body.sessionId,
-          captchaText: '123456'
+          captchaText: '123456',
         });
 
       expect(secondRes.status).toBe(400);
@@ -188,7 +188,7 @@ describe('CAPTCHA and Authentication', () => {
           username: 'testuser',
           password: 'Password#12345!',
           captchaSessionId: captchaRes.body.sessionId,
-          captchaText: '123456'
+          captchaText: '123456',
         });
 
       expect(response.status).toBe(400);
@@ -204,7 +204,7 @@ describe('CAPTCHA and Authentication', () => {
         .send({
           username: 'nonexistent',
           password: 'wrongpassword',
-          captchaToken: validToken
+          captchaToken: validToken,
         });
 
       expect(response.status).toBe(401);

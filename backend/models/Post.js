@@ -7,74 +7,74 @@ const CommentSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const error = validateNoXss(v);
         return error === '';
       },
-      message: () => 'Content contains potentially unsafe content'
-    }
+      message: () => 'Content contains potentially unsafe content',
+    },
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
   authorName: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const error = validateNoXss(v);
         return error === '';
       },
-      message: () => 'Name contains potentially unsafe content'
-    }
+      message: () => 'Name contains potentially unsafe content',
+    },
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 const PostSchema = new mongoose.Schema({
   isPublished: {
     type: Boolean,
-    default: true
+    default: true,
   },
   tags: {
     type: [String],
     validate: [{
-      validator: function(v) {
+      validator(v) {
         return v.every(tag => /^[a-z0-9-]+$/.test(tag));
       },
-      message: _props => 'Tags must contain only lowercase letters, numbers, and hyphens'
+      message: _props => 'Tags must contain only lowercase letters, numbers, and hyphens',
     }],
-    default: []
+    default: [],
   },
   excerpt: {
     type: String,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const error = validateNoXss(v);
         return error === '';
       },
-      message: () => 'Excerpt contains potentially unsafe content'
-    }
+      message: () => 'Excerpt contains potentially unsafe content',
+    },
   },
   title: {
     type: String,
     required: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const error = validateNoXss(v);
         return error === '';
       },
-      message: () => 'Title contains potentially unsafe content'
-    }
+      message: () => 'Title contains potentially unsafe content',
+    },
   },
   content: {
     type: String,
     required: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const result = validateRichContent(v);
         if (result.error) {
           return false;
@@ -83,37 +83,37 @@ const PostSchema = new mongoose.Schema({
         this.content = result.clean;
         return true;
       },
-      message: _props => 'Content validation failed: Invalid or unsafe HTML content'
-    }
+      message: _props => 'Content validation failed: Invalid or unsafe HTML content',
+    },
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   views: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
   shares: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   deletedAt: {
     type: Date,
-    default: null
+    default: null,
   },
-  comments: [CommentSchema]
+  comments: [CommentSchema],
 });
 
 // Middleware to automatically update updatedAt on save

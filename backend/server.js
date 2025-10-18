@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const connectDB = require('./config/db');
 
 const app = express();
@@ -12,8 +13,10 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Middleware
+app.use(helmet()); // Security headers
 app.use(cors());
 app.use(express.json());
+app.use(require('./middleware/sanitizeInput')); // Sanitize inputs to prevent NoSQL injection
 app.use(require('./middleware/trimInputs')); // Trim all request body inputs
 
 // Basic route
@@ -51,6 +54,9 @@ app.use('/api/account', authMiddleware, require('./routes/account'));
 
 // Password reset routes (public)
 app.use('/api/password', require('./routes/password'));
+
+// Global error handler (must be last)
+app.use(require('./middleware/secureErrorHandler'));
 
 // Start server if not in test environment
 if (process.env.NODE_ENV !== 'test') {

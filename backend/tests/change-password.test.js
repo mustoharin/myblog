@@ -4,7 +4,7 @@ const {
   createInitialPrivileges,
   createInitialRoles,
   createTestUser,
-  getAuthToken
+  getAuthToken,
 } = require('./setup');
 
 describe('Change Password', () => {
@@ -29,7 +29,7 @@ describe('Change Password', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           currentPassword: 'Password#12345!',
-          newPassword: 'NewStr0ngP@ssphrase!'
+          newPassword: 'NewStr0ngP@ssphrase!',
         });
 
       expect(response.status).toBe(200);
@@ -47,7 +47,7 @@ describe('Change Password', () => {
           username: 'passworduser',
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse1.body.sessionId
+          captchaSessionId: captchaResponse1.body.sessionId,
         });
 
       expect(loginResponse.status).toBe(401);
@@ -63,7 +63,7 @@ describe('Change Password', () => {
           username: 'passworduser',
           password: 'NewStr0ngP@ssphrase!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse2.body.sessionId
+          captchaSessionId: captchaResponse2.body.sessionId,
         });
 
       expect(newLoginResponse.status).toBe(200);
@@ -75,7 +75,7 @@ describe('Change Password', () => {
         .post('/api/password/change')
         .set('Authorization', `Bearer ${userToken}`)
         .send({
-          newPassword: 'NewPassword#54321!'
+          newPassword: 'NewPassword#54321!',
         });
 
       expect(response.status).toBe(400);
@@ -89,7 +89,7 @@ describe('Change Password', () => {
         .post('/api/password/change')
         .set('Authorization', `Bearer ${userToken}`)
         .send({
-          currentPassword: 'Password#12345!'
+          currentPassword: 'Password#12345!',
         });
 
       expect(response.status).toBe(400);
@@ -102,7 +102,7 @@ describe('Change Password', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           currentPassword: 'WrongPassword#123!',
-          newPassword: 'NewPassword#54321!'
+          newPassword: 'NewPassword#54321!',
         });
 
       expect(response.status).toBe(400);
@@ -115,7 +115,7 @@ describe('Change Password', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           currentPassword: 'Password#12345!',
-          newPassword: 'weak'
+          newPassword: 'weak',
         });
 
       expect(response.status).toBe(400);
@@ -129,7 +129,7 @@ describe('Change Password', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           currentPassword: 'Password#12345!',
-          newPassword: 'Password#12345!'
+          newPassword: 'Password#12345!',
         });
 
       expect(response.status).toBe(400);
@@ -141,7 +141,7 @@ describe('Change Password', () => {
         .post('/api/password/change')
         .send({
           currentPassword: 'Password#12345!',
-          newPassword: 'NewPassword#54321!'
+          newPassword: 'NewPassword#54321!',
         });
 
       expect(response.status).toBe(401);

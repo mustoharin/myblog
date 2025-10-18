@@ -29,7 +29,7 @@ describe('Public API', () => {
       content: 'Test content for public API',
       excerpt: 'Test excerpt',
       author: testUser._id,
-      isPublished: true
+      isPublished: true,
     });
   });
 
@@ -53,7 +53,7 @@ describe('Public API', () => {
         content: `<p>Content ${i}</p>`,
         author: testUser._id,
         excerpt: `Excerpt ${i}`,
-        isPublished: true
+        isPublished: true,
       }));
       await Post.insertMany(posts);
 
@@ -102,7 +102,7 @@ describe('Public API', () => {
         email: 'author@test.com',
         password: 'password123',
         fullName: 'John Doe Author',
-        role: testUser.role
+        role: testUser.role,
       });
 
       // Create a post with this author
@@ -111,7 +111,7 @@ describe('Public API', () => {
         content: '<p>Content by author with full name</p>',
         excerpt: 'Excerpt by author',
         author: userWithFullName._id,
-        isPublished: true
+        isPublished: true,
       });
 
       const response = await request(app)
@@ -130,7 +130,7 @@ describe('Public API', () => {
         content: '<p>Unpublished content</p>',
         excerpt: 'Unpublished excerpt',
         author: testUser._id,
-        isPublished: false
+        isPublished: false,
       });
       
       await request(app)
@@ -152,7 +152,7 @@ describe('Public API', () => {
         .send({
           content: 'Test comment with bypass',
           name: 'Test User',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         })
         .expect(201);
 
@@ -172,7 +172,7 @@ describe('Public API', () => {
           content: 'Test comment',
           name: 'Test User',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         })
         .expect(201);
 
@@ -185,7 +185,7 @@ describe('Public API', () => {
         .post(`/api/public/posts/${testPost._id}/comments`)
         .send({
           content: 'Test comment',
-          name: 'Test User'
+          name: 'Test User',
         })
         .expect(400);
     });
@@ -202,7 +202,7 @@ describe('Public API', () => {
           content: 'Test comment',
           name: 'Test User',
           captchaText: 'wrong',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         })
         .expect(400);
     });
@@ -219,7 +219,7 @@ describe('Public API', () => {
           content: 'Test comment',
           name: '<script>alert("xss")</script>',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         })
         .expect(400);
     });
@@ -236,7 +236,7 @@ describe('Public API', () => {
           .send({
             content: `Comment ${i}`,
             name: 'Test User',
-            testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+            testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
           })
           .expect(201);
       }
@@ -250,7 +250,7 @@ describe('Public API', () => {
         .send({
           content: 'Rate limited comment',
           name: 'Test User',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         })
         .expect(429);
 
@@ -269,7 +269,7 @@ describe('Public API', () => {
           content: '', // Empty comment
           name: 'Test User',
           captchaText: '123456',
-          captchaSessionId: captchaResponse1.body.sessionId
+          captchaSessionId: captchaResponse1.body.sessionId,
         })
         .expect(400);
 
@@ -287,7 +287,7 @@ describe('Public API', () => {
           content: longComment,
           name: 'Test User',
           captchaText: '123456',
-          captchaSessionId: captchaResponse2.body.sessionId
+          captchaSessionId: captchaResponse2.body.sessionId,
         })
         .expect(400);
     });
@@ -322,7 +322,7 @@ describe('Public API', () => {
         content: 'This is an unpublished post',
         excerpt: 'Unpublished',
         author: testUser._id,
-        isPublished: false
+        isPublished: false,
       });
 
       await request(app)
@@ -339,8 +339,7 @@ describe('Public API', () => {
     it('should handle multiple concurrent view increments correctly', async () => {
       // Make multiple concurrent requests
       const requests = Array(5).fill(null).map(() =>
-        request(app).post(`/api/public/posts/${testPost._id}/view`)
-      );
+        request(app).post(`/api/public/posts/${testPost._id}/view`));
 
       const responses = await Promise.all(requests);
 
@@ -388,7 +387,7 @@ describe('Public API', () => {
         content: '<p>This is an unpublished post</p>',
         excerpt: 'Unpublished',
         author: testUser._id,
-        isPublished: false
+        isPublished: false,
       });
 
       await request(app)
@@ -405,8 +404,7 @@ describe('Public API', () => {
     it('should handle multiple concurrent share increments correctly', async () => {
       // Make multiple concurrent requests
       const requests = Array(3).fill(null).map(() =>
-        request(app).post(`/api/public/posts/${testPost._id}/share`)
-      );
+        request(app).post(`/api/public/posts/${testPost._id}/share`));
 
       const responses = await Promise.all(requests);
 

@@ -1,17 +1,16 @@
 const request = require('supertest');
 const app = require('../server');
 const {
+  setupTestDB,
   createInitialPrivileges,
   createInitialRoles,
   createTestUser,
-  hasRequiredPrivileges
 } = require('./setup');
-const captcha = require('../utils/captcha');
 
 // Using mockCaptcha in test environment
 
 describe('Auth Routes', () => {
-  let privileges, roles, superadminUser, adminUser;
+  let privileges, roles;
 
   beforeEach(async () => {
     privileges = await createInitialPrivileges();
@@ -37,7 +36,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'superadmin',
           password: 'Password#12345!',
-          testBypassToken: bypassToken
+          testBypassToken: bypassToken,
         });
 
       expect(response.status).toBe(200);
@@ -61,7 +60,7 @@ describe('Auth Routes', () => {
           username: 'superadmin',
           password: 'Password#12345!',
           captchaText: '123456', // Mock captcha input
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(200);
@@ -76,7 +75,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'superadmin',
           password: 'Password#12345!',
-          testBypassToken: 'invalid-bypass-token'
+          testBypassToken: 'invalid-bypass-token',
         });
 
       expect(response.status).toBe(400);
@@ -94,7 +93,7 @@ describe('Auth Routes', () => {
           username: 'admin',
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(200);
@@ -113,7 +112,7 @@ describe('Auth Routes', () => {
           username: 'superadmin',
           password: 'wrongpassword',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(401);
@@ -130,7 +129,7 @@ describe('Auth Routes', () => {
           username: 'nonexistent',
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(401);
@@ -146,7 +145,7 @@ describe('Auth Routes', () => {
         .send({
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(400);
@@ -162,7 +161,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'superadmin',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(400);
@@ -179,7 +178,7 @@ describe('Auth Routes', () => {
           username: '',
           password: '',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(400);
@@ -197,7 +196,7 @@ describe('Auth Routes', () => {
           username: 'superadmin',
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(200);
@@ -224,7 +223,7 @@ describe('Auth Routes', () => {
           username: 'superadmin',
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
       validToken = loginResponse.body.token;
     });
@@ -282,7 +281,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'superadmin',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       expect(response.status).toBe(200);
@@ -314,7 +313,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'superadmin',
           password: 'WrongPassword123!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       expect(response.status).toBe(401);
@@ -342,7 +341,7 @@ describe('Auth Routes', () => {
           username: 'superadmin',
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       const token = loginResponse.body.token;
@@ -371,7 +370,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'admin',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
       
       const userAfterFirst = await User.findOne({ username: 'admin' });
@@ -387,7 +386,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'admin',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
       
       const userAfterSecond = await User.findOne({ username: 'admin' });
@@ -408,7 +407,7 @@ describe('Auth Routes', () => {
         email: 'inactive@test.com',
         password: 'Password#12345!',
         role: roles.adminRole._id,
-        isActive: false
+        isActive: false,
       });
 
       // Attempt to login
@@ -417,7 +416,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'inactiveuser',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       expect(response.status).toBe(403);
@@ -434,7 +433,7 @@ describe('Auth Routes', () => {
         email: 'active@test.com',
         password: 'Password#12345!',
         role: roles.adminRole._id,
-        isActive: true
+        isActive: true,
       });
 
       // Attempt to login
@@ -443,7 +442,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'activeuser',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       expect(response.status).toBe(200);
@@ -460,7 +459,7 @@ describe('Auth Routes', () => {
         email: 'testinactive@test.com',
         password: 'Password#12345!',
         role: roles.adminRole._id,
-        isActive: false
+        isActive: false,
       });
 
       const lastLoginBefore = inactiveUser.lastLogin;
@@ -471,7 +470,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'testinactive',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       // Check that lastLogin was not updated
@@ -488,7 +487,7 @@ describe('Auth Routes', () => {
         email: 'tokenuser@test.com',
         password: 'Password#12345!',
         role: roles.superadminRole._id,
-        isActive: true
+        isActive: true,
       });
 
       // Login to get token
@@ -497,7 +496,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'tokenuser',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       const token = loginResponse.body.token;
@@ -524,7 +523,7 @@ describe('Auth Routes', () => {
         email: 'reactivate@test.com',
         password: 'Password#12345!',
         role: roles.adminRole._id,
-        isActive: false
+        isActive: false,
       });
 
       // First attempt should fail
@@ -533,7 +532,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'reactivateuser',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       expect(failResponse.status).toBe(403);
@@ -548,7 +547,7 @@ describe('Auth Routes', () => {
         .send({
           username: 'reactivateuser',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       expect(successResponse.status).toBe(200);

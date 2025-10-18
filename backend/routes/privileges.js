@@ -14,7 +14,7 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
       const groupedPrivileges = await Privilege.getGroupedByModule();
       res.json({ 
         modules: groupedPrivileges,
-        totalModules: groupedPrivileges.length 
+        totalModules: groupedPrivileges.length, 
       });
     } else {
       // Return paginated privileges
@@ -22,7 +22,7 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
       const result = await paginateResults(Privilege, {}, {
         page,
         limit,
-        sort
+        sort,
       });
       res.json(result);
     }
@@ -51,13 +51,13 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
     // Validate required fields
     if (!name || !description || !code || !module) {
       return res.status(400).json({ 
-        message: 'Name, description, code, and module are required' 
+        message: 'Name, description, code, and module are required', 
       });
     }
 
     // Check if privilege already exists
     let privilege = await Privilege.findOne({ 
-      $or: [{ name }, { code }] 
+      $or: [{ name }, { code }], 
     });
     
     if (privilege) {
@@ -77,7 +77,7 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
       code,
       module,
       moduleDisplayName: moduleDisplayName || Privilege.getModules().find(m => m.code === module)?.name,
-      priority: priority || 0
+      priority: priority || 0,
     });
 
     await privilege.save();
@@ -102,7 +102,7 @@ router.put('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
     const privilege = await Privilege.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
-      { new: true }
+      { new: true },
     );
 
     if (!privilege) {
@@ -127,7 +127,7 @@ router.delete('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
     // List of essential privileges that cannot be deleted
     const essentialPrivileges = [
       'create_user', 'read_user', 'update_user', 'delete_user',
-      'manage_roles', 'create_post', 'read_post', 'update_post', 'delete_post'
+      'manage_roles', 'create_post', 'read_post', 'update_post', 'delete_post',
     ];
 
     if (essentialPrivileges.includes(privilege.code)) {

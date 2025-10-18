@@ -19,43 +19,43 @@ router.get('/', auth, checkRole(['read_post']), async (req, res) => {
         $or: [
           { name: { $regex: search, $options: 'i' } },
           { displayName: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } }
-        ]
+          { description: { $regex: search, $options: 'i' } },
+        ],
       };
     }
 
     const result = await paginateResults(Tag, query, {
       page,
       limit,
-      sort
+      sort,
     });
 
     // Calculate real-time post counts for each tag
     const tagsWithCounts = await Promise.all(
-      result.items.map(async (tag) => {
+      result.items.map(async tag => {
         const postCount = await Post.countDocuments({ 
           tags: tag.name, 
-          isPublished: true 
+          isPublished: true, 
         });
         
         // Update the tag's post count if it's different
         if (tag.postCount !== postCount) {
           await Tag.updateOne(
             { _id: tag._id },
-            { $set: { postCount: postCount } }
+            { $set: { postCount } },
           );
         }
         
         return {
           ...tag.toObject(),
-          postCount: postCount
+          postCount,
         };
-      })
+      }),
     );
 
     res.json({
       ...result,
-      items: tagsWithCounts
+      items: tagsWithCounts,
     });
   } catch (err) {
     console.error('Get tags error:', err);
@@ -109,7 +109,7 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       displayName: displayName.trim(),
       description: description ? description.trim() : undefined,
       color: color || '#1976d2',
-      isActive: isActive !== undefined ? isActive : true
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     const savedTag = await tag.save();
@@ -124,9 +124,9 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
         name: savedTag.name,
         displayName: savedTag.displayName,
         description: savedTag.description,
-        color: savedTag.color
+        color: savedTag.color,
       },
-      req
+      req,
     );
     
     res.status(201).json(savedTag);
@@ -167,9 +167,9 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
         name: tag.name,
         displayName: tag.displayName,
         description: tag.description,
-        color: tag.color
+        color: tag.color,
       },
-      req
+      req,
     );
     
     res.json(tag);
@@ -200,9 +200,9 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
       {
         name: tag.name,
         displayName: tag.displayName,
-        description: tag.description
+        description: tag.description,
       },
-      req
+      req,
     );
 
     // Soft delete the tag
@@ -225,7 +225,7 @@ router.get('/:id/stats', auth, checkRole(['read_post']), async (req, res) => {
     // Count posts with this tag
     const postCount = await Post.countDocuments({ 
       tags: tag.name,
-      isPublished: true 
+      isPublished: true, 
     });
 
     // Update tag post count
@@ -236,7 +236,7 @@ router.get('/:id/stats', auth, checkRole(['read_post']), async (req, res) => {
       tag: tag.name,
       displayName: tag.displayName,
       postCount,
-      isActive: tag.isActive
+      isActive: tag.isActive,
     });
   } catch (err) {
     console.error('Get tag stats error:', err);
@@ -251,7 +251,7 @@ router.post('/sync-counts', auth, checkRole(['update_post']), async (req, res) =
     const postTags = await Post.aggregate([
       { $match: { isPublished: true } },
       { $unwind: '$tags' },
-      { $group: { _id: '$tags', count: { $sum: 1 } } }
+      { $group: { _id: '$tags', count: { $sum: 1 } } },
     ]);
 
     // Get existing tags
@@ -270,7 +270,7 @@ router.post('/sync-counts', auth, checkRole(['update_post']), async (req, res) =
         // Update existing tag count
         await Tag.updateOne(
           { name: tagName },
-          { $set: { postCount: count } }
+          { $set: { postCount: count } },
         );
         updated++;
       } else {
@@ -278,11 +278,11 @@ router.post('/sync-counts', auth, checkRole(['update_post']), async (req, res) =
         const displayName = tagName.charAt(0).toUpperCase() + tagName.slice(1);
         await Tag.create({
           name: tagName,
-          displayName: displayName,
+          displayName,
           description: `Auto-generated tag for ${displayName}`,
           color: '#1976d2',
           isActive: true,
-          postCount: count
+          postCount: count,
         });
         created++;
       }
@@ -291,14 +291,14 @@ router.post('/sync-counts', auth, checkRole(['update_post']), async (req, res) =
     // Reset count to 0 for tags that have no posts
     await Tag.updateMany(
       { name: { $nin: postTags.map(pt => pt._id) } },
-      { $set: { postCount: 0 } }
+      { $set: { postCount: 0 } },
     );
 
     res.json({ 
       message: 'Tag counts synchronized successfully', 
       created,
       updated,
-      totalTags: postTags.length
+      totalTags: postTags.length,
     });
   } catch (err) {
     console.error('Sync tag counts error:', err);

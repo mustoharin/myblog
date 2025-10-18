@@ -16,7 +16,7 @@ router.get('/', auth, checkRole(['read_post']), async (req, res) => {
       page,
       limit,
       sort,
-      populate: { path: 'author', select: 'username' }
+      populate: { path: 'author', select: 'username' },
     });
 
     res.json(result);
@@ -55,7 +55,7 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       excerpt,
       tags: formattedTags,
       isPublished,
-      author: req.user._id // Use the authenticated user's ID
+      author: req.user._id, // Use the authenticated user's ID
     });
 
     const newPost = await post.save();
@@ -70,9 +70,9 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       {
         title: savedPost.title,
         status: savedPost.isPublished ? 'published' : 'draft',
-        tags: savedPost.tags
+        tags: savedPost.tags,
       },
-      req
+      req,
     );
     
     res.status(201).json(savedPost);
@@ -119,9 +119,9 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
       {
         title: updatedPost.title,
         status: updatedPost.isPublished ? 'published' : 'draft',
-        tags: updatedPost.tags
+        tags: updatedPost.tags,
       },
-      req
+      req,
     );
     
     res.json(updatedPost);
@@ -152,9 +152,9 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
       post._id,
       {
         title: post.title,
-        status: post.isPublished ? 'published' : 'draft'
+        status: post.isPublished ? 'published' : 'draft',
       },
-      req
+      req,
     );
 
     await post.softDelete();
@@ -179,7 +179,7 @@ router.post('/:id/comments', auth, checkRole(['create_post']), async (req, res) 
 
     post.comments.push({
       content,
-      author: req.user._id
+      author: req.user._id,
     });
 
     await post.save();
@@ -196,9 +196,9 @@ router.post('/:id/comments', auth, checkRole(['create_post']), async (req, res) 
       {
         postId: commentedPost._id,
         postTitle: commentedPost.title,
-        commentText: content.substring(0, 100)
+        commentText: content.substring(0, 100),
       },
-      req
+      req,
     );
     
     res.status(201).json(commentedPost);

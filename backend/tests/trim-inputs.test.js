@@ -4,7 +4,7 @@ const {
   createInitialPrivileges,
   createInitialRoles,
   createTestUser,
-  getAuthToken
+  getAuthToken,
 } = require('./setup');
 const User = require('../models/User');
 
@@ -36,7 +36,7 @@ describe('Input Trimming', () => {
           username: '  testuser  ',
           password: 'Password#12345!',
           captchaText: '123456',
-          captchaSessionId: captchaResponse.body.sessionId
+          captchaSessionId: captchaResponse.body.sessionId,
         });
 
       expect(response.status).toBe(200);
@@ -52,7 +52,7 @@ describe('Input Trimming', () => {
           username: '  newuser  ',
           email: '  user@test.com  ',
           password: 'Password#12345!',
-          role: roles.regularRole._id
+          role: roles.regularRole._id,
         });
 
       expect(response.status).toBe(201);
@@ -73,7 +73,7 @@ describe('Input Trimming', () => {
         .set('Authorization', `Bearer ${superadminToken}`)
         .send({
           username: '  updateduser  ',
-          email: '  updated@test.com  '
+          email: '  updated@test.com  ',
         });
 
       expect(response.status).toBe(200);
@@ -95,7 +95,7 @@ describe('Input Trimming', () => {
         .send({
           name: '  newrole  ',
           description: '  New role description  ',
-          privileges: [privileges[0]._id]
+          privileges: [privileges[0]._id],
         });
 
       expect(response.status).toBe(201);
@@ -112,7 +112,7 @@ describe('Input Trimming', () => {
           code: '  new_privilege  ',
           description: '  New privilege description  ',
           module: '  user_management  ',
-          moduleDisplayName: '  User Management  '
+          moduleDisplayName: '  User Management  ',
         });
 
       expect(response.status).toBe(201);

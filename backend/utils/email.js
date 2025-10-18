@@ -10,8 +10,8 @@ const createTestAccount = async () => {
       secure: false,
       auth: {
         user: testAccount.user,
-        pass: testAccount.pass
-      }
+        pass: testAccount.pass,
+      },
     });
   }
   return null;
@@ -27,8 +27,8 @@ const createTransporter = async () => {
       secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
+        pass: process.env.SMTP_PASS,
+      },
     });
   }
 
@@ -44,7 +44,7 @@ const createTransporter = async () => {
  * @param {string} options.html Email HTML content
  * @returns {Promise<Object>} Email send result
  */
-const sendEmail = async (options) => {
+const sendEmail = async options => {
   const transporter = await createTransporter();
   if (!transporter) {
     throw new Error('Email transport not configured');
@@ -54,22 +54,22 @@ const sendEmail = async (options) => {
     from: process.env.SMTP_FROM || '"Blog App" <noreply@blogapp.com>',
     to: options.to,
     subject: options.subject,
-    html: options.html
+    html: options.html,
   });
 
   // For testing, return ethereal URL
   if (process.env.NODE_ENV === 'test') {
     return {
       messageId: info.messageId,
-      previewUrl: nodemailer.getTestMessageUrl(info)
+      previewUrl: nodemailer.getTestMessageUrl(info),
     };
   }
 
   return {
-    messageId: info.messageId
+    messageId: info.messageId,
   };
 };
 
 module.exports = {
-  sendEmail
+  sendEmail,
 };

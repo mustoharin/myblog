@@ -6,13 +6,13 @@ const PrivilegeSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
   },
   description: {
     type: String,
     required: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const result = validateRichContent(v);
         if (result.error) {
           return false;
@@ -21,14 +21,14 @@ const PrivilegeSchema = new mongoose.Schema({
         this.description = result.clean;
         return true;
       },
-      message: _props => 'Description validation failed: Invalid or unsafe HTML content'
-    }
+      message: _props => 'Description validation failed: Invalid or unsafe HTML content',
+    },
   },
   code: {
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
   },
   module: {
     type: String,
@@ -40,36 +40,36 @@ const PrivilegeSchema = new mongoose.Schema({
       'content_management',
       'comment_management',
       'system_administration',
-      'authentication'
-    ]
+      'authentication',
+    ],
   },
   moduleDisplayName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   priority: {
     type: Number,
     default: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   deletedAt: {
     type: Date,
-    default: null
-  }
+    default: null,
+  },
 });
 
 // Pre-query middleware to exclude deleted documents
@@ -104,11 +104,11 @@ PrivilegeSchema.statics.getGroupedByModule = function() {
             name: '$name',
             description: '$description',
             code: '$code',
-            priority: '$priority'
-          }
+            priority: '$priority',
+          },
         },
-        count: { $sum: 1 }
-      }
+        count: { $sum: 1 },
+      },
     },
     { $sort: { _id: 1 } },
     {
@@ -117,9 +117,9 @@ PrivilegeSchema.statics.getGroupedByModule = function() {
         moduleDisplayName: 1,
         privileges: 1,
         count: 1,
-        _id: 0
-      }
-    }
+        _id: 0,
+      },
+    },
   ]);
 };
 
@@ -131,7 +131,7 @@ PrivilegeSchema.statics.getModules = function() {
     { code: 'role_management', name: 'Role & Privilege Management', description: 'Manage roles and assign privileges' },
     { code: 'content_management', name: 'Content Management', description: 'Manage blog posts, tags, and content' },
     { code: 'comment_management', name: 'Comment Management', description: 'Moderate and manage user comments' },
-    { code: 'system_administration', name: 'System Administration', description: 'System settings, monitoring, and administration' }
+    { code: 'system_administration', name: 'System Administration', description: 'System settings, monitoring, and administration' },
   ];
 };
 

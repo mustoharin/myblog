@@ -31,7 +31,7 @@ async function paginateResults(Model, query = {}, options = {}) {
     findQuery.sort(options.sort);
   }
 
-    // Execute query with pagination
+  // Execute query with pagination
   const items = await findQuery.skip(skip).limit(limit);
   const total = await Model.countDocuments(query);  return {
     items,
@@ -41,8 +41,8 @@ async function paginateResults(Model, query = {}, options = {}) {
       totalItems: total,
       itemsPerPage: limit,
       hasNextPage: skip + items.length < total,
-      hasPrevPage: page > 1
-    }
+      hasPrevPage: page > 1,
+    },
   };
 }
 

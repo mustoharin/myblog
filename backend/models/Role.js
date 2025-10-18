@@ -9,18 +9,18 @@ const RoleSchema = new mongoose.Schema({
     unique: true,
     trim: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const error = validateNoXss(v);
         return error === '';
       },
-      message: () => 'Role name contains potentially unsafe content'
-    }
+      message: () => 'Role name contains potentially unsafe content',
+    },
   },
   description: {
     type: String,
     required: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         const result = validateRichContent(v);
         if (result.error) {
           return false;
@@ -29,29 +29,29 @@ const RoleSchema = new mongoose.Schema({
         this.description = result.clean;
         return true;
       },
-      message: _props => 'Description validation failed: Invalid or unsafe HTML content'
-    }
+      message: _props => 'Description validation failed: Invalid or unsafe HTML content',
+    },
   },
   privileges: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Privilege'
+    ref: 'Privilege',
   }],
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   deletedAt: {
     type: Date,
-    default: null
-  }
+    default: null,
+  },
 });
 
 // Pre-query middleware to exclude deleted documents

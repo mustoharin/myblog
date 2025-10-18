@@ -15,7 +15,7 @@ function formatTags(tags) {
     tags
       .filter(tag => tag && typeof tag === 'string' && tag.trim())
       .map(tag => formatTag(tag))
-      .filter(tag => tag.length > 0)
+      .filter(tag => tag.length > 0),
   )];
 
   return processedTags;

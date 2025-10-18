@@ -8,7 +8,7 @@ const {
   createInitialRoles,
   createTestUser,
   getSuperadminToken,
-  getAdminToken
+  getAdminToken,
 } = require('./setup');
 
 describe('Admin Routes', () => {
@@ -88,7 +88,7 @@ describe('Admin Routes', () => {
         author: adminUser._id,
         tags: ['test'],
         views: 10,
-        comments: []
+        comments: [],
       });
 
       await Post.create({
@@ -100,8 +100,8 @@ describe('Admin Routes', () => {
         views: 20,
         comments: [
           { content: 'Comment 1', authorName: 'User1' },
-          { content: 'Comment 2', authorName: 'User2' }
-        ]
+          { content: 'Comment 2', authorName: 'User2' },
+        ],
       });
 
       const response = await request(app)
@@ -123,7 +123,7 @@ describe('Admin Routes', () => {
         content: 'Content',
         excerpt: 'Excerpt',
         author: adminUser._id,
-        tags: ['test']
+        tags: ['test'],
         // No views field - should default to 0
       });
 
@@ -145,7 +145,7 @@ describe('Admin Routes', () => {
         content: 'Content',
         excerpt: 'Excerpt',
         author: adminUser._id,
-        tags: ['test']
+        tags: ['test'],
         // No comments field
       });
 
@@ -169,7 +169,7 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 1',
           author: adminUser._id,
           tags: ['test'],
-          views: 100
+          views: 100,
         },
         {
           title: 'Post 2',
@@ -177,7 +177,7 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 2',
           author: adminUser._id,
           tags: ['test'],
-          views: 250
+          views: 250,
         },
         {
           title: 'Post 3',
@@ -185,8 +185,8 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 3',
           author: adminUser._id,
           tags: ['test'],
-          views: 50
-        }
+          views: 50,
+        },
       ]);
 
       const response = await request(app)
@@ -211,8 +211,8 @@ describe('Admin Routes', () => {
           tags: ['test'],
           comments: [
             { content: 'Comment 1', authorName: 'User1' },
-            { content: 'Comment 2', authorName: 'User2' }
-          ]
+            { content: 'Comment 2', authorName: 'User2' },
+          ],
         },
         {
           title: 'Post 2',
@@ -221,8 +221,8 @@ describe('Admin Routes', () => {
           author: adminUser._id,
           tags: ['test'],
           comments: [
-            { content: 'Comment 3', authorName: 'User3' }
-          ]
+            { content: 'Comment 3', authorName: 'User3' },
+          ],
         },
         {
           title: 'Post 3',
@@ -230,8 +230,8 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 3',
           author: adminUser._id,
           tags: ['test'],
-          comments: []
-        }
+          comments: [],
+        },
       ]);
 
       const response = await request(app)
@@ -258,14 +258,14 @@ describe('Admin Routes', () => {
       const limitedRole = await Role.create({
         name: 'limited',
         description: 'Limited Role',
-        privileges: [] // No privileges at all
+        privileges: [], // No privileges at all
       });
 
       const limitedUser = await User.create({
         username: 'limited_user',
         email: 'limited@test.com',
         password: 'Password123!',
-        role: limitedRole._id
+        role: limitedRole._id,
       });
 
       // Try to login and get token
@@ -274,7 +274,7 @@ describe('Admin Routes', () => {
         .send({
           username: 'limited_user',
           password: 'Password123!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       const limitedToken = loginResponse.body.token;
@@ -301,7 +301,7 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 1',
           author: superadminUser._id,
           isPublished: true,
-          views: 100
+          views: 100,
         },
         {
           title: 'Second Popular Post',
@@ -309,7 +309,7 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 2',
           author: superadminUser._id,
           isPublished: true,
-          views: 50
+          views: 50,
         },
         {
           title: 'Third Popular Post',
@@ -317,8 +317,8 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 3',
           author: superadminUser._id,
           isPublished: true,
-          views: 25
-        }
+          views: 25,
+        },
       ]);
 
       const response = await request(app)
@@ -350,8 +350,8 @@ describe('Admin Routes', () => {
         views: 10,
         comments: [
           { content: 'Comment 1', author: superadminUser._id },
-          { content: 'Comment 2', author: superadminUser._id }
-        ]
+          { content: 'Comment 2', author: superadminUser._id },
+        ],
       });
 
       const response = await request(app)
@@ -383,7 +383,7 @@ describe('Admin Routes', () => {
         excerpt: `Excerpt ${i + 1}`,
         author: superadminUser._id,
         isPublished: true,
-        views: 10 - i // Descending views
+        views: 10 - i, // Descending views
       }));
       await Post.create(posts);
 
@@ -412,7 +412,7 @@ describe('Admin Routes', () => {
           author: superadminUser._id,
           isPublished: true,
           views: 100,
-          createdAt: recentTime
+          createdAt: recentTime,
         },
         {
           title: 'Old Post',
@@ -421,8 +421,8 @@ describe('Admin Routes', () => {
           author: superadminUser._id,
           isPublished: true,
           views: 200,
-          createdAt: oldTime
-        }
+          createdAt: oldTime,
+        },
       ]);
 
       const response = await request(app)
@@ -445,7 +445,7 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt',
           author: superadminUser._id,
           isPublished: true,
-          views: 50
+          views: 50,
         },
         {
           title: 'Draft Post',
@@ -453,8 +453,8 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt',
           author: superadminUser._id,
           isPublished: false,
-          views: 100
-        }
+          views: 100,
+        },
       ]);
 
       const response = await request(app)
@@ -483,14 +483,14 @@ describe('Admin Routes', () => {
       const limitedRole = await Role.create({
         name: 'limited_popular',
         description: 'Limited Role',
-        privileges: []
+        privileges: [],
       });
 
       const limitedUser = await User.create({
         username: 'limited_popular_user',
         email: 'limited_popular@test.com',
         password: 'Password123!',
-        role: limitedRole._id
+        role: limitedRole._id,
       });
 
       const loginResponse = await request(app)
@@ -498,7 +498,7 @@ describe('Admin Routes', () => {
         .send({
           username: 'limited_popular_user',
           password: 'Password123!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       const limitedToken = loginResponse.body.token;
@@ -533,7 +533,7 @@ describe('Admin Routes', () => {
         excerpt: `Excerpt ${i + 1}`,
         author: superadminUser._id,
         isPublished: true,
-        views: 15 - i
+        views: 15 - i,
       }));
       await Post.create(posts);
 
@@ -593,7 +593,7 @@ describe('Admin Routes', () => {
         fullName: 'Old User',
         isActive: true,
         role: roles.adminRole._id, // Add required role field
-        lastLogin: new Date(Date.now() - 20 * 60 * 1000) // 20 minutes ago
+        lastLogin: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
       });
 
       const response = await request(app)
@@ -618,7 +618,7 @@ describe('Admin Routes', () => {
         fullName: 'Inactive User',
         isActive: false,
         role: roles.adminRole._id, // Add required role field
-        lastLogin: new Date() // Now
+        lastLogin: new Date(), // Now
       });
 
       const response = await request(app)
@@ -643,7 +643,7 @@ describe('Admin Routes', () => {
         fullName: `Active User ${i}`,
         isActive: true,
         role: roles.adminRole._id, // Add required role field
-        lastLogin: new Date(Date.now() - i * 60 * 1000) // Staggered login times
+        lastLogin: new Date(Date.now() - i * 60 * 1000), // Staggered login times
       }));
       await User.create(users);
 
@@ -684,7 +684,7 @@ describe('Admin Routes', () => {
       
       // Set all users' lastLogin to > 15 minutes ago
       await User.updateMany({}, {
-        lastLogin: new Date(Date.now() - 20 * 60 * 1000)
+        lastLogin: new Date(Date.now() - 20 * 60 * 1000),
       });
 
       const response = await request(app)
@@ -706,7 +706,7 @@ describe('Admin Routes', () => {
         fullName: 'Full Test User',
         isActive: true,
         role: roles.adminRole._id,
-        lastLogin: new Date() // Recent login
+        lastLogin: new Date(), // Recent login
       });
 
       const response = await request(app)
@@ -761,7 +761,7 @@ describe('Admin Routes', () => {
         content: 'Content for activity test',
         excerpt: 'Test excerpt',
         author: adminUser._id,
-        isPublished: true
+        isPublished: true,
       });
 
       // Manually log the activity since we're bypassing the API
@@ -770,7 +770,7 @@ describe('Admin Routes', () => {
         adminUser,
         'post',
         testPost._id,
-        { title: testPost.title }
+        { title: testPost.title },
       );
 
       const response = await request(app)
@@ -780,7 +780,7 @@ describe('Admin Routes', () => {
       expect(response.status).toBe(200);
       
       const postActivities = response.body.activities.filter(
-        a => a.type === 'post_create' || a.type === 'post_update'
+        a => a.type === 'post_create' || a.type === 'post_update',
       );
       expect(postActivities.length).toBeGreaterThan(0);
     });
@@ -791,7 +791,7 @@ describe('Admin Routes', () => {
         username: 'activityTestUser',
         email: 'activitytest@example.com',
         password: 'Password123!',
-        role: roles.regularRole._id
+        role: roles.regularRole._id,
       });
 
       // Manually log the activity since we're bypassing the API
@@ -800,7 +800,7 @@ describe('Admin Routes', () => {
         superadminUser,
         'user',
         testUser._id,
-        { username: testUser.username, fullName: testUser.fullName }
+        { username: testUser.username, fullName: testUser.fullName },
       );
 
       const response = await request(app)
@@ -810,7 +810,7 @@ describe('Admin Routes', () => {
       expect(response.status).toBe(200);
       
       const userActivities = response.body.activities.filter(
-        a => a.type === 'user_create'
+        a => a.type === 'user_create',
       );
       expect(userActivities.length).toBeGreaterThan(0);
     });
@@ -830,9 +830,9 @@ describe('Admin Routes', () => {
           {
             content: 'Test comment',
             authorName: 'Commenter',
-            createdAt: new Date()
-          }
-        ]
+            createdAt: new Date(),
+          },
+        ],
       });
 
       // Manually log the comment activity since we're bypassing the API
@@ -841,7 +841,7 @@ describe('Admin Routes', () => {
         { username: 'Commenter' }, // Mock commenter user
         'comment',
         postWithComments._id, // Use post ID as target
-        { postTitle: postWithComments.title, content: 'Test comment' }
+        { postTitle: postWithComments.title, content: 'Test comment' },
       );
 
       const response = await request(app)
@@ -851,7 +851,7 @@ describe('Admin Routes', () => {
       expect(response.status).toBe(200);
       
       const commentActivities = response.body.activities.filter(
-        a => a.type === 'comment_create'
+        a => a.type === 'comment_create',
       );
       expect(commentActivities.length).toBeGreaterThan(0);
     });

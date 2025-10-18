@@ -9,30 +9,30 @@ const activitySchema = new mongoose.Schema({
       'user_create', 'user_update', 'user_delete',
       'tag_create', 'tag_update', 'tag_delete',
       'role_create', 'role_update', 'role_delete',
-      'comment_create', 'comment_delete'
-    ]
+      'comment_create', 'comment_delete',
+    ],
   },
   actor: {
     id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     username: String,
-    fullName: String
+    fullName: String,
   },
   target: {
     type: String, // 'post', 'user', 'tag', 'role', 'comment'
-    required: true
+    required: true,
   },
   targetId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true
+    required: true,
   },
   data: {
     type: mongoose.Schema.Types.Mixed, // Flexible data structure for activity details
-    default: {}
+    default: {},
   },
   ipAddress: String,
-  userAgent: String
+  userAgent: String,
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 // Index for efficient querying
@@ -49,11 +49,11 @@ activitySchema.statics.logActivity = async function(type, actor, target, targetI
       actor: {
         id: actor?._id || actor?.id,
         username: actor?.username || 'System',
-        fullName: actor?.fullName || actor?.username || 'System'
+        fullName: actor?.fullName || actor?.username || 'System',
       },
       target,
       targetId,
-      data
+      data,
     };
 
     // Add request metadata if available

@@ -5,7 +5,7 @@
 const trimInputs = (req, res, next) => {
   if (req.body && typeof req.body === 'object') {
     // Recursively trim strings in objects
-    const trimObject = (obj) => {
+    const trimObject = obj => {
       if (!obj || typeof obj !== 'object') return;
       
       // Use Object.getOwnPropertyNames to avoid prototype pollution

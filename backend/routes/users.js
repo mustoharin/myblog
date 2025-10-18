@@ -27,8 +27,8 @@ router.get('/', auth, checkRole(['read_user']), async (req, res) => {
       select: '-password',
       populate: {
         path: 'role',
-        populate: { path: 'privileges' }
-      }
+        populate: { path: 'privileges' },
+      },
     });
 
     res.status(200).json(result);
@@ -53,7 +53,7 @@ router.get('/:id', auth, checkRole(['read_user']), async (req, res) => {
       .select('-password')
       .populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -85,18 +85,18 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
     // Validate required fields
     if (!username || !email || !password || !role) {
       return res.status(400).json({ 
-        message: `${!username ? 'Username' : !email ? 'Email' : !password ? 'Password' : 'Role'} is required` 
+        message: `${!username ? 'Username' : !email ? 'Email' : !password ? 'Password' : 'Role'} is required`, 
       });
     }
 
     // Check for existing username or email
     const existingUser = await User.findOne({
-      $or: [{ username }, { email }]
+      $or: [{ username }, { email }],
     });
 
     if (existingUser) {
       return res.status(400).json({
-        message: `${existingUser.username === username ? 'Username' : 'Email'} already exists`
+        message: `${existingUser.username === username ? 'Username' : 'Email'} already exists`,
       });
     }
 
@@ -113,7 +113,7 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
       email,
       password,  // Will be hashed by mongoose pre-save hook
       role,
-      isActive: isActive !== undefined ? isActive : true
+      isActive: isActive !== undefined ? isActive : true,
     });
 
     await newUser.save();
@@ -122,7 +122,7 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
       .select('-password')
       .populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
     
     // Log activity
@@ -135,9 +135,9 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
         username: savedUser.username,
         fullName: savedUser.fullName,
         email: savedUser.email,
-        role: roleDoc.name
+        role: roleDoc.name,
       },
-      req
+      req,
     );
     
     res.status(201).json(savedUser);
@@ -212,14 +212,14 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
         { 
           new: true,
           runValidators: true,
-          upsert: false
-        }
+          upsert: false,
+        },
       )
-      .select('-password')
-      .populate({
-        path: 'role',
-        populate: { path: 'privileges' }
-      });
+        .select('-password')
+        .populate({
+          path: 'role',
+          populate: { path: 'privileges' },
+        });
 
       if (!updatedUser) {
         return res.status(404).json({ message: 'User not found' });
@@ -235,9 +235,9 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
           username: updatedUser.username,
           fullName: updatedUser.fullName,
           email: updatedUser.email,
-          role: updatedUser.role?.name
+          role: updatedUser.role?.name,
         },
-        req
+        req,
       );
 
       res.json(updatedUser);
@@ -281,7 +281,7 @@ router.delete('/:id', auth, checkRole(['delete_user']), async (req, res) => {
     // Check for superadmin
     if (userToDelete.role.name === 'superadmin') {
       const superadminCount = await User.countDocuments({
-        role: userToDelete.role._id
+        role: userToDelete.role._id,
       });
       if (superadminCount <= 1) {
         return res.status(403).json({ message: 'Cannot delete last superadmin' });
@@ -305,9 +305,9 @@ router.delete('/:id', auth, checkRole(['delete_user']), async (req, res) => {
         username: userToDelete.username,
         fullName: userToDelete.fullName,
         email: userToDelete.email,
-        role: userToDelete.role?.name
+        role: userToDelete.role?.name,
       },
-      req
+      req,
     );
 
     await userToDelete.softDelete();

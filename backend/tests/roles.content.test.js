@@ -23,7 +23,7 @@ describe('Role Rich Content Validation', () => {
           <p>With great power comes great responsibility</p>
         </blockquote>
       `,
-      privileges: [privileges[0]._id]
+      privileges: [privileges[0]._id],
     };
 
     const role = new Role(roleWithSafeHtml);
@@ -44,7 +44,7 @@ describe('Role Rich Content Validation', () => {
         <p onclick="alert('xss')">Click me</p>
         <a href="javascript:alert('xss')">Bad Link</a>
       `,
-      privileges: [privileges[0]._id]
+      privileges: [privileges[0]._id],
     };
 
     const role = new Role(roleWithUnsafeContent);
@@ -61,7 +61,7 @@ describe('Role Rich Content Validation', () => {
     const roleWithInvalidContent = {
       name: 'Invalid Role',
       description: '<script>alert("xss");</script>',
-      privileges: [privileges[0]._id]
+      privileges: [privileges[0]._id],
     };
 
     const role = new Role(roleWithInvalidContent);
@@ -74,7 +74,7 @@ describe('Role Rich Content Validation', () => {
     const role = new Role({
       name: 'Update Test Role',
       description: '<p>Initial description</p>',
-      privileges: [privileges[0]._id]
+      privileges: [privileges[0]._id],
     });
 
     await role.validate();

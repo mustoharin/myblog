@@ -20,9 +20,9 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
       {
         $group: {
           _id: null,
-          totalViews: { $sum: '$views' }
-        }
-      }
+          totalViews: { $sum: '$views' },
+        },
+      },
     ]);
     const totalViews = viewsAggregation.length > 0 ? viewsAggregation[0].totalViews : 0;
     
@@ -31,9 +31,9 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
       {
         $group: {
           _id: null,
-          totalShares: { $sum: '$shares' }
-        }
-      }
+          totalShares: { $sum: '$shares' },
+        },
+      },
     ]);
     const totalShares = sharesAggregation.length > 0 ? sharesAggregation[0].totalShares : 0;
     
@@ -41,15 +41,15 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
     const commentsAggregation = await Post.aggregate([
       {
         $project: {
-          commentCount: { $size: { $ifNull: ['$comments', []] } }
-        }
+          commentCount: { $size: { $ifNull: ['$comments', []] } },
+        },
       },
       {
         $group: {
           _id: null,
-          totalComments: { $sum: '$commentCount' }
-        }
-      }
+          totalComments: { $sum: '$commentCount' },
+        },
+      },
     ]);
     const totalComments = commentsAggregation.length > 0 ? commentsAggregation[0].totalComments : 0;
 
@@ -58,7 +58,7 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
       totalUsers,
       totalViews,
       totalShares,
-      totalComments
+      totalComments,
     });
   } catch (error) {
     console.error('Admin stats error:', error);
@@ -119,7 +119,7 @@ router.get('/posts/popular', auth, checkRole(['read_post']), async (req, res) =>
       sharesCount: post.shares || 0,
       status: post.isPublished ? 'published' : 'draft',
       createdAt: post.createdAt,
-      author: post.author
+      author: post.author,
     }));
     
     res.json({ posts: formattedPosts });
@@ -139,19 +139,19 @@ router.get('/users/active', auth, checkRole(['read_user']), async (req, res) => 
     // Find users who logged in recently and are active
     const activeUsers = await User.find({
       lastLogin: { $gte: timeThreshold },
-      isActive: true
+      isActive: true,
     })
-    .select('username fullName lastLogin')
-    .sort({ lastLogin: -1 })
-    .limit(10)
-    .lean();
+      .select('username fullName lastLogin')
+      .sort({ lastLogin: -1 })
+      .limit(10)
+      .lean();
     
     // Format response with lastActiveAt field
     const users = activeUsers.map(user => ({
       _id: user._id,
       username: user.username,
       fullName: user.fullName,
-      lastActiveAt: user.lastLogin
+      lastActiveAt: user.lastLogin,
     }));
     
     res.json({ users });
@@ -190,7 +190,7 @@ router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
         { 'data.name': { $regex: searchPattern, $options: 'i' } },
         { 'data.displayName': { $regex: searchPattern, $options: 'i' } },
         { 'actor.username': { $regex: searchPattern, $options: 'i' } },
-        { 'actor.fullName': { $regex: searchPattern, $options: 'i' } }
+        { 'actor.fullName': { $regex: searchPattern, $options: 'i' } },
       ];
     }
     
@@ -210,20 +210,20 @@ router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
       type: activity.type,
       user: {
         username: activity.actor?.username || 'System',
-        fullName: activity.actor?.fullName || activity.actor?.username || 'System'
+        fullName: activity.actor?.fullName || activity.actor?.username || 'System',
       },
       data: activity.data,
       createdAt: activity.createdAt,
-      description: getActivityDescription(activity)
+      description: getActivityDescription(activity),
     }));
 
     res.json({ 
       activities: transformedActivities,
       pagination: {
         currentPage: page,
-        totalItems: totalItems,
-        totalPages: Math.ceil(totalItems / limit)
-      }
+        totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+      },
     });
   } catch (error) {
     console.error('Activities error:', error);
@@ -286,7 +286,7 @@ router.get('/system/status', auth, checkRole(['read_post']), async (req, res) =>
     const usersCount = await User.countDocuments();
     const commentsCount = await Post.aggregate([
       { $unwind: '$comments' },
-      { $count: 'total' }
+      { $count: 'total' },
     ]);
     
     // Calculate database usage (in bytes)
@@ -309,8 +309,8 @@ router.get('/system/status', auth, checkRole(['read_post']), async (req, res) =>
         collections: {
           posts: postsCount,
           users: usersCount,
-          comments: commentsCount[0]?.total || 0
-        }
+          comments: commentsCount[0]?.total || 0,
+        },
       },
       memory: {
         used: usedMemory,
@@ -318,15 +318,15 @@ router.get('/system/status', auth, checkRole(['read_post']), async (req, res) =>
         process: {
           heapUsed: memoryUsage.heapUsed,
           heapTotal: memoryUsage.heapTotal,
-          rss: memoryUsage.rss
-        }
+          rss: memoryUsage.rss,
+        },
       },
       performance: {
         responseTime: Math.floor(Math.random() * 50) + 10, // Mock: 10-60ms
         requestsPerMinute: Math.floor(Math.random() * 100) + 20, // Mock: 20-120 rpm
-        uptime: Math.floor(uptime)
+        uptime: Math.floor(uptime),
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('System status error:', error);

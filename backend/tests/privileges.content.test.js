@@ -20,7 +20,7 @@ describe('Privilege Rich Content Validation', () => {
         </blockquote>
       `,
       module: 'content_management',
-      moduleDisplayName: 'Content Management'
+      moduleDisplayName: 'Content Management',
     };
 
     const privilege = new Privilege(privilegeWithSafeHtml);
@@ -43,7 +43,7 @@ describe('Privilege Rich Content Validation', () => {
         <a href="javascript:alert('xss')">Bad Link</a>
       `,
       module: 'system_administration',
-      moduleDisplayName: 'System Administration'
+      moduleDisplayName: 'System Administration',
     };
 
     const privilege = new Privilege(privilegeWithUnsafeContent);
@@ -62,7 +62,7 @@ describe('Privilege Rich Content Validation', () => {
       code: 'invalid_privilege',
       description: '<script>alert("xss");</script>',
       module: 'system_administration',
-      moduleDisplayName: 'System Administration'
+      moduleDisplayName: 'System Administration',
     };
 
     const privilege = new Privilege(privilegeWithInvalidContent);
@@ -77,7 +77,7 @@ describe('Privilege Rich Content Validation', () => {
       code: 'update_test',
       description: '<p>Initial description</p>',
       module: 'system_administration',
-      moduleDisplayName: 'System Administration'
+      moduleDisplayName: 'System Administration',
     });
 
     await privilege.validate();

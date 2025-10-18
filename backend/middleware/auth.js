@@ -27,16 +27,22 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid authorization format' });
     }
     
-    const token = authHeader.replace('Bearer ', '');    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_key');
+    const token = authHeader.replace('Bearer ', '');
+    
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET environment variable is not set');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     try {
       const user = await User.findById(decoded.userId)
         .populate({
           path: 'role',
           populate: {
             path: 'privileges',
-            model: 'Privilege'
-          }
+            model: 'Privilege',
+          },
         });
       
       if (!user) {
@@ -50,7 +56,7 @@ const auth = async (req, res, next) => {
       // Check if user account is active
       if (!user.isActive) {
         return res.status(403).json({ 
-          message: 'Your account has been deactivated. Please contact the administrator.' 
+          message: 'Your account has been deactivated. Please contact the administrator.', 
         });
       }
       

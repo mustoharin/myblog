@@ -46,5 +46,5 @@ function validateNoXss(value) {
 
 module.exports = {
   isXssSafe,
-  validateNoXss
+  validateNoXss,
 };

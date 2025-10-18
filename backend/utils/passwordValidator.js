@@ -16,7 +16,7 @@ class PasswordValidator {
     if (!password) {
       return {
         isValid: false,
-        message: 'Password is required'
+        message: 'Password is required',
       };
     }
 
@@ -24,14 +24,14 @@ class PasswordValidator {
     if (password.length < this.minLength) {
       return {
         isValid: false,
-        message: `Password must be at least ${this.minLength} characters long`
+        message: `Password must be at least ${this.minLength} characters long`,
       };
     }
 
     if (password.length > this.maxLength) {
       return {
         isValid: false,
-        message: `Password cannot be longer than ${this.maxLength} characters`
+        message: `Password cannot be longer than ${this.maxLength} characters`,
       };
     }
 
@@ -48,14 +48,14 @@ class PasswordValidator {
       'admin123',
       'user',
       'test',
-      'login'
+      'login',
     ];
 
     if (commonPatterns.some(pattern => 
       password.toLowerCase().includes(pattern))) {
       return {
         isValid: false,
-        message: 'Password contains common patterns that are easily guessed'
+        message: 'Password contains common patterns that are easily guessed',
       };
     }
 
@@ -69,13 +69,13 @@ class PasswordValidator {
       hasUpperCase,
       hasLowerCase,
       hasNumbers,
-      hasSpecialChars
+      hasSpecialChars,
     ].filter(Boolean).length;
 
     if (varietyCount < 3) {
       return {
         isValid: false,
-        message: 'Password must contain at least 3 of the following: uppercase letters, lowercase letters, numbers, special characters'
+        message: 'Password must contain at least 3 of the following: uppercase letters, lowercase letters, numbers, special characters',
       };
     }
 
@@ -83,7 +83,7 @@ class PasswordValidator {
     if (/(.)\1{2,}/.test(password)) {
       return {
         isValid: false,
-        message: 'Password cannot contain repeating characters (3 or more times in a row)'
+        message: 'Password cannot contain repeating characters (3 or more times in a row)',
       };
     }
 
@@ -91,7 +91,7 @@ class PasswordValidator {
     const sequences = [
       'abcdefghijklmnopqrstuvwxyz',
       'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-      '0123456789'
+      '0123456789',
     ];
 
     for (const sequence of sequences) {
@@ -101,7 +101,7 @@ class PasswordValidator {
             password.includes(seq.split('').reverse().join(''))) {
           return {
             isValid: false,
-            message: 'Password cannot contain sequential characters (e.g., abc, 123, cba)'
+            message: 'Password cannot contain sequential characters (e.g., abc, 123, cba)',
           };
         }
       }
@@ -109,7 +109,7 @@ class PasswordValidator {
 
     return {
       isValid: true,
-      message: 'Password meets all requirements'
+      message: 'Password meets all requirements',
     };
   }
 

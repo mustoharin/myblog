@@ -15,7 +15,7 @@ describe('Password Validator', () => {
     });
 
     it('should reject passwords longer than maximum length', () => {
-      const longPassword = 'A'.repeat(129) + 'b1!';
+      const longPassword = `${'A'.repeat(129)}b1!`;
       const result = passwordValidator.validate(longPassword);
       expect(result.isValid).toBe(false);
       expect(result.message).toContain('128 characters');
@@ -51,7 +51,7 @@ describe('Password Validator', () => {
         'Secure!Passphrase#42',
         'C0mpl3x!P@ssw0rd',
         'N0t!Simple$Pass',
-        'MyP@ssphrase!2023'
+        'MyP@ssphrase!2023',
       ];
 
       validPasswords.forEach(password => {

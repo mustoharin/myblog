@@ -16,7 +16,7 @@ class MockCaptcha {
     } else {
       this.validationTokens.clear();
     }
-  };
+  }
 
   /**
    * Create a new mock captcha that always returns the same values
@@ -28,12 +28,12 @@ class MockCaptcha {
     const expiresIn = process.env.NODE_ENV === 'test' && process.env.JEST_WORKER_ID ? 5000 : 300000; // 5 seconds in tests, 5 minutes otherwise
     this.sessions.set(sessionId, {
       text: this.mockText,
-      expires: Date.now() + expiresIn
+      expires: Date.now() + expiresIn,
     });
     
     return {
       sessionId,
-      imageDataUrl: `data:image/png;base64,mock-image-${Date.now()}`
+      imageDataUrl: `data:image/png;base64,mock-image-${Date.now()}`,
     };
   }
 

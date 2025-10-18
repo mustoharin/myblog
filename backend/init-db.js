@@ -21,21 +21,21 @@ const initializeDB = async () => {
             name: 'Change Password',
             code: 'change_password',
             description: 'Can change own password and account settings',
-            priority: 90
+            priority: 90,
           },
           {
             name: 'Reset Password',
             code: 'reset_password',
             description: 'Can reset passwords for other users',
-            priority: 80
+            priority: 80,
           },
           {
             name: 'Manage Sessions',
             code: 'manage_sessions',
             description: 'Can view and terminate user sessions',
-            priority: 70
-          }
-        ]
+            priority: 70,
+          },
+        ],
       },
       
       user_management: {
@@ -45,33 +45,33 @@ const initializeDB = async () => {
             name: 'Create User',
             code: 'create_user',
             description: 'Can create new users and manage user registration',
-            priority: 90
+            priority: 90,
           },
           {
             name: 'Read User',
             code: 'read_user',
             description: 'Can view user profiles and user lists',
-            priority: 80
+            priority: 80,
           },
           {
             name: 'Update User',
             code: 'update_user',
             description: 'Can update user profiles and settings',
-            priority: 70
+            priority: 70,
           },
           {
             name: 'Delete User',
             code: 'delete_user',
             description: 'Can delete users from the system',
-            priority: 60
+            priority: 60,
           },
           {
             name: 'Manage User Roles',
             code: 'manage_user_roles',
             description: 'Can assign and modify user roles',
-            priority: 50
-          }
-        ]
+            priority: 50,
+          },
+        ],
       },
       
       role_management: {
@@ -81,21 +81,21 @@ const initializeDB = async () => {
             name: 'Manage Roles',
             code: 'manage_roles',
             description: 'Can create, update, and delete roles and privileges',
-            priority: 100
+            priority: 100,
           },
           {
             name: 'View Privileges',
             code: 'view_privileges',
             description: 'Can view all available privileges and their assignments',
-            priority: 90
+            priority: 90,
           },
           {
             name: 'Assign Privileges',
             code: 'assign_privileges',
             description: 'Can assign privileges to roles',
-            priority: 80
-          }
-        ]
+            priority: 80,
+          },
+        ],
       },
       
       content_management: {
@@ -105,45 +105,45 @@ const initializeDB = async () => {
             name: 'Create Post',
             code: 'create_post',
             description: 'Can create new blog posts and drafts',
-            priority: 90
+            priority: 90,
           },
           {
             name: 'Read Post',
             code: 'read_post',
             description: 'Can view all posts including drafts and admin content',
-            priority: 80
+            priority: 80,
           },
           {
             name: 'Update Post',
             code: 'update_post',
             description: 'Can edit and modify existing blog posts',
-            priority: 70
+            priority: 70,
           },
           {
             name: 'Delete Post',
             code: 'delete_post',
             description: 'Can delete blog posts permanently',
-            priority: 60
+            priority: 60,
           },
           {
             name: 'Publish Post',
             code: 'publish_post',
             description: 'Can publish and unpublish blog posts',
-            priority: 50
+            priority: 50,
           },
           {
             name: 'Manage Tags',
             code: 'manage_tags',
             description: 'Can create, edit, and delete post tags and categories',
-            priority: 40
+            priority: 40,
           },
           {
             name: 'Manage Media',
             code: 'manage_media',
             description: 'Can upload, organize, and delete media files',
-            priority: 30
-          }
-        ]
+            priority: 30,
+          },
+        ],
       },
       
       comment_management: {
@@ -153,21 +153,21 @@ const initializeDB = async () => {
             name: 'Manage Comments',
             code: 'manage_comments',
             description: 'Can moderate, approve, and delete user comments',
-            priority: 90
+            priority: 90,
           },
           {
             name: 'Reply Comments',
             code: 'reply_comments',
             description: 'Can reply to user comments as admin',
-            priority: 80
+            priority: 80,
           },
           {
             name: 'Bulk Comment Actions',
             code: 'bulk_comment_actions',
             description: 'Can perform bulk operations on comments',
-            priority: 70
-          }
-        ]
+            priority: 70,
+          },
+        ],
       },
       
       system_administration: {
@@ -177,34 +177,34 @@ const initializeDB = async () => {
             name: 'View Activities',
             code: 'view_activities',
             description: 'Can view system activity logs and audit trails',
-            priority: 90
+            priority: 90,
           },
           {
             name: 'System Settings',
             code: 'system_settings',
             description: 'Can modify system-wide settings and configurations',
-            priority: 80
+            priority: 80,
           },
           {
             name: 'View Analytics',
             code: 'view_analytics',
             description: 'Can access website analytics and reports',
-            priority: 70
+            priority: 70,
           },
           {
             name: 'Manage Backups',
             code: 'manage_backups',
             description: 'Can create and restore system backups',
-            priority: 60
+            priority: 60,
           },
           {
             name: 'System Maintenance',
             code: 'system_maintenance',
             description: 'Can perform system maintenance tasks',
-            priority: 50
-          }
-        ]
-      }
+            priority: 50,
+          },
+        ],
+      },
     };
 
     // Flatten privileges with module information
@@ -214,7 +214,7 @@ const initializeDB = async () => {
         allPrivileges.push({
           ...privilege,
           module: moduleCode,
-          moduleDisplayName: moduleInfo.displayName
+          moduleDisplayName: moduleInfo.displayName,
         });
       });
     });
@@ -222,7 +222,7 @@ const initializeDB = async () => {
     // Create privileges
     console.log('🔐 Creating privileges...');
     const createdPrivileges = await Promise.all(
-      allPrivileges.map(async (priv) => {
+      allPrivileges.map(async priv => {
         const existingPriv = await Privilege.findOne({ code: priv.code });
         if (!existingPriv) {
           console.log(`   ✅ Created privilege: ${priv.name} (${priv.code}) in ${priv.moduleDisplayName}`);
@@ -240,7 +240,7 @@ const initializeDB = async () => {
           }
           return existingPriv;
         }
-      })
+      }),
     );
 
     // Create comprehensive roles
@@ -252,7 +252,7 @@ const initializeDB = async () => {
       await Role.create({
         name: 'superadmin',
         description: 'Super Administrator with complete system access and all privileges',
-        privileges: createdPrivileges.map(p => p._id)
+        privileges: createdPrivileges.map(p => p._id),
       });
       console.log('   ✅ Created superadmin role with all privileges');
     } else {
@@ -263,12 +263,11 @@ const initializeDB = async () => {
     const adminRole = await Role.findOne({ name: 'admin' });
     if (!adminRole) {
       const adminPrivileges = createdPrivileges.filter(p => 
-        ['create_post', 'read_post', 'update_post', 'delete_post', 'publish_post', 'manage_tags', 'manage_comments', 'view_activities', 'change_password', 'manage_media'].includes(p.code)
-      );
+        ['create_post', 'read_post', 'update_post', 'delete_post', 'publish_post', 'manage_tags', 'manage_comments', 'view_activities', 'change_password', 'manage_media'].includes(p.code));
       await Role.create({
         name: 'admin',
         description: 'Administrator with content management and moderation access',
-        privileges: adminPrivileges.map(p => p._id)
+        privileges: adminPrivileges.map(p => p._id),
       });
       console.log('   ✅ Created admin role with content management privileges');
     } else {
@@ -279,12 +278,11 @@ const initializeDB = async () => {
     const editorRole = await Role.findOne({ name: 'editor' });
     if (!editorRole) {
       const editorPrivileges = createdPrivileges.filter(p => 
-        ['create_post', 'read_post', 'update_post', 'publish_post', 'manage_tags', 'manage_media', 'change_password'].includes(p.code)
-      );
+        ['create_post', 'read_post', 'update_post', 'publish_post', 'manage_tags', 'manage_media', 'change_password'].includes(p.code));
       await Role.create({
         name: 'editor',
         description: 'Content Editor with post creation and editing privileges',
-        privileges: editorPrivileges.map(p => p._id)
+        privileges: editorPrivileges.map(p => p._id),
       });
       console.log('   ✅ Created editor role with post management privileges');
     } else {
@@ -295,12 +293,11 @@ const initializeDB = async () => {
     const authorRole = await Role.findOne({ name: 'author' });
     if (!authorRole) {
       const authorPrivileges = createdPrivileges.filter(p => 
-        ['create_post', 'read_post', 'change_password'].includes(p.code)
-      );
+        ['create_post', 'read_post', 'change_password'].includes(p.code));
       await Role.create({
         name: 'author',
         description: 'Content Author with post creation privileges',
-        privileges: authorPrivileges.map(p => p._id)
+        privileges: authorPrivileges.map(p => p._id),
       });
       console.log('   ✅ Created author role with basic post privileges');
     } else {
@@ -311,12 +308,11 @@ const initializeDB = async () => {
     const regularRole = await Role.findOne({ name: 'regular' });
     if (!regularRole) {
       const regularPrivileges = createdPrivileges.filter(p => 
-        ['read_post', 'change_password'].includes(p.code)
-      );
+        ['read_post', 'change_password'].includes(p.code));
       await Role.create({
         name: 'regular',
         description: 'Regular User with basic reading privileges',
-        privileges: regularPrivileges.map(p => p._id)
+        privileges: regularPrivileges.map(p => p._id),
       });
       console.log('   ✅ Created regular user role with basic privileges');
     } else {
@@ -334,7 +330,7 @@ const initializeDB = async () => {
         fullName: 'Super Administrator',
         password: 'SuperAdmin2025!@#', // Will be hashed by pre-save middleware
         role: superadminRoleDoc._id,
-        isActive: true
+        isActive: true,
       });
       
       await superadminUser.save();
@@ -357,7 +353,7 @@ const initializeDB = async () => {
         fullName: 'Blog Administrator',
         password: 'MyBl0g@dm1n2025!', // Will be hashed by pre-save middleware
         role: adminRoleDoc._id,
-        isActive: true
+        isActive: true,
       });
       
       await adminUser.save();
@@ -387,7 +383,7 @@ const initializeDB = async () => {
       { name: 'web-development', displayName: 'Web Development', description: 'Building applications for the web', color: '#fd79a8' },
       { name: 'api', displayName: 'API', description: 'Application Programming Interfaces', color: '#00b894' },
       { name: 'security', displayName: 'Security', description: 'Web security and best practices', color: '#e17055' },
-      { name: 'performance', displayName: 'Performance', description: 'Optimization and performance tuning', color: '#a29bfe' }
+      { name: 'performance', displayName: 'Performance', description: 'Optimization and performance tuning', color: '#a29bfe' },
     ];
 
     for (const tagData of sampleTags) {
@@ -444,7 +440,7 @@ const initializeDB = async () => {
         author: authorUser._id,
         isPublished: true,
         featured: true,
-        tags: ['welcome', 'technology', 'web-development']
+        tags: ['welcome', 'technology', 'web-development'],
       },
       
       {
@@ -506,7 +502,7 @@ server.listen(3000, () => {
         author: authorUser._id,
         isPublished: true,
         featured: true,
-        tags: ['nodejs', 'javascript', 'backend', 'tutorial']
+        tags: ['nodejs', 'javascript', 'backend', 'tutorial'],
       },
       
       {
@@ -581,7 +577,7 @@ function UserProfile({ userId }) {
         excerpt: 'Discover the power of React for building modern, interactive user interfaces. Learn core concepts, best practices, and advanced techniques.',
         author: authorUser._id,
         isPublished: true,
-        tags: ['react', 'javascript', 'frontend', 'tutorial']
+        tags: ['react', 'javascript', 'frontend', 'tutorial'],
       },
       
       {
@@ -716,7 +712,7 @@ await newUser.save();
         excerpt: 'Master MongoDB fundamentals including document storage, CRUD operations, aggregation, and integration with Node.js using Mongoose.',
         author: authorUser._id,
         isPublished: true,
-        tags: ['mongodb', 'database', 'nodejs', 'tutorial']
+        tags: ['mongodb', 'database', 'nodejs', 'tutorial'],
       },
       
       {
@@ -890,7 +886,7 @@ app.use(errorHandler);
         excerpt: 'Learn to build professional RESTful APIs with Express.js, covering routing, middleware, authentication, error handling, and best practices.',
         author: authorUser._id,
         isPublished: true,
-        tags: ['express', 'nodejs', 'api', 'backend', 'tutorial']
+        tags: ['express', 'nodejs', 'api', 'backend', 'tutorial'],
       },
       
       {
@@ -1085,7 +1081,7 @@ app.use('/api/auth/login', authLimiter);
         author: authorUser._id,
         isPublished: true,
         featured: true,
-        tags: ['security', 'web-development', 'backend', 'frontend']
+        tags: ['security', 'web-development', 'backend', 'frontend'],
       },
       
       {
@@ -1375,8 +1371,8 @@ window.addEventListener('load', () => {
         excerpt: 'Complete guide to web application performance optimization covering frontend, backend, database, caching, and monitoring strategies.',
         author: authorUser._id,
         isPublished: true,
-        tags: ['performance', 'optimization', 'web-development', 'tutorial']
-      }
+        tags: ['performance', 'optimization', 'web-development', 'tutorial'],
+      },
     ];
 
     for (const postData of samplePosts) {
@@ -1412,10 +1408,12 @@ initializeDB()
   .then(() => {
     console.log('\n✅ Database initialization completed successfully');
     mongoose.disconnect();
-    process.exit(0);
+    // Exit gracefully without using process.exit()
+    return Promise.resolve();
   })
-  .catch((error) => {
+  .catch(error => {
     console.error('❌ Database initialization failed:', error);
     mongoose.disconnect();
-    process.exit(1);
+    // Throw error to let the process handle it naturally
+    throw error;
   });

@@ -13,7 +13,7 @@ async function enrichTags(tags) {
   try {
     const tagMetadata = await Tag.find({ 
       name: { $in: tags }, 
-      isActive: true 
+      isActive: true, 
     }).select('name displayName color');
     
     return tags.map(tag => {
@@ -21,7 +21,7 @@ async function enrichTags(tags) {
       return {
         name: tag,
         displayName: metadata ? metadata.displayName : tag,
-        color: metadata ? metadata.color : '#1976d2'
+        color: metadata ? metadata.color : '#1976d2',
       };
     });
   } catch (error) {
@@ -30,7 +30,7 @@ async function enrichTags(tags) {
     return tags.map(tag => ({
       name: tag,
       displayName: tag,
-      color: '#1976d2'
+      color: '#1976d2',
     }));
   }
 }
@@ -44,7 +44,7 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
     const { search, tags } = req.query;
 
     // Build the query
-    let query = { isPublished: true };
+    const query = { isPublished: true };
 
     // Add text search if provided
     if (search) {
@@ -67,13 +67,13 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
 
     // Enrich tags for all posts
     const enrichedPosts = await Promise.all(
-      posts.map(async (post) => {
+      posts.map(async post => {
         const enrichedTags = await enrichTags(post.tags);
         return {
           ...post.toObject(),
-          tags: enrichedTags
+          tags: enrichedTags,
         };
-      })
+      }),
     );
 
     const total = await Post.countDocuments(query);
@@ -85,8 +85,8 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
         totalPosts: total,
-        hasMore: hasMore
-      }
+        hasMore,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -103,10 +103,10 @@ router.get('/tags', baseRateLimiter, async (req, res) => {
       { 
         $group: { 
           _id: '$tags',
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ]);
 
     // Get tag metadata from Tag model
@@ -121,7 +121,7 @@ router.get('/tags', baseRateLimiter, async (req, res) => {
         name: tagCount._id,
         displayName: metadata ? metadata.displayName : tagCount._id,
         color: metadata ? metadata.color : '#1976d2',
-        count: tagCount.count
+        count: tagCount.count,
       };
     });
 
@@ -147,7 +147,7 @@ router.get('/posts/:id', baseRateLimiter, async (req, res) => {
     const enrichedTags = await enrichTags(post.tags);
     const enrichedPost = {
       ...post.toObject(),
-      tags: enrichedTags
+      tags: enrichedTags,
     };
 
     res.json(enrichedPost);
@@ -192,7 +192,7 @@ router.post('/posts/:id/comments', [commentRateLimiter, validateCaptcha], async 
     post.comments.push({
       content,
       authorName: name,
-      createdAt: new Date()
+      createdAt: new Date(),
     });
 
     const updatedPost = await post.save();
@@ -211,7 +211,7 @@ router.post('/posts/:id/view', baseRateLimiter, async (req, res) => {
     const post = await Post.findOneAndUpdate(
       { _id: req.params.id, isPublished: true },
       { $inc: { views: 1 } },
-      { new: true, select: 'views' }
+      { new: true, select: 'views' },
     );
 
     if (!post) {
@@ -233,7 +233,7 @@ router.post('/posts/:id/share', baseRateLimiter, async (req, res) => {
     const post = await Post.findOneAndUpdate(
       { _id: req.params.id, isPublished: true },
       { $inc: { shares: 1 } },
-      { new: true, select: 'shares' }
+      { new: true, select: 'shares' },
     );
 
     if (!post) {

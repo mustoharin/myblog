@@ -17,7 +17,7 @@ router.get('/requirements', (req, res) => {
   try {
     const requirements = passwordValidator.getRequirements().split('\n').slice(1); // Remove "Password must:" line
     res.json({ 
-      requirements: requirements.map(req => req.replace(/^- /, '').replace(/^\s+\* /, ''))
+      requirements: requirements.map(req => req.replace(/^- /, '').replace(/^\s+\* /, '')),
     });
   } catch (error) {
     console.error('Get requirements error:', error);
@@ -74,7 +74,7 @@ router.post('/forgot', async (req, res) => {
         <a href="${resetUrl}">${resetUrl}</a>
         <p>This link will expire in 1 hour.</p>
         <p>If you did not request this, please ignore this email.</p>
-      `
+      `,
     });
 
     res.json({ message: 'Password reset email sent' });
@@ -115,7 +115,7 @@ router.post('/change', auth, roleAuth(['change_password']), async (req, res) => 
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ 
-        message: 'Current password and new password are required' 
+        message: 'Current password and new password are required', 
       });
     }
 
@@ -134,7 +134,7 @@ router.post('/change', auth, roleAuth(['change_password']), async (req, res) => 
     // Ensure new password is different from current
     if (await user.comparePassword(newPassword)) {
       return res.status(400).json({ 
-        message: 'New password must be different from current password' 
+        message: 'New password must be different from current password', 
       });
     }
     
@@ -144,7 +144,7 @@ router.post('/change', auth, roleAuth(['change_password']), async (req, res) => 
     if (!validation.isValid) {
       return res.status(400).json({
         message: validation.message,
-        requirements: passwordValidator.getRequirements()
+        requirements: passwordValidator.getRequirements(),
       });
     }
 
@@ -182,7 +182,7 @@ router.post('/reset/:token', async (req, res) => {
     // Find user with valid token
     const user = await User.findOne({
       resetPasswordToken: resetTokenHash,
-      resetPasswordExpires: { $gt: Date.now() }
+      resetPasswordExpires: { $gt: Date.now() },
     });
 
     if (!user) {
@@ -195,7 +195,7 @@ router.post('/reset/:token', async (req, res) => {
     if (!validation.isValid) {
       return res.status(400).json({
         message: validation.message,
-        requirements: passwordValidator.getRequirements()
+        requirements: passwordValidator.getRequirements(),
       });
     }
 
