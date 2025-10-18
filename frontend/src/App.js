@@ -21,6 +21,9 @@ import BlogPost from './components/public/BlogPost';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
+// Common Components
+import AccountSettings from './components/common/AccountSettings';
+
 // Context
 import { AuthProvider } from './context/AuthContext';
 
@@ -64,7 +67,18 @@ function App() {
               <Route path="privileges" element={<PrivilegeManager />} />
               <Route path="tags/*" element={<TagManager />} />
               <Route path="activities" element={<ActivityList />} />
+              <Route path="account" element={<AccountSettings />} />
             </Route>
+
+            {/* Account Settings - Standalone for non-admin users */}
+            <Route
+              path="/account"
+              element={
+                <ProtectedRoute>
+                  <AccountSettings />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
 
           <ToastContainer position="bottom-right" />

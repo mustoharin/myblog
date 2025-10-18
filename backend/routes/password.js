@@ -10,6 +10,24 @@ const auth = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 
 /**
+ * @route GET /api/password/requirements
+ * @description Get password requirements
+ * @access Public
+ * @returns {Object} Password requirements
+ */
+router.get('/requirements', (req, res) => {
+  try {
+    const requirements = passwordValidator.getRequirements().split('\n').slice(1); // Remove "Password must:" line
+    res.json({ 
+      requirements: requirements.map(req => req.replace(/^- /, '').replace(/^\s+\* /, ''))
+    });
+  } catch (error) {
+    console.error('Get requirements error:', error);
+    res.status(500).json({ message: 'Error fetching password requirements' });
+  }
+});
+
+/**
  * @route POST /api/password/forgot
  * @description Request password reset email
  * @access Public

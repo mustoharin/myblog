@@ -7,15 +7,20 @@ import {
   Menu,
   MenuItem,
   Box,
+  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   AccountCircle,
+  Settings as SettingsIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminHeader = ({ onSidebarToggle }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleMenu = (event) => {
@@ -24,6 +29,17 @@ const AdminHeader = ({ onSidebarToggle }) => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleAccountSettings = () => {
+    handleClose();
+    // Check if user is currently in admin panel or has admin privileges
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith('/admin') || user?.role?.name === 'superadmin' || user?.role?.name === 'admin') {
+      navigate('/admin/account');
+    } else {
+      navigate('/account');
+    }
   };
 
   const handleLogout = () => {
@@ -77,8 +93,18 @@ const AdminHeader = ({ onSidebarToggle }) => {
             open={Boolean(anchorEl)}
             onClose={handleClose}
           >
-            <MenuItem disabled>{user?.username}</MenuItem>
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            <MenuItem disabled sx={{ fontWeight: 'bold' }}>
+              {user?.username}
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={handleAccountSettings}>
+              <SettingsIcon sx={{ mr: 1 }} fontSize="small" />
+              Account Settings
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              <LogoutIcon sx={{ mr: 1 }} fontSize="small" />
+              Logout
+            </MenuItem>
           </Menu>
         </Box>
       </Toolbar>

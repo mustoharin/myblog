@@ -46,8 +46,10 @@ app.use('/api/tags', authMiddleware, require('./routes/tags'));
 // Admin routes (protected)
 app.use('/api/admin', authMiddleware, require('./routes/admin'));
 
+// Account routes (protected)
+app.use('/api/account', authMiddleware, require('./routes/account'));
+
 // Password reset routes (public)
-app.use('/api/password', require('./routes/password'));
 app.use('/api/password', require('./routes/password'));
 
 // Start server if not in test environment
