@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -36,6 +36,7 @@ import { safeSet, isValidKey } from '../../utils/safeObjectAccess';
 const AccountSettings = () => {
   const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const profileLoaded = useRef(false);
   const [profileData, setProfileData] = useState({
     email: '',
     fullName: '',
@@ -50,15 +51,50 @@ const AccountSettings = () => {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Load user profile data
+  // Load user profile data once when component mounts
   useEffect(() => {
-    if (user) {
+    const loadUserProfile = async () => {
+      if (profileLoaded.current) return; // Prevent multiple calls
+      
+      try {
+        profileLoaded.current = true;
+        // Fetch fresh user data from the server to ensure we have the latest fullName
+        const response = await api.get('/account/profile');
+        const userData = response.data; // Profile endpoint returns user data directly, not wrapped in 'user' property
+        
+        setProfileData({
+          email: userData.email || '',
+          fullName: userData.fullName || '',
+        });
+        
+        // Update user context with fresh data (but don't include updateUser in dependencies to avoid infinite loop)
+        if (userData && updateUser) {
+          updateUser(userData);
+        }
+      } catch (error) {
+        console.error('Failed to load user profile:', error);
+        profileLoaded.current = false; // Reset on error so we can try again
+        // Fallback to user context data if API call fails
+        if (user) {
+          setProfileData({
+            email: user.email || '',
+            fullName: user.fullName || '',
+          });
+        }
+      }
+    };
+
+    // Only load profile data once when user is available and we haven't loaded it yet
+    if (user && !profileLoaded.current) {
+      loadUserProfile();
+    } else if (user && profileData.email === '' && profileData.fullName === '') {
+      // Fallback: if we have user context but no profile data, use context data
       setProfileData({
         email: user.email || '',
         fullName: user.fullName || '',
       });
     }
-  }, [user]);
+  }, [user]); // Only depend on user
 
   // Load password requirements
   useEffect(() => {

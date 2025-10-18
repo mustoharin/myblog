@@ -115,7 +115,10 @@ const TagInput = ({ value, onChange, error, helperText, disabled }) => {
                 variant="filled"
                 size="small"
                 label={tag ? tag.displayName : tagName}
-                {...getTagProps({ index })}
+                {...(() => {
+                  const { button, ...chipProps } = getTagProps({ index });
+                  return chipProps;
+                })()}
                 sx={{ 
                   mr: 0.5, 
                   mb: 0.5,

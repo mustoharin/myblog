@@ -44,10 +44,10 @@ const AdminSidebar = ({ mobileOpen = false, handleDrawerToggle }) => {
       <List>
         {menuItems.map(item => (
           <ListItem
-            button
             key={item.text}
             onClick={() => navigate(item.path)}
             selected={location.pathname === item.path}
+            sx={{ cursor: 'pointer' }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
@@ -57,10 +57,10 @@ const AdminSidebar = ({ mobileOpen = false, handleDrawerToggle }) => {
       <Divider />
       <List>
         <ListItem
-          button
           key={accountMenuItem.text}
           onClick={() => navigate(accountMenuItem.path)}
           selected={location.pathname === accountMenuItem.path}
+          sx={{ cursor: 'pointer' }}
         >
           <ListItemIcon>{accountMenuItem.icon}</ListItemIcon>
           <ListItemText primary={accountMenuItem.text} />
