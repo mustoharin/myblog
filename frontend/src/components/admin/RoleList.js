@@ -26,6 +26,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Security as SecurityIcon,
+  Visibility as ViewIcon,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
@@ -33,11 +34,10 @@ import api from '../../services/api';
 
 // Column width constants
 const COLUMN_WIDTHS = {
-  name: '20%',
-  description: '30%',
-  privileges: '30%',
-  users: '10%',
-  actions: '10%',
+  name: '25%',
+  description: '40%',
+  users: '15%',
+  actions: '20%',
 };
 
 const RoleList = ({ onEdit }) => {
@@ -49,6 +49,8 @@ const RoleList = ({ onEdit }) => {
   const [totalRoles, setTotalRoles] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [roleToView, setRoleToView] = useState(null);
 
   // Check if current user can modify a specific role
   const canModifyRole = (role) => {
@@ -115,6 +117,11 @@ const RoleList = ({ onEdit }) => {
     setDeleteDialogOpen(true);
   };
 
+  const handleViewClick = (role) => {
+    setRoleToView(role);
+    setViewDialogOpen(true);
+  };
+
   const handleDeleteConfirm = async () => {
     try {
       await api.delete(`/roles/${roleToDelete._id}`);
@@ -169,9 +176,6 @@ const RoleList = ({ onEdit }) => {
                 <TableCell width={COLUMN_WIDTHS.description}>
                   <Typography variant="subtitle2" fontWeight="bold">Description</Typography>
                 </TableCell>
-                <TableCell width={COLUMN_WIDTHS.privileges}>
-                  <Typography variant="subtitle2" fontWeight="bold">Privileges</Typography>
-                </TableCell>
                 <TableCell width={COLUMN_WIDTHS.users}>
                   <Typography variant="subtitle2" fontWeight="bold">Users</Typography>
                 </TableCell>
@@ -186,15 +190,12 @@ const RoleList = ({ onEdit }) => {
                   <TableRow key={`skeleton-${index}`}>
                     <TableCell><Skeleton animation="wave" /></TableCell>
                     <TableCell><Skeleton animation="wave" /></TableCell>
-                    <TableCell><Skeleton animation="wave" /></TableCell>
                     <TableCell><Skeleton animation="wave" width={60} /></TableCell>
-                    <TableCell><Skeleton animation="wave" width={80} /></TableCell>
+                    <TableCell><Skeleton animation="wave" width={120} /></TableCell>
                   </TableRow>
                 ))
               ) : roles && roles.length > 0 ? (
                 roles.map((role) => {
-                  const groupedPrivileges = formatPrivileges(role.privileges);
-                  
                   return (
                     <TableRow 
                       key={role._id}
@@ -218,32 +219,6 @@ const RoleList = ({ onEdit }) => {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
-                          {groupedPrivileges.map(({ resource, count, privileges }) => (
-                            <Tooltip
-                              key={resource}
-                              title={
-                                <Stack spacing={0.5}>
-                                  {privileges.map(p => (
-                                    <Typography key={p.name} variant="caption">
-                                      {p.name}
-                                    </Typography>
-                                  ))}
-                                </Stack>
-                              }
-                              arrow
-                            >
-                              <Chip
-                                size="small"
-                                label={`${resource} (${count})`}
-                                variant="outlined"
-                                sx={{ m: 0.25 }}
-                              />
-                            </Tooltip>
-                          ))}
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
                         <Tooltip 
                           title={`${role.usersCount || 0} user${(role.usersCount || 0) !== 1 ? 's' : ''} assigned to this role`}
                           arrow
@@ -259,6 +234,15 @@ const RoleList = ({ onEdit }) => {
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={1} justifyContent="center">
+                          <Tooltip title="View role details and privileges" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleViewClick(role)}
+                              color="info"
+                            >
+                              <ViewIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                           <Tooltip title={canEditRole(role) ? "Edit" : "You don't have permission to edit this role"} arrow>
                             <span>
                               <IconButton
@@ -289,7 +273,7 @@ const RoleList = ({ onEdit }) => {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ py: 8 }}>
+                  <TableCell colSpan={4} sx={{ py: 8 }}>
                     <Box textAlign="center">
                       <Typography variant="h6" color="text.secondary" gutterBottom>
                         No Roles Found
@@ -319,6 +303,102 @@ const RoleList = ({ onEdit }) => {
         />
       </Paper>
 
+      {/* Role Details Dialog */}
+      <Dialog 
+        open={viewDialogOpen} 
+        onClose={() => setViewDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <SecurityIcon />
+            <Typography variant="h6">Role Details: {roleToView?.name}</Typography>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers>
+          {roleToView && (
+            <Stack spacing={3}>
+              {/* Basic Information */}
+              <Box>
+                <Typography variant="h6" gutterBottom>Basic Information</Typography>
+                <Stack spacing={2}>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">Name</Typography>
+                    <Typography variant="body1">{roleToView.name}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">Description</Typography>
+                    <Typography variant="body1">{roleToView.description || 'No description'}</Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">Users Assigned</Typography>
+                    <Chip
+                      label={`${roleToView.usersCount || 0} user${(roleToView.usersCount || 0) !== 1 ? 's' : ''}`}
+                      size="small"
+                      color={roleToView.usersCount > 0 ? 'primary' : 'default'}
+                      variant="outlined"
+                    />
+                  </Box>
+                </Stack>
+              </Box>
+
+              {/* Privileges */}
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  Privileges ({roleToView.privileges?.length || 0})
+                </Typography>
+                {roleToView.privileges && roleToView.privileges.length > 0 ? (
+                  <Stack spacing={2}>
+                    {formatPrivileges(roleToView.privileges).map(({ resource, privileges }) => (
+                      <Box key={resource}>
+                        <Typography variant="subtitle2" color="primary" sx={{ mb: 1, textTransform: 'capitalize' }}>
+                          {resource.replace('_', ' ')} Module ({privileges.length} permission{privileges.length !== 1 ? 's' : ''})
+                        </Typography>
+                        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                          {privileges.map((privilege) => (
+                            <Chip
+                              key={privilege.name}
+                              label={privilege.name}
+                              size="small"
+                              variant="outlined"
+                              sx={{ 
+                                fontSize: '0.75rem',
+                                '& .MuiChip-label': { px: 1 }
+                              }}
+                            />
+                          ))}
+                        </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    No privileges assigned to this role
+                  </Typography>
+                )}
+              </Box>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+          {roleToView && canEditRole(roleToView) && (
+            <Button 
+              variant="contained" 
+              startIcon={<EditIcon />}
+              onClick={() => {
+                setViewDialogOpen(false);
+                onEdit(roleToView);
+              }}
+            >
+              Edit Role
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
       <Dialog 
         open={deleteDialogOpen} 
         onClose={() => setDeleteDialogOpen(false)}
