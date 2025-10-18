@@ -146,7 +146,7 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
           }}
           sx={{ flexGrow: 1, maxWidth: 400 }}
         />
-        <Tooltip title="Sync post counts for all tags">
+        <Tooltip title="Force sync post counts and create missing tags from posts">
           <IconButton 
             onClick={handleSyncCounts} 
             disabled={syncing}
@@ -159,6 +159,11 @@ const TagList = ({ onEditTag, onTagDeleted, refreshTrigger }) => {
 
       {/* Tags table */}
       <Paper>
+        <Box sx={{ p: 2, pb: 0 }}>
+          <Typography variant="body2" color="text.secondary">
+            Post counts are automatically calculated from published posts. Use the sync button to create missing tags from posts.
+          </Typography>
+        </Box>
         <TableContainer>
           <Table>
             <TableHead>

@@ -30,7 +30,33 @@ router.get('/', auth, checkRole(['read_post']), async (req, res) => {
       sort
     });
 
-    res.json(result);
+    // Calculate real-time post counts for each tag
+    const tagsWithCounts = await Promise.all(
+      result.items.map(async (tag) => {
+        const postCount = await Post.countDocuments({ 
+          tags: tag.name, 
+          isPublished: true 
+        });
+        
+        // Update the tag's post count if it's different
+        if (tag.postCount !== postCount) {
+          await Tag.updateOne(
+            { _id: tag._id },
+            { $set: { postCount: postCount } }
+          );
+        }
+        
+        return {
+          ...tag.toObject(),
+          postCount: postCount
+        };
+      })
+    );
+
+    res.json({
+      ...result,
+      items: tagsWithCounts
+    });
   } catch (err) {
     console.error('Get tags error:', err);
     res.status(500).json({ message: err.message });
