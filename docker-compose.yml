@@ -62,7 +62,7 @@ services:
     environment:
       - NODE_ENV=development
      # - REACT_APP_TEST_MODE=true
-      - REACT_APP_API_URL=http://localhost:5002
+      - REACT_APP_API_URL=http://localhost:5002/api
       - REACT_APP_TEST_BYPASS_CAPTCHA_TOKEN=e2e_test_bypass_captcha_2025
     depends_on:
       - backend

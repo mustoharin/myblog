@@ -34,7 +34,7 @@ import api from '../../services/api';
 import { safeSet, isValidKey } from '../../utils/safeObjectAccess';
 
 const AccountSettings = () => {
-  const { user, login } = useAuth();
+  const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     email: '',
@@ -75,7 +75,7 @@ const AccountSettings = () => {
 
   const handleProfileChange = field => event => {
     // Define allowed profile fields for security
-    const allowedProfileFields = ['firstName', 'lastName', 'email', 'bio'];
+    const allowedProfileFields = ['firstName', 'lastName', 'fullName', 'email', 'bio'];
     
     if (!isValidKey(field, allowedProfileFields)) {
       console.warn('Invalid profile field access attempt:', field);
@@ -85,6 +85,7 @@ const AccountSettings = () => {
     setProfileData(prev => safeSet(prev, field, event.target.value, allowedProfileFields));
     
     // Clear field error when user starts typing
+    // eslint-disable-next-line security/detect-object-injection
     if (errors[field]) {
       setErrors(prev => safeSet(prev, field, null, allowedProfileFields));
     }
@@ -102,6 +103,7 @@ const AccountSettings = () => {
     setPasswordData(prev => safeSet(prev, field, event.target.value, allowedPasswordFields));
     
     // Clear field error when user starts typing
+    // eslint-disable-next-line security/detect-object-injection
     if (errors[field]) {
       setErrors(prev => safeSet(prev, field, null, allowedPasswordFields));
     }
@@ -159,8 +161,9 @@ const AccountSettings = () => {
         fullName: profileData.fullName.trim(),
       });
 
-      // Update user context with new data
-      await login(localStorage.getItem('token'), response.data.user);
+      // Update user context with new data directly without re-login
+      const updatedUser = response.data.user;
+      updateUser(updatedUser);
       
       toast.success('Profile updated successfully');
     } catch (error) {

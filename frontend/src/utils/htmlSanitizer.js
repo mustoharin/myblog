@@ -14,10 +14,10 @@ export const sanitizeHtml = html => {
       'p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li', 
       'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
       'blockquote', 'code', 'pre', 'img', 'a',
-      'table', 'thead', 'tbody', 'tr', 'th', 'td'
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
     ],
     ALLOWED_ATTR: [
-      'href', 'target', 'src', 'alt', 'title', 'class', 'id'
+      'href', 'target', 'src', 'alt', 'title', 'class', 'id',
     ],
     ALLOW_DATA_ATTR: false,
     FORBID_SCRIPT_TEXT: true,
@@ -33,5 +33,5 @@ export const sanitizeHtml = html => {
  * @returns {object} - Object with __html property containing sanitized HTML
  */
 export const createSafeHTML = html => ({
-  __html: sanitizeHtml(html)
+  __html: sanitizeHtml(html),
 });

@@ -43,6 +43,7 @@ const FilterBar = ({
               <FormControl key={field} sx={{ minWidth: 200 }} size="small">
                 <InputLabel>{label}</InputLabel>
                 <Select
+                  // eslint-disable-next-line security/detect-object-injection
                   value={filters[field] || ''}
                   onChange={e => handleChange(field, e.target.value)}
                   label={label}
@@ -62,6 +63,7 @@ const FilterBar = ({
               key={field}
               label={label}
               size="small"
+              // eslint-disable-next-line security/detect-object-injection
               value={filters[field] || ''}
               onChange={e => handleChange(field, e.target.value)}
               sx={{ minWidth: 200 }}

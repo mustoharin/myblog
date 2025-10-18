@@ -21,8 +21,8 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import api from '../../services/api';
-import CommentSection from './CommentSection';
 import { createSafeHTML } from '../../utils/htmlSanitizer';
+import CommentSection from './CommentSection';
 
 const BlogPost = () => {
   const { id } = useParams();

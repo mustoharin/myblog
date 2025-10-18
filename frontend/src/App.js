@@ -74,6 +74,9 @@ function App() {
                 </ProtectedRoute>
               )}
             />
+
+            {/* Catch-all route for unmatched paths */}
+            <Route path="*" element={<BlogList />} />
           </Routes>
 
           <ToastContainer position="bottom-right" />

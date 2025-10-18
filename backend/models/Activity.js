@@ -10,6 +10,7 @@ const activitySchema = new mongoose.Schema({
       'tag_create', 'tag_update', 'tag_delete',
       'role_create', 'role_update', 'role_delete',
       'comment_create', 'comment_delete',
+      'profile_update',
     ],
   },
   actor: {

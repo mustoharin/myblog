@@ -145,7 +145,9 @@ const RoleList = ({ onEdit }) => {
       const validResources = ['posts', 'users', 'roles', 'tags', 'privileges', 'admin', 'account'];
       if (!validResources.includes(resource)) return acc;
       
+      // eslint-disable-next-line security/detect-object-injection
       if (!acc[resource]) acc[resource] = [];
+      // eslint-disable-next-line security/detect-object-injection
       acc[resource].push(priv);
       return acc;
     }, {});

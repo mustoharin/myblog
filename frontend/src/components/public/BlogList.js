@@ -39,14 +39,21 @@ const BlogList = () => {
   const fetchPosts = async (page, searchTerm) => {
     setLoading(true);
     try {
-      const response = await api.get('/public/posts', {
-        params: {
-          page,
-          search: searchTerm.startsWith('#') ? '' : searchTerm,
-          tags: searchTerm.startsWith('#') ? searchTerm.substring(1) : '',
-          limit: 9,
-        },
-      });
+      // Build clean parameters object - only include non-empty values
+      const params = { page, limit: 9 };
+      
+      if (searchTerm && searchTerm.trim()) {
+        if (searchTerm.startsWith('#')) {
+          const tagValue = searchTerm.substring(1).trim();
+          if (tagValue) {
+            params.tags = tagValue;
+          }
+        } else {
+          params.search = searchTerm.trim();
+        }
+      }
+      
+      const response = await api.get('/public/posts', { params });
       console.log('API Response:', response.data);
       const posts = response.data.posts || [];
       const total = response.data.total || 0;
