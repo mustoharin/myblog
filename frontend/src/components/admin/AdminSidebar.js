@@ -25,11 +25,11 @@ const drawerWidth = 240;
 const menuItems = [
   { text: 'Overview', icon: <DashboardIcon />, path: '/admin' },
   { text: 'Posts', icon: <ArticleIcon />, path: '/admin/posts' },
+  { text: 'Tags', icon: <TagIcon />, path: '/admin/tags' },
+  { text: 'Activities', icon: <ActivitiesIcon />, path: '/admin/activities' },
   { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },
   { text: 'Roles', icon: <RolesIcon />, path: '/admin/roles' },
   { text: 'Privileges', icon: <PrivilegesIcon />, path: '/admin/privileges' },
-  { text: 'Tags', icon: <TagIcon />, path: '/admin/tags' },
-  { text: 'Activities', icon: <ActivitiesIcon />, path: '/admin/activities' },
 ];
 
 const accountMenuItem = { text: 'Account Settings', icon: <SettingsIcon />, path: '/admin/account' };

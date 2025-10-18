@@ -1,21 +1,46 @@
-# Blog API Documentation
+# MyBlog Backend API
 
-## Overview
-This is a RESTful API for a blog application with role-based access control (RBAC). It provides both public and protected endpoints for managing users, posts, roles, and privileges.
+## 🚀 Overview
+A robust Node.js/Express.js REST API powering a modern blogging platform with enterprise-level security, comprehensive admin capabilities, and scalable architecture. Built with MongoDB for flexible data management and extensive testing coverage.
 
-## Key Features
-- 🔐 **JWT Authentication** with CAPTCHA protection
-- 👥 **Role-Based Access Control (RBAC)** with granular privileges
-- 📝 **Rich Content Support** with XSS sanitization
-- 🔍 **Full-text Search** for posts (title and content)
-- 🏷️ **Tag-based Filtering** for posts
-- 📊 **Post Analytics** with view tracking and popular posts
-- 👤 **User Management** with fullName display and account status
-- 📧 **Password Recovery** via email with reset tokens
-- 💬 **Public Comments** with CAPTCHA and rate limiting
-- 🚦 **Rate Limiting** on sensitive endpoints
-- ⏱️ **Last Login Tracking** for security auditing
-- 🔒 **Inactive User Control** - deactivated accounts cannot login
+![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
+![Express](https://img.shields.io/badge/express-4.x-blue.svg)
+![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)
+![Tests](https://img.shields.io/badge/tests-235%2B-green.svg)
+
+## ✨ Key Features
+
+### 🔐 Advanced Security
+- **JWT Authentication** with configurable expiration and refresh tokens
+- **CAPTCHA Protection** with session-based verification and E2E testing bypass
+- **Role-Based Access Control (RBAC)** with module-organized granular privileges
+- **Password Security** with bcrypt hashing, complexity validation, and pattern detection
+- **Rate Limiting** with IP-based tracking and progressive lockout
+- **XSS Protection** with DOMPurify sanitization for rich content
+- **Brute Force Protection** with intelligent delay mechanisms
+
+### 👥 User Management System
+- **Multi-role Architecture** with customizable privilege assignment
+- **Account Status Control** with active/inactive user management
+- **Profile Management** with full name display and professional attribution
+- **Last Login Tracking** for security auditing and user analytics
+- **Password Reset Flow** with secure token-based email verification
+- **User Activity Logging** with comprehensive audit trails
+
+### 📝 Content Management
+- **Rich Text Support** with HTML sanitization and content validation
+- **Tag Management** with real-time post count calculation and filtering
+- **Advanced Search** with MongoDB full-text indexing and aggregation
+- **View Analytics** with detailed tracking and popular post algorithms
+- **Comment System** with CAPTCHA protection and moderation workflows
+- **Draft/Publish Workflow** with version control capabilities
+
+### 📊 Admin Dashboard API
+- **Real-time Statistics** with aggregated metrics and performance data
+- **Activity Monitoring** with detailed system logs and user behavior tracking
+- **Popular Posts Analytics** with timeframe-based insights and engagement metrics
+- **User Engagement Data** with login patterns and activity analysis
+- **System Health Monitoring** with database stats and performance metrics
 
 ## Authentication
 
