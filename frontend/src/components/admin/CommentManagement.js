@@ -160,16 +160,23 @@ const CommentManagement = () => {
 
   const closeActionMenu = () => {
     setActionMenuAnchor(null);
-    setSelectedComment(null);
+    // Don't clear selectedComment here - let the dialog handle it
   };
 
-  const openViewDialog = comment => {
-    setSelectedComment(comment);
+  const openViewDialog = () => {
     setViewDialogOpen(true);
     closeActionMenu();
   };
 
   const getAuthorDisplay = comment => {
+    if (!comment || !comment.author) {
+      return {
+        name: 'Unknown Author',
+        email: 'unknown@email.com',
+        isRegistered: false,
+      };
+    }
+    
     if (comment.author.user) {
       return {
         name: comment.author.user.fullName || comment.author.user.username,
@@ -426,7 +433,7 @@ const CommentManagement = () => {
         open={Boolean(actionMenuAnchor)}
         onClose={closeActionMenu}
       >
-        <MenuItem onClick={() => openViewDialog(selectedComment)}>
+        <MenuItem onClick={() => openViewDialog()}>
           <ViewIcon sx={{ mr: 1 }} />
           View Details
         </MenuItem>
@@ -473,7 +480,10 @@ const CommentManagement = () => {
       {/* View Comment Dialog */}
       <Dialog 
         open={viewDialogOpen} 
-        onClose={() => setViewDialogOpen(false)}
+        onClose={() => {
+          setViewDialogOpen(false);
+          setSelectedComment(null);
+        }}
         maxWidth="md"
         fullWidth
       >
@@ -573,7 +583,12 @@ const CommentManagement = () => {
           })()}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setViewDialogOpen(false)}>
+          <Button
+            onClick={() => {
+              setViewDialogOpen(false);
+              setSelectedComment(null);
+            }}
+          >
             Close
           </Button>
         </DialogActions>
