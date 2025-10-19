@@ -14,7 +14,7 @@ import {
   Stack,
 } from '@mui/material';
 import { HexColorPicker } from 'react-colorful';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import api from '../../services/api';
 
 const TagForm = ({ tag, onTagSaved, onCancel }) => {

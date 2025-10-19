@@ -32,7 +32,7 @@ import {
   Search as SearchIcon,
   Sync as SyncIcon,
 } from '@mui/icons-material';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import api from '../../services/api';
 
