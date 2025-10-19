@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const Role = require('../models/Role');
 const Privilege = require('../models/Privilege');
 const User = require('../models/User');
+const Comment = require('../models/Comment');
+const Post = require('../models/Post');
 
 // Setup before all tests
 beforeAll(async () => {
@@ -20,7 +22,11 @@ beforeAll(async () => {
   }
   
   // Use the existing MongoDB container for testing with authentication
-  const mongoUri = 'mongodb://admin:password123@myblog-mongodb:27017/myblog_test?authSource=admin';
+  // Use localhost for running tests outside Docker, myblog-mongodb for inside Docker
+  const isInDocker = process.env.DOCKER_ENV === 'true';
+  const mongoHost = isInDocker ? 'myblog-mongodb' : 'localhost';
+  const mongoPort = isInDocker ? '27017' : '27018';
+  const mongoUri = `mongodb://admin:password123@${mongoHost}:${mongoPort}/myblog_test?authSource=admin`;
   await mongoose.connect(mongoUri);
   
   // Set up default valid token for testing
@@ -38,6 +44,8 @@ afterAll(async () => {
 
 // Clean up database between tests
 afterEach(async () => {
+  await Comment.deleteMany({});
+  await Post.deleteMany({});
   await User.deleteMany({});
   await Role.deleteMany({});
   await Privilege.deleteMany({});

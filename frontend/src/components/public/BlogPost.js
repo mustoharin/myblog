@@ -22,7 +22,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import api from '../../services/api';
 import { createSafeHTML } from '../../utils/htmlSanitizer';
-import CommentSection from './CommentSection';
+import CommentSection from './CommentsSection';
 
 const BlogPost = () => {
   const { id } = useParams();

@@ -16,6 +16,7 @@ import {
   Timeline as ActivitiesIcon,
   Security as PrivilegesIcon,
   Settings as SettingsIcon,
+  Comment as CommentIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -24,6 +25,7 @@ const drawerWidth = 240;
 const menuItems = [
   { text: 'Overview', icon: <DashboardIcon />, path: '/admin' },
   { text: 'Posts', icon: <ArticleIcon />, path: '/admin/posts' },
+  { text: 'Comments', icon: <CommentIcon />, path: '/admin/comments' },
   { text: 'Tags', icon: <TagIcon />, path: '/admin/tags' },
   { text: 'Activities', icon: <ActivitiesIcon />, path: '/admin/activities' },
   { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },

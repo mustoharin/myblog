@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 const Tag = require('../models/Tag');
 const validateCaptcha = require('../middleware/validateCaptcha');
 const { baseRateLimiter, commentRateLimiter } = require('../middleware/rateLimiter');
-const { validateNoXss } = require('../utils/xssValidator');
+const { validateNoXss, isXssSafe } = require('../utils/xssValidator');
 
 // Helper function to enrich tags with metadata
 async function enrichTags(tags) {
@@ -65,13 +66,19 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    // Enrich tags for all posts
+    // Enrich tags and add comment counts for all posts
     const enrichedPosts = await Promise.all(
       posts.map(async post => {
         const enrichedTags = await enrichTags(post.tags);
+        // Get comment count for this post (only approved comments)
+        const commentCount = await Comment.countDocuments({
+          post: post._id,
+          status: 'approved'
+        });
         return {
           ...post.toObject(),
           tags: enrichedTags,
+          commentCount: commentCount
         };
       }),
     );
@@ -136,18 +143,35 @@ router.get('/tags', baseRateLimiter, async (req, res) => {
 router.get('/posts/:id', baseRateLimiter, async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.id, isPublished: true })
-      .populate('author', 'username fullName')
-      .populate('comments.author', 'username fullName');
+      .populate('author', 'username fullName');
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
+
+    // Get approved comments for this post
+    const comments = await Comment.find({
+      post: post._id,
+      status: 'approved',
+      parentComment: null
+    })
+    .populate('author.user', 'username fullName')
+    .populate({
+      path: 'replies',
+      match: { status: 'approved' },
+      populate: {
+        path: 'author.user',
+        select: 'username fullName'
+      }
+    })
+    .sort({ createdAt: -1 });
 
     // Enrich tags with metadata
     const enrichedTags = await enrichTags(post.tags);
     const enrichedPost = {
       ...post.toObject(),
       tags: enrichedTags,
+      comments: comments
     };
 
     res.json(enrichedPost);
@@ -162,7 +186,7 @@ router.get('/posts/:id', baseRateLimiter, async (req, res) => {
 // Add a comment to a post
 router.post('/posts/:id/comments', [commentRateLimiter, validateCaptcha], async (req, res) => {
   try {
-    const { content, name } = req.body;
+    const { content, name, email, website } = req.body;
 
     // Validate required fields
     if (!content || !name) {
@@ -182,21 +206,50 @@ router.post('/posts/:id/comments', [commentRateLimiter, validateCaptcha], async 
     if (nameError) {
       return res.status(400).json({ message: nameError });
     }
+    
+    // Validate email if provided
+    if (email) {
+      const emailError = validateNoXss(email);
+      if (emailError) {
+        return res.status(400).json({ message: emailError });
+      }
+    }
+    
+    // Validate content for XSS
+    if (!isXssSafe(content)) {
+      return res.status(400).json({ message: 'Comment contains invalid content' });
+    }
 
+    // Verify post exists and is published
     const post = await Post.findOne({ _id: req.params.id, isPublished: true });
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // Add the comment
-    post.comments.push({
-      content,
-      authorName: name,
-      createdAt: new Date(),
+    // Create comment using the new Comment model
+    const comment = new Comment({
+      content: content.trim(),
+      post: post._id,
+      author: {
+        name: name.trim(),
+        email: email ? email.trim().toLowerCase() : `anonymous_${Date.now()}@example.com`,
+        website: website ? website.trim() : undefined
+      },
+      status: 'pending', // Public comments require moderation
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent')
     });
 
-    const updatedPost = await post.save();
-    res.status(201).json(updatedPost.comments[updatedPost.comments.length - 1]);
+    await comment.save();
+
+    // Return the created comment
+    res.status(201).json({
+      _id: comment._id,
+      content: comment.content,
+      authorName: comment.author.name,
+      createdAt: comment.createdAt,
+      status: comment.status
+    });
   } catch (err) {
     if (err.name === 'CastError') {
       return res.status(404).json({ message: 'Post not found' });

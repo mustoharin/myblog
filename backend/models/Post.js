@@ -2,38 +2,6 @@ const mongoose = require('mongoose');
 const { validateNoXss } = require('../utils/xssValidator');
 const { validateRichContent } = require('../utils/richContentValidator');
 
-const CommentSchema = new mongoose.Schema({
-  content: {
-    type: String,
-    required: true,
-    validate: {
-      validator(v) {
-        const error = validateNoXss(v);
-        return error === '';
-      },
-      message: () => 'Content contains potentially unsafe content',
-    },
-  },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  authorName: {
-    type: String,
-    validate: {
-      validator(v) {
-        const error = validateNoXss(v);
-        return error === '';
-      },
-      message: () => 'Name contains potentially unsafe content',
-    },
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
 const PostSchema = new mongoose.Schema({
   isPublished: {
     type: Boolean,
@@ -113,7 +81,6 @@ const PostSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
-  comments: [CommentSchema],
 });
 
 // Middleware to automatically update updatedAt on save

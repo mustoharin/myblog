@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Post = require('../models/Post');
+const Comment = require('../models/Comment');
 const User = require('../models/User');
 const Activity = require('../models/Activity');
 const auth = require('../middleware/auth');
@@ -37,21 +38,8 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
     ]);
     const totalShares = sharesAggregation.length > 0 ? sharesAggregation[0].totalShares : 0;
     
-    // Get total comments from all posts
-    const commentsAggregation = await Post.aggregate([
-      {
-        $project: {
-          commentCount: { $size: { $ifNull: ['$comments', []] } },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalComments: { $sum: '$commentCount' },
-        },
-      },
-    ]);
-    const totalComments = commentsAggregation.length > 0 ? commentsAggregation[0].totalComments : 0;
+    // Get total comments from Comment collection
+    const totalComments = await Comment.countDocuments();
 
     res.json({
       totalPosts,
@@ -110,16 +98,17 @@ router.get('/posts/popular', auth, checkRole(['read_post']), async (req, res) =>
       .limit(limit)
       .lean();
     
-    // Format the response
-    const formattedPosts = posts.map(post => ({
-      _id: post._id,
-      title: post.title,
-      views: post.views || 0,
-      commentsCount: Array.isArray(post.comments) ? post.comments.length : 0,
-      sharesCount: post.shares || 0,
-      status: post.isPublished ? 'published' : 'draft',
-      createdAt: post.createdAt,
-      author: post.author,
+    // Format the response with comment counts from Comment collection
+    const formattedPosts = await Promise.all(posts.map(async post => {
+      const commentCount = await Comment.countDocuments({ post: post._id });
+      return {
+        _id: post._id,
+        title: post.title,
+        views: post.views || 0,
+        commentsCount: commentCount,
+        sharesCount: post.shares || 0,
+        status: post.isPublished ? 'published' : 'draft',
+      };
     }));
     
     res.json({ posts: formattedPosts });

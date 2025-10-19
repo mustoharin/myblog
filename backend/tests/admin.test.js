@@ -3,6 +3,7 @@ const app = require('../server');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const Activity = require('../models/Activity');
+const Comment = require('../models/Comment');
 const {
   createInitialPrivileges,
   createInitialRoles,
@@ -77,31 +78,48 @@ describe('Admin Routes', () => {
     });
 
     it('should count posts correctly after creating posts', async () => {
-      // Delete any existing posts first
+      // Delete any existing posts and comments first
       await Post.deleteMany({});
+      await Comment.deleteMany({});
       
       // Create test posts
-      await Post.create({
+      const post1 = await Post.create({
         title: 'Test Post 1',
         content: 'Content 1',
         excerpt: 'Excerpt 1',
         author: adminUser._id,
         tags: ['test'],
         views: 10,
-        comments: [],
       });
 
-      await Post.create({
+      const post2 = await Post.create({
         title: 'Test Post 2',
         content: 'Content 2',
         excerpt: 'Excerpt 2',
         author: adminUser._id,
         tags: ['test'],
         views: 20,
-        comments: [
-          { content: 'Comment 1', authorName: 'User1' },
-          { content: 'Comment 2', authorName: 'User2' },
-        ],
+      });
+
+      // Create comments for post2 in the Comment collection
+      await Comment.create({
+        post: post2._id,
+        content: 'Comment 1',
+        author: {
+          name: 'User1',
+          email: 'user1@example.com'
+        },
+        status: 'approved'
+      });
+
+      await Comment.create({
+        post: post2._id,
+        content: 'Comment 2',
+        author: {
+          name: 'User2',
+          email: 'user2@example.com'
+        },
+        status: 'approved'
       });
 
       const response = await request(app)
@@ -199,20 +217,17 @@ describe('Admin Routes', () => {
     });
 
     it('should aggregate comments from multiple posts correctly', async () => {
-      // Delete any existing posts first
+      // Delete any existing posts and comments first
       await Post.deleteMany({});
+      await Comment.deleteMany({});
       
-      await Post.create([
+      const posts = await Post.create([
         {
           title: 'Post 1',
           content: 'Content 1',
           excerpt: 'Excerpt 1',
           author: adminUser._id,
           tags: ['test'],
-          comments: [
-            { content: 'Comment 1', authorName: 'User1' },
-            { content: 'Comment 2', authorName: 'User2' },
-          ],
         },
         {
           title: 'Post 2',
@@ -220,9 +235,6 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 2',
           author: adminUser._id,
           tags: ['test'],
-          comments: [
-            { content: 'Comment 3', authorName: 'User3' },
-          ],
         },
         {
           title: 'Post 3',
@@ -230,8 +242,38 @@ describe('Admin Routes', () => {
           excerpt: 'Excerpt 3',
           author: adminUser._id,
           tags: ['test'],
-          comments: [],
         },
+      ]);
+
+      // Create comments in the Comment collection
+      await Comment.create([
+        {
+          post: posts[0]._id,
+          content: 'Comment 1',
+          author: {
+            name: 'User1',
+            email: 'user1@example.com'
+          },
+          status: 'approved'
+        },
+        {
+          post: posts[0]._id,
+          content: 'Comment 2',
+          author: {
+            name: 'User2',
+            email: 'user2@example.com'
+          },
+          status: 'approved'
+        },
+        {
+          post: posts[1]._id,
+          content: 'Comment 3',
+          author: {
+            name: 'User3',
+            email: 'user3@example.com'
+          },
+          status: 'approved'
+        }
       ]);
 
       const response = await request(app)
@@ -338,21 +380,38 @@ describe('Admin Routes', () => {
     });
 
     it('should include correct post data fields', async () => {
-      // Clean up any existing posts
+      // Clean up any existing posts and comments
       await Post.deleteMany({});
+      await Comment.deleteMany({});
       
-      await Post.create({
+      const post = await Post.create({
         title: 'Test Post',
         content: 'Test Content',
         excerpt: 'Test Excerpt',
         author: superadminUser._id,
         isPublished: true,
         views: 10,
-        comments: [
-          { content: 'Comment 1', author: superadminUser._id },
-          { content: 'Comment 2', author: superadminUser._id },
-        ],
       });
+
+      // Create comments in the Comment collection
+      await Comment.create([
+        {
+          post: post._id,
+          content: 'Comment 1',
+          author: {
+            user: superadminUser._id
+          },
+          status: 'approved'
+        },
+        {
+          post: post._id,
+          content: 'Comment 2',
+          author: {
+            user: superadminUser._id
+          },
+          status: 'approved'
+        }
+      ]);
 
       const response = await request(app)
         .get('/api/admin/posts/popular')
@@ -361,15 +420,15 @@ describe('Admin Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.posts.length).toBeGreaterThan(0);
       
-      const post = response.body.posts[0];
-      expect(post).toHaveProperty('_id');
-      expect(post).toHaveProperty('title');
-      expect(post).toHaveProperty('views');
-      expect(post).toHaveProperty('commentsCount');
-      expect(post).toHaveProperty('sharesCount');
-      expect(post).toHaveProperty('status');
-      expect(post.commentsCount).toBe(2);
-      expect(post.status).toBe('published');
+      const responsePost = response.body.posts[0];
+      expect(responsePost).toHaveProperty('_id');
+      expect(responsePost).toHaveProperty('title');
+      expect(responsePost).toHaveProperty('views');
+      expect(responsePost).toHaveProperty('commentsCount');
+      expect(responsePost).toHaveProperty('sharesCount');
+      expect(responsePost).toHaveProperty('status');
+      expect(responsePost.commentsCount).toBe(2);
+      expect(responsePost.status).toBe('published');
     });
 
     it('should respect limit parameter', async () => {

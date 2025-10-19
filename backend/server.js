@@ -52,6 +52,9 @@ app.use('/api/admin', authMiddleware, require('./routes/admin'));
 // Account routes (protected)
 app.use('/api/account', authMiddleware, require('./routes/account'));
 
+// Comments routes (mixed - some public, some protected)
+app.use('/api/comments', require('./routes/comments'));
+
 // Password reset routes (public)
 app.use('/api/password', require('./routes/password'));
 

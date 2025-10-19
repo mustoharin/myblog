@@ -20,18 +20,27 @@ const auth = async (req, res, next) => {
     const authHeader = req.header('Authorization');
     
     if (!authHeader) {
-      return res.status(401).json({ message: 'No token provided' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'No token provided' 
+      });
     }
 
     if (!authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Invalid authorization format' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid authorization format' 
+      });
     }
     
     const token = authHeader.replace('Bearer ', '');
     
     if (!process.env.JWT_SECRET) {
       console.error('JWT_SECRET environment variable is not set');
-      return res.status(500).json({ message: 'Server configuration error' });
+      return res.status(500).json({ 
+        success: false,
+        message: 'Server configuration error' 
+      });
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -46,16 +55,23 @@ const auth = async (req, res, next) => {
         });
       
       if (!user) {
-        return res.status(401).json({ message: 'User not found' });
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found' 
+        });
       }
 
       if (!user.role) {
-        return res.status(401).json({ message: 'User role not found' });
+        return res.status(401).json({ 
+          success: false,
+          message: 'User role not found' 
+        });
       }
 
       // Check if user account is active
       if (!user.isActive) {
         return res.status(403).json({ 
+          success: false,
           message: 'Your account has been deactivated. Please contact the administrator.', 
         });
       }
@@ -64,10 +80,16 @@ const auth = async (req, res, next) => {
       next();
     } catch (err) {
       console.error('Auth error:', err);
-      return res.status(401).json({ message: 'Authentication failed' });
+      return res.status(401).json({ 
+        success: false,
+        message: 'Authentication failed' 
+      });
     }
   } catch (error) {
-    res.status(401).json({ message: 'Invalid token' });
+    res.status(401).json({ 
+      success: false,
+      message: 'Invalid token' 
+    });
   }
 };
 

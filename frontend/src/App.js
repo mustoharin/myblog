@@ -11,6 +11,7 @@ import RoleManager from './components/admin/RoleManager';
 import TagManager from './components/admin/TagManager';
 import ActivityList from './components/admin/ActivityList';
 import PrivilegeManager from './components/admin/PrivilegeManager';
+import CommentManagement from './components/admin/CommentManagement';
 import Overview from './components/admin/Overview';
 // Public Components
 import BlogList from './components/public/BlogList';
@@ -57,6 +58,7 @@ function App() {
             >
               <Route index element={<Overview />} />
               <Route path="posts/*" element={<PostsManager />} />
+              <Route path="comments" element={<CommentManagement />} />
               <Route path="users/*" element={<UserManager />} />
               <Route path="roles/*" element={<RoleManager />} />
               <Route path="privileges" element={<PrivilegeManager />} />
