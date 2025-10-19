@@ -49,6 +49,7 @@ const ACTIVITY_ICONS = {
   user_create: <PersonIcon color="success" />,
   user_update: <EditIcon color="success" />,
   user_delete: <DeleteIcon color="error" />,
+  profile_update: <PersonIcon color="info" />,
   tag_create: <TagIcon color="secondary" />,
   tag_update: <EditIcon color="secondary" />,
   tag_delete: <DeleteIcon color="error" />,
@@ -67,6 +68,7 @@ const ACTIVITY_TYPES = [
   { value: 'user_create', label: 'User Created' },
   { value: 'user_update', label: 'User Updated' },
   { value: 'user_delete', label: 'User Deleted' },
+  { value: 'profile_update', label: 'Profile Updated' },
   { value: 'tag_create', label: 'Tag Created' },
   { value: 'tag_update', label: 'Tag Updated' },
   { value: 'tag_delete', label: 'Tag Deleted' },
@@ -171,6 +173,9 @@ const ActivityList = () => {
       case 'user_delete':
         navigate('/admin/users');
         break;
+      case 'profile_update':
+        navigate('/admin/account');
+        break;
       case 'tag_create':
       case 'tag_update':
       case 'tag_delete':
@@ -221,6 +226,8 @@ const ActivityList = () => {
         return `${actor} updated user ${activity.data.username}`;
       case 'user_delete':
         return `${actor} deleted user ${activity.data.username}`;
+      case 'profile_update':
+        return `${actor} updated their profile`;
       case 'tag_create':
         return `${actor} created tag "${activity.data.displayName || activity.data.name}"`;
       case 'tag_update':

@@ -34,6 +34,7 @@ const ACTIVITY_ICONS = {
   user_create: <PersonIcon color="success" />,
   user_update: <EditIcon color="success" />,
   user_delete: <DeleteIcon color="error" />,
+  profile_update: <PersonIcon color="info" />,
   tag_create: <TagIcon color="secondary" />,
   tag_update: <EditIcon color="secondary" />,
   tag_delete: <DeleteIcon color="error" />,
@@ -95,6 +96,8 @@ const RecentActivity = () => {
         return `${actor} updated user ${activity.data.username}`;
       case 'user_delete':
         return `${actor} deleted user ${activity.data.username}`;
+      case 'profile_update':
+        return `${actor} updated their profile`;
       case 'tag_create':
         return `${actor} created tag "${activity.data.displayName || activity.data.name}"`;
       case 'tag_update':
@@ -134,6 +137,9 @@ const RecentActivity = () => {
         break;
       case 'user_delete':
         navigate('/admin/users');
+        break;
+      case 'profile_update':
+        navigate('/admin/account');
         break;
       case 'tag_create':
       case 'tag_update':

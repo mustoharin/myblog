@@ -90,6 +90,9 @@ activitySchema.methods.getDescription = function() {
     case 'user_delete':
       return `${actor} deleted user ${this.data.username}`;
     
+    case 'profile_update':
+      return `${actor} updated their profile`;
+    
     case 'tag_create':
       return `${actor} created tag "${this.data.displayName || this.data.name}"`;
     case 'tag_update':

@@ -118,6 +118,10 @@ router.post('/login', async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        fullName: user.fullName,
+        isActive: user.isActive,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
         role: {
           _id: user.role._id,
           name: user.role.name,
@@ -168,6 +172,10 @@ router.get('/me', async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        fullName: user.fullName,
+        isActive: user.isActive,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
         role: {
           _id: user.role._id,
           name: user.role.name,
@@ -181,6 +189,25 @@ router.get('/me', async (req, res) => {
     });
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
+  }
+});
+
+// Logout route
+router.post('/logout', (req, res) => {
+  try {
+    // For JWT-based auth, logout is handled client-side by removing the token
+    // We can optionally log the logout activity here if needed
+    
+    res.json({ 
+      success: true,
+      message: 'Logged out successfully' 
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error during logout' 
+    });
   }
 });
 

@@ -133,22 +133,22 @@ const PopularPosts = () => {
             <ListItemText
               primary={post.title}
               secondary={(
-                <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box component="span" sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                  <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
                     <ViewsIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="caption">
+                    <Typography component="span" variant="caption">
                       {post.views || 0}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
                     <CommentIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="caption">
+                    <Typography component="span" variant="caption">
                       {post.commentsCount || 0}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
                     <ShareIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="caption">
+                    <Typography component="span" variant="caption">
                       {post.sharesCount || 0}
                     </Typography>
                   </Box>
