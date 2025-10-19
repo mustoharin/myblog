@@ -28,9 +28,9 @@ A modern, responsive React 18 application providing both a public blogging inter
 - **Modern Blog Homepage** with responsive grid layout and infinite scroll
 - **Advanced Search & Filtering** with real-time tag-based filtering and full-text search
 - **Individual Post View** with view tracking, social sharing, and SEO optimization
-- **Interactive Comment System** with CAPTCHA protection and real-time updates
+- **Unified Comment System** with CAPTCHA protection and real-time updates
+- **Professional User Attribution** with proper fullname/username display
 - **Responsive Design** optimized for desktop, tablet, and mobile devices
-- **Professional Author Attribution** with full name display and author profiles
 - **Accessibility Features** with WCAG 2.1 compliance and keyboard navigation
 - **Performance Optimization** with lazy loading and optimized asset delivery
 
@@ -59,6 +59,16 @@ A modern, responsive React 18 application providing both a public blogging inter
 - **Content Analytics** with view tracking, engagement metrics, and performance insights
 - **Search & Filtering** with advanced query capabilities across all content
 - **Bulk Content Operations** for efficient management and organization
+
+#### 💬 Comment Management System
+- **Unified Comment Administration** with comprehensive moderation tools
+- **Comment Detail Dialogs** with complete author information and metadata
+- **Status Management** for pending, approved, rejected, and spam comments
+- **Bulk Comment Operations** for efficient moderation workflows
+- **Real-time Comment Statistics** with dashboard integration
+- **Advanced Filtering** by status, author, content, and date ranges
+- **Comment Search** with full-text search across content and author information
+- **Enhanced Error Handling** with robust state management and fallback UI
 
 #### 🛡️ Security & Administration
 - **Activity Monitoring** with detailed system logs and user behavior tracking
@@ -92,7 +102,26 @@ REACT_APP_ENVIRONMENT=development
 REACT_APP_VERSION=1.0.0
 ```
 
-```
+## 🔄 Recent Updates (October 2025)
+
+### Comment Management System Improvements
+- **✅ Fixed Empty Comment Dialog** - Resolved state management issues causing empty comment detail popups
+- **✅ Enhanced User Attribution** - "Commenting as" now properly displays username/fullname from secure storage
+- **✅ Improved State Management** - Fixed React state timing issues with proper cleanup and lifecycle management
+- **✅ Better Error Handling** - Added null checks and optional chaining for robust component rendering
+- **✅ Optimized Performance** - Reduced redundant API calls in comment dialog rendering
+
+### Frontend Code Quality
+- **✅ ESLint Compliance** - Fixed all compilation errors and improved code quality standards
+- **✅ Security Enhancements** - Added comprehensive XSS protection and input sanitization
+- **✅ Component Optimization** - Improved React component performance and state management
+- **✅ Error Boundaries** - Added comprehensive error handling and fallback UI components
+
+### Admin Panel Enhancements  
+- **✅ Comment Detail Views** - Fixed dialog state management for proper comment information display
+- **✅ User Interface** - Enhanced admin comment management with better visual feedback
+- **✅ Statistics Dashboard** - Improved real-time metrics display with proper data binding
+- **✅ Responsive Design** - Optimized admin panel for all device sizes and screen resolutions
 
 ## 🛡️ Security Features
 
@@ -138,22 +167,33 @@ The frontend has undergone comprehensive SAST (Static Application Security Testi
 Frontend Architecture
 ├── Public Interface
 │   ├── BlogList Component - Post browsing with search/filter
-│   ├── BlogPost Component - Individual post view with comments
-│   └── CommentSection - Interactive commenting with CAPTCHA
+│   ├── BlogPost Component - Individual post view with unified comments
+│   ├── CommentForm - User-aware commenting with proper attribution
+│   ├── CommentsList - Threaded comment display with status filtering
+│   └── CommentsSection - Complete comment management interface
 ├── Admin Dashboard
-│   ├── Dashboard - Analytics and system overview
+│   ├── Dashboard - Analytics and system overview with comment stats
 │   ├── User Management - CRUD operations with role assignment
 │   ├── Post Management - Content creation with rich text editor
+│   ├── CommentManagement - Unified comment moderation with detail dialogs
 │   ├── Role Management - Permission system administration
 │   ├── Tag Management - Content organization and filtering
 │   ├── Activity Logs - System monitoring and audit trails
 │   └── Account Settings - Profile and password management
 └── Shared Components
-    ├── Authentication - Login/logout with CAPTCHA
+    ├── Authentication - Login/logout with CAPTCHA and secure storage
+    ├── ProtectedRoute - Role-based route protection
     ├── Navigation - Responsive header and sidebar
     ├── Forms - Reusable form components with validation
     └── UI Elements - Common Material-UI customizations
 ```
+
+### Comment System Components
+- **CommentForm**: Handles both authenticated and anonymous commenting with CAPTCHA
+- **CommentsList**: Displays threaded comments with proper author attribution
+- **CommentsSection**: Manages comment state and integrates form and list components
+- **CommentManagement**: Admin component for comment moderation with enhanced dialogs
+- **CommentDetailDialog**: Modal view showing complete comment information and metadata
 
 ### State Management
 - **AuthContext**: Centralized authentication state with user session management
@@ -165,13 +205,14 @@ Frontend Architecture
 ```javascript
 // Public Routes
 /                     // Blog homepage
-/post/:id            // Individual blog post
+/post/:id            // Individual blog post with unified comment system
 /login               // User authentication
 
 // Protected Admin Routes (requires authentication)
-/admin               // Dashboard overview
+/admin               // Dashboard overview with comment statistics
 /admin/posts         // Post management
 /admin/users         // User administration
+/admin/comments      // Unified comment management and moderation
 /admin/roles         // Role & privilege management
 /admin/tags          // Tag management
 /admin/activities    // System activity logs

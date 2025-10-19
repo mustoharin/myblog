@@ -1,12 +1,12 @@
 # MyBlog Backend API
 
 ## 🚀 Overview
-A robust Node.js/Express.js REST API powering a modern blogging platform with enterprise-level security, comprehensive admin capabilities, and scalable architecture. Built with MongoDB for flexible data management and extensive testing coverage.
+A robust Node.js/Express.js REST API powering a modern blogging platform with enterprise-level security, comprehensive admin capabilities, unified comment management system, and scalable architecture. Built with MongoDB for flexible data management and extensive testing coverage.
 
 ![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
 ![Express](https://img.shields.io/badge/express-4.x-blue.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)
-![Tests](https://img.shields.io/badge/tests-235%2B-green.svg)
+![Tests](https://img.shields.io/badge/tests-319%2B-brightgreen.svg)
 
 ## ✨ Key Features
 
@@ -31,13 +31,15 @@ A robust Node.js/Express.js REST API powering a modern blogging platform with en
 - **Password Reset Flow** with secure token-based email verification
 - **User Activity Logging** with comprehensive audit trails
 
-### 📝 Content Management
-- **Rich Text Support** with HTML sanitization and content validation
-- **Tag Management** with real-time post count calculation and filtering
-- **Advanced Search** with MongoDB full-text indexing and aggregation
-- **View Analytics** with detailed tracking and popular post algorithms
-- **Comment System** with CAPTCHA protection and moderation workflows
-- **Draft/Publish Workflow** with version control capabilities
+### 📝 Unified Comment Management System
+- **Unified Comment Model** - Single Comment collection replacing dual embedded/separate systems
+- **Advanced Moderation API** - Complete comment lifecycle management with status controls
+- **Threaded Comments** - Parent-child relationships for reply functionality
+- **Admin Comment Endpoints** - Comprehensive admin API for comment management
+- **CAPTCHA Integration** - Anonymous comment protection with bypass for testing
+- **XSS Protection** - Server-side content sanitization for all comment data
+- **Bulk Operations** - Efficient batch comment moderation and management
+- **Statistics API** - Real-time comment metrics for admin dashboard
 
 ### 📊 Admin Dashboard API
 - **Real-time Statistics** with aggregated metrics and performance data
@@ -587,6 +589,169 @@ The system implements RBAC with three default roles:
   - Delete privilege (requires `manage_roles` privilege)
   - Cannot delete essential privileges or those assigned to roles
   - Returns: 200 OK
+
+### Comments
+
+#### Get Comments for Post
+```http
+GET /api/comments/post/:postId
+```
+Get approved comments for a specific post (public endpoint).
+
+**Parameters:**
+- `postId`: The ID of the post
+
+**Response:**
+```json
+{
+  "success": true,
+  "comments": [
+    {
+      "_id": "string",
+      "content": "string",
+      "author": {
+        "name": "string",
+        "email": "string",
+        "user": {
+          "username": "string",
+          "fullName": "string"
+        }
+      },
+      "post": "string",
+      "status": "approved",
+      "createdAt": "date",
+      "replies": [
+        {
+          "_id": "string",
+          "content": "string",
+          "author": {...},
+          "parentComment": "string",
+          "createdAt": "date"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Create Comment
+```http
+POST /api/comments
+```
+Create a new comment (requires authentication or anonymous with CAPTCHA).
+
+**Request Body:**
+```json
+{
+  "content": "string (required, 1-1000 chars)",
+  "postId": "string (required)",
+  "authorName": "string (required for anonymous)",
+  "authorEmail": "string (required for anonymous)",
+  "authorWebsite": "string (optional for anonymous)",
+  "captchaToken": "string (required for anonymous)"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "comment": {
+    "_id": "string",
+    "content": "string",
+    "author": {...},
+    "post": "string",
+    "status": "pending",
+    "createdAt": "date"
+  }
+}
+```
+
+#### Reply to Comment
+```http
+POST /api/comments/reply/:commentId
+```
+Create a reply to an existing comment (requires authentication).
+
+**Parameters:**
+- `commentId`: The ID of the parent comment
+
+**Request Body:**
+```json
+{
+  "content": "string (required, 1-1000 chars)"
+}
+```
+
+#### Admin Comment Management
+
+**Get All Comments**
+```http
+GET /api/comments/admin/all
+```
+Get all comments with admin filtering (requires `moderate_comments` privilege).
+
+**Query Parameters:**
+- `status`: Filter by status (pending, approved, rejected, spam)
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 20, max: 50)
+- `search`: Search in content, author name, or email
+- `sortBy`: Sort field (default: createdAt)
+- `sortOrder`: Sort direction (asc/desc, default: desc)
+
+**Moderate Comment**
+```http
+PATCH /api/comments/:id/status
+```
+Update comment status (requires `moderate_comments` privilege).
+
+**Request Body:**
+```json
+{
+  "status": "approved" | "rejected" | "spam"
+}
+```
+
+**Delete Comment**
+```http
+DELETE /api/comments/:id
+```
+Delete a comment (requires `moderate_comments` privilege).
+
+**Bulk Comment Actions**
+```http
+PATCH /api/comments/admin/bulk-action
+```
+Perform bulk actions on multiple comments (requires `moderate_comments` privilege).
+
+**Request Body:**
+```json
+{
+  "action": "approve" | "reject" | "spam" | "delete",
+  "commentIds": ["string", "string", ...]
+}
+```
+
+**Get Comment Statistics**
+```http
+GET /api/comments/admin/stats
+```
+Get comment statistics for admin dashboard (requires `moderate_comments` privilege).
+
+**Response:**
+```json
+{
+  "success": true,
+  "stats": {
+    "total": "number",
+    "pending": "number",
+    "approved": "number",
+    "rejected": "number",
+    "spam": "number",
+    "recent24h": "number"
+  }
+}
+```
 
 ### Admin Endpoints
 

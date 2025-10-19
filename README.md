@@ -1,11 +1,12 @@
 # MyBlog - Advanced MERN Stack Blogging Platform
 
-A production-ready, full-stack blogging platform built with the MERN stack (MongoDB, Express.js, React, Node.js), featuring enterprise-level security, comprehensive admin dashboard, and modern development practices.
+A production-ready, full-stack blogging platform built with the MERN stack (MongoDB, Express.js, React, Node.js), featuring enterprise-level security, comprehensive admin dashboard, unified comment management system, and modern development practices.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
 ![React](https://img.shields.io/badge/react-18.x-blue.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)
+![Tests](https://img.shields.io/badge/tests-319%2B-brightgreen.svg)
 
 ## 🚀 Live Demo
 - **Public Blog**: [View demo](http://localhost:3000)
@@ -39,14 +40,23 @@ A production-ready, full-stack blogging platform built with the MERN stack (Mong
 - **Batch User Operations** for efficient administration
 - **Advanced User Search** and filtering capabilities
 
-### 📝 Content Management System
+### 📝 Unified Comment Management System
+- **Unified Comment Model** - Migrated from dual embedded/separate system to single Comment model
+- **Advanced Moderation Tools** with status management (pending, approved, rejected, spam)
+- **Admin Comment Panel** with detailed view dialogs showing complete author information
+- **CAPTCHA Protection** for anonymous and authenticated commenting
+- **Threaded Replies** with parent-child comment relationships
+- **Real-time Comment Statistics** in admin dashboard
+- **Bulk Comment Operations** for efficient moderation
+- **Comment Search and Filtering** by status, author, and content
+- **XSS-protected Content** with server and client-side sanitization
+
+### 🎨 Content Management System
 - **Rich Text Editor** with HTML sanitization and content validation
 - **Draft & Publish Workflow** with version control
 - **Tag Management System** with real-time post count calculation
 - **Advanced Search** with full-text indexing and filtering
 - **View Analytics** with detailed tracking and popular posts
-- **Comment System** with CAPTCHA protection and moderation tools
-- **Content Moderation** with approval workflows
 - **SEO Optimization** with meta tags and structured data
 
 ### 📊 Comprehensive Admin Dashboard
@@ -231,19 +241,16 @@ npm run lint  # Includes ESLint security plugins
 ### 🧪 Comprehensive Test Suite
 The application includes extensive test coverage across all components:
 
-#### Backend Testing (235+ tests)
+#### Backend Testing (319+ tests)
 - **Authentication & Security** (25 tests) - JWT validation, CAPTCHA protection, rate limiting
 - **Authorization & RBAC** (30 tests) - Role-based access control, privilege validation
-- **User Management** (35 tests) - CRUD operations, role assignment, account status
-- **Content Management** (30 tests) - Posts, tags, comments with rich content validation
-- **Security Middleware** (20 tests) - NoSQL injection prevention, XSS protection, error handling
+- **User Management** (40 tests) - CRUD operations, role assignment, account status
+- **Content Management** (35 tests) - Posts, tags with rich content validation
+- **Unified Comment System** (45 tests) - Comment CRUD, moderation, threading, validation
+- **Security Middleware** (25 tests) - NoSQL injection prevention, XSS protection, error handling
 - **Admin Dashboard** (50 tests) - Statistics, analytics, activity monitoring
 - **Input Validation** (45 tests) - Data sanitization, type checking, boundary validation
-- **Admin Dashboard** (50 tests) - Statistics, analytics, activity monitoring
-- **Public API** (25 tests) - Blog access, search, view tracking
-- **Database Operations** (20 tests) - Migrations, indexing, aggregations
-- **Security Features** (30 tests) - XSS protection, input validation, access control
-- **Integration Tests** (20 tests) - End-to-end workflow validation
+- **Public API** (24 tests) - Blog access, search, view tracking, comment submission
 
 #### Test Commands
 ```bash
@@ -255,13 +262,34 @@ npm run test:coverage
 
 # Run specific test suites
 npm test -- auth.test.js
-npm test -- admin.test.js
+npm test -- comments.routes.test.js
 
 # Watch mode for development
 npm run test:watch
 ```
 
 **Coverage**: 99%+ with comprehensive security and integration testing
+
+### 🔄 Recent Updates (October 2025)
+
+#### Unified Comment System Migration
+- **✅ Complete System Unification** - Migrated from dual embedded/separate comment systems to unified Comment model
+- **✅ Enhanced Admin Panel** - Fixed empty comment dialog issues with improved state management
+- **✅ Improved User Experience** - "Commenting as" now properly displays username/fullname
+- **✅ Better Error Handling** - Added null checks and optional chaining for robust comment display
+- **✅ Optimized Performance** - Reduced redundant API calls and improved dialog rendering
+
+#### Frontend Improvements
+- **✅ ESLint Compliance** - Fixed all compilation errors and improved code quality
+- **✅ Comment Management UI** - Enhanced admin comment moderation with detailed view dialogs
+- **✅ State Management** - Improved React state handling for better user experience
+- **✅ Error Prevention** - Added comprehensive error boundaries and fallback UI
+
+#### Backend Enhancements
+- **✅ API Consistency** - Unified comment endpoints with proper data population
+- **✅ Enhanced Statistics** - Updated admin dashboard to use unified comment counting
+- **✅ Improved Testing** - Added comprehensive test coverage for comment system
+- **✅ Database Optimization** - Cleaned up redundant embedded comment schemas
 
 ## 🌐 Service URLs & Endpoints
 
