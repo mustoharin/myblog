@@ -62,6 +62,8 @@ export const setUserData = userData => {
       _id: userData._id,
       firstName: userData.firstName,
       lastName: userData.lastName,
+      username: userData.username,
+      fullName: userData.fullName || `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
       email: userData.email,
       roles: userData.roles,
       isActive: userData.isActive,

@@ -479,95 +479,98 @@ const CommentManagement = () => {
       >
         <DialogTitle>Comment Details</DialogTitle>
         <DialogContent>
-          {selectedComment && (
-            <Box>
-              {/* Author Information */}
-              <Card sx={{ mb: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Author Information
-                  </Typography>
-                  
-                  <Stack spacing={1}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <PersonIcon />
-                      <Typography>
-                        {getAuthorDisplay(selectedComment).name}
-                        {getAuthorDisplay(selectedComment).isRegistered && (
-                          <Chip label="Registered User" size="small" sx={{ ml: 1 }} />
-                        )}
-                      </Typography>
-                    </Stack>
+          {selectedComment && (() => {
+            const authorInfo = getAuthorDisplay(selectedComment);
+            return (
+              <Box>
+                {/* Author Information */}
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Author Information
+                    </Typography>
                     
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <EmailIcon />
-                      <Typography>{getAuthorDisplay(selectedComment).email}</Typography>
-                    </Stack>
-                    
-                    {getAuthorDisplay(selectedComment).website && (
+                    <Stack spacing={1}>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <LinkIcon />
-                        <Typography>{getAuthorDisplay(selectedComment).website}</Typography>
+                        <PersonIcon />
+                        <Typography>
+                          {authorInfo.name}
+                          {authorInfo.isRegistered && (
+                            <Chip label="Registered User" size="small" sx={{ ml: 1 }} />
+                          )}
+                        </Typography>
                       </Stack>
-                    )}
-                  </Stack>
-                </CardContent>
-              </Card>
+                      
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <EmailIcon />
+                        <Typography>{authorInfo.email}</Typography>
+                      </Stack>
+                      
+                      {authorInfo.website && (
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <LinkIcon />
+                          <Typography>{authorInfo.website}</Typography>
+                        </Stack>
+                      )}
+                    </Stack>
+                  </CardContent>
+                </Card>
 
-              {/* Comment Content */}
-              <Card sx={{ mb: 2 }}>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Comment Content
-                  </Typography>
-                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                    {selectedComment.content}
-                  </Typography>
-                </CardContent>
-              </Card>
+                {/* Comment Content */}
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Comment Content
+                    </Typography>
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {selectedComment.content}
+                    </Typography>
+                  </CardContent>
+                </Card>
 
-              {/* Metadata */}
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Metadata
-                  </Typography>
-                  
-                  <Stack spacing={1}>
-                    <Typography>
-                      <strong>Status:</strong>{' '}
-                      <Chip 
-                        label={selectedComment.status} 
-                        color={statusColors[selectedComment.status]}
-                        size="small"
-                      />
+                {/* Metadata */}
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Metadata
                     </Typography>
                     
-                    <Typography>
-                      <strong>Posted:</strong>{' '}
-                      {format(new Date(selectedComment.createdAt), 'PPP p')}
-                    </Typography>
-                    
-                    <Typography>
-                      <strong>Post:</strong> {selectedComment.post?.title}
-                    </Typography>
-                    
-                    {selectedComment.parentComment && (
+                    <Stack spacing={1}>
                       <Typography>
-                        <strong>Reply to:</strong> Comment #{selectedComment.parentComment}
+                        <strong>Status:</strong>{' '}
+                        <Chip 
+                          label={selectedComment.status} 
+                          color={statusColors[selectedComment.status]}
+                          size="small"
+                        />
                       </Typography>
-                    )}
-                    
-                    {selectedComment.ipAddress && (
+                      
                       <Typography>
-                        <strong>IP Address:</strong> {selectedComment.ipAddress}
+                        <strong>Posted:</strong>{' '}
+                        {format(new Date(selectedComment.createdAt), 'PPP p')}
                       </Typography>
-                    )}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Box>
-          )}
+                      
+                      <Typography>
+                        <strong>Post:</strong> {selectedComment.post?.title}
+                      </Typography>
+                      
+                      {selectedComment.parentComment && (
+                        <Typography>
+                          <strong>Reply to:</strong> Comment #{selectedComment.parentComment}
+                        </Typography>
+                      )}
+                      
+                      {selectedComment.ipAddress && (
+                        <Typography>
+                          <strong>IP Address:</strong> {selectedComment.ipAddress}
+                        </Typography>
+                      )}
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Box>
+            );
+          })()}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setViewDialogOpen(false)}>
