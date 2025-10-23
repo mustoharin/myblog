@@ -119,7 +119,6 @@ REACT_APP_ENABLE_ANALYTICS=true
 4. **Access Application**: Open http://localhost:3000
 5. **Login**: Use default admin credentials (see root README)
 REACT_APP_VERSION=2.1.0
-```
 
 ## 🎯 Recent Updates & Improvements
 
@@ -299,13 +298,21 @@ frontend/
 │   ├── hooks/
 │   │   └── useLogin.js
 │   ├── utils/
-│   │   └── export.js
-│   ├── App.js
-│   └── index.js
-└── package.json
+│   │   ├── export.js              # Data export utilities
+│   │   ├── htmlSanitizer.js       # XSS protection with DOMPurify
+│   │   ├── safeObjectAccess.js    # Object injection prevention
+│   │   ├── secureAuth.js          # JWT validation and secure storage
+│   │   └── secureLogging.js       # Production-safe logging
+│   ├── App.js                     # Main application component
+│   ├── index.js                   # React app entry point
+│   └── setupTests.js              # Test configuration
+├── build/                          # Production build output
+└── package.json                    # Project dependencies
 ```
 
-## Available Scripts
+---
+
+## 🎬 Available Scripts
 
 In the project directory, you can run:
 
@@ -330,278 +337,9 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and filenames include hashes.
 Your app is ready to be deployed!
 
-## Environment Variables
+---
 
-Create a `.env` file in the frontend directory:
-
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-```
-
-## Key Components
-
-### Public Components
-
-#### BlogList
-- Displays paginated list of published posts
-- Search functionality (title and content)
-- Tag-based filtering
-- Click to navigate to full post
-
-#### BlogPost
-- Full post content with rich HTML rendering
-- Author information with **fullName** display
-- View count tracking
-- Tag chips for navigation
-- Comment section
-- Social sharing button
-
-#### CommentSection
-- CAPTCHA-protected comment submission
-- Rate limiting (10 comments/hour per IP)
-- Comment list with timestamps
-- XSS protection on all inputs
-
-### Admin Components
-
-#### Dashboard
-- System overview statistics
-- Popular posts widget with 7/30/all-time filters
-- **Active Users Widget** - Shows users logged in within last 15 minutes
-- **Recent Activity Widget** - System-wide activity feed with post/user/comment tracking
-- **System Status Widget** - Real-time server health monitoring
-- Quick navigation to management sections
-
-#### UserForm
-- Create/Edit user form
-- Fields:
-  - Username (required, unique)
-  - **Full Name** (optional, for author display)
-  - Email (required, unique)
-  - Password (required for new users)
-  - Role selection
-  - **Active/Inactive** toggle
-- Formik validation
-- XSS protection
-
-#### UserList
-- Paginated user table
-- Displays:
-  - Username and **fullName**
-  - Email
-  - Role with badge
-  - **Status** (Active/Inactive badge)
-  - Created date
-  - **Last Login** with relative time
-- Edit and delete actions
-- Search and filter capabilities
-
-#### PostForm
-- Rich text editor (TinyMCE or similar)
-- Title, content, excerpt fields
-- Tag input with autocomplete
-- Draft/Publish toggle
-- Image upload support
-- Preview mode
-
-#### PostList
-- Paginated post table
-- Search by title/content
-- Filter by status (published/draft)
-- View count display
-- Edit and delete actions
-- Quick publish/unpublish
-
-#### RoleManager
-- Role list with **user count** per role
-- Create/Edit role forms
-- Privilege assignment (checkboxes)
-- Rich content descriptions
-- Delete protection for roles with users
-
-#### UserActivity (Active Users Widget)
-- Real-time monitoring of active users
-- Shows users logged in within last 15 minutes
-- Displays fullName or username fallback
-- Relative time display (e.g., "5 minutes ago")
-- Auto-refreshes every 30 seconds
-- Maximum 10 most recently active users
-- Empty state message when no activity
-- Material-UI Card with list presentation
-
-#### RecentActivity (Recent Activity Widget)
-- System-wide activity feed
-- Activity types tracked:
-  - Post creation (new posts)
-  - Post updates (edited posts)
-  - User registrations (new users)
-  - Comment additions (new comments)
-- Displays activity type, user name, and timestamp
-- Relative time formatting (e.g., "2 hours ago")
-- Auto-refreshes every 60 seconds
-- Configurable activity limit
-- View details action menu for each activity
-- Empty state with informative message
-- Color-coded activity type icons
-
-#### SystemStatus (System Status Widget)
-- Comprehensive server health monitoring
-- **Database Statistics:**
-  - Storage used vs total (progress bar)
-  - Data size and index size
-  - Number of collections (posts, users, comments)
-  - Total documents count
-- **Memory Monitoring:**
-  - Heap memory used vs total (progress bar)
-  - RSS (Resident Set Size) memory tracking
-  - Percentage calculations
-- **Performance Metrics:**
-  - Server uptime in human-readable format (e.g., "5d 12h" or "3h 45m")
-  - Response time in milliseconds
-- Auto-refreshes every 60 seconds
-- Byte formatting with proper units (KB, MB, GB)
-- Real-time timestamp from server
-- Material-UI Grid layout with multiple panels
-
-## Authentication Flow
-
-1. **Login**: User submits username/password with CAPTCHA
-2. **Token Storage**: JWT stored in localStorage
-3. **API Requests**: Token included in Authorization header
-4. **Token Validation**: Interceptor handles 401 responses
-5. **Auto Logout**: Invalid/expired tokens trigger logout
-6. **Status Check**: Inactive users blocked even with valid token
-
-## New Features
-
-### Full Name Display (October 2025)
-Users can now have a professional display name shown as author on blog posts.
-
-**Implementation:**
-- Optional `fullName` field in user profile
-- Admin form includes fullName input
-- User list shows fullName below username
-- Blog posts prefer fullName over username
-- Fallback: fullName → username → "Anonymous"
-
-**UI Changes:**
-- User Form: Added "Full Name (optional)" field
-- User List: Shows fullName as secondary text
-- Blog Post: Displays author's fullName prominently
-
-### Account Status Management (October 2025)
-Administrators can now activate/deactivate user accounts.
-
-**Implementation:**
-- Active/Inactive toggle in user form
-- Status badge in user list (green/gray)
-- Login blocked for inactive users
-- Clear error message on login attempt
-- All API requests blocked for inactive users
-
-**UI Changes:**
-- User Form: Active/Inactive switch
-- User List: Status badge column
-- Login: Error message for deactivated accounts
-
-### Last Login Tracking (October 2025)
-User list now shows when each user last logged in.
-
-**Implementation:**
-- Backend tracks successful login timestamps
-- Frontend displays relative time (e.g., "2 hours ago")
-- Tooltip shows exact date/time
-- "Never" shown for users who haven't logged in
-
-**UI Changes:**
-- User List: Last Login column with relative time
-- Hover tooltip: Shows exact timestamp
-- Format: "Just now", "5 mins ago", "2 days ago", or full date
-
-### Post View Tracking (October 2025)
-Blog posts now track view counts for analytics.
-
-**Implementation:**
-- Automatic view increment on post page load
-- Admin dashboard shows total views
-- Popular posts widget based on views
-- View count displayed on each post
-
-**UI Changes:**
-- Blog Post: View count with eye icon
-- Dashboard: Total views stat
-- Popular Posts Widget: Sorted by views with counts
-
-### Admin Dashboard Monitoring (November 2025)
-Three new real-time monitoring widgets enhance the admin dashboard.
-
-#### Active Users Widget
-Displays users who have logged in within the last 15 minutes.
-
-**Implementation:**
-- API: `GET /api/admin/users/active`
-- Component: `UserActivity.js`
-- Auto-refresh: Every 30 seconds
-- Max users: 10 (most recent first)
-
-**Features:**
-- Shows fullName or username
-- Relative time display (e.g., "5 minutes ago")
-- Empty state: "No active users in the last 15 minutes"
-- Material-UI List with user avatars
-- Real-time activity monitoring
-
-#### Recent Activity Widget
-Tracks recent system activities including posts, users, and comments.
-
-**Implementation:**
-- API: `GET /api/admin/activities?limit=10`
-- Component: `RecentActivity.js`
-- Auto-refresh: Every 60 seconds
-- Configurable limit (default 10)
-
-**Features:**
-- Activity types: post_create, post_update, user_create, comment_create
-- Color-coded activity icons
-- User fullName display when available
-- Relative timestamps (e.g., "2 hours ago")
-- View details action menu
-- Empty state with informative message
-
-#### System Status Widget
-Comprehensive server health and performance monitoring.
-
-**Implementation:**
-- API: `GET /api/admin/system/status`
-- Component: `SystemStatus.js`
-- Auto-refresh: Every 60 seconds
-
-**Features:**
-- **Database Panel:**
-  - Storage usage with progress bar
-  - Collections count (posts, users, comments)
-  - Data and index sizes
-  - Total documents count
-- **Memory Panel:**
-  - Heap memory with progress bar and percentage
-  - RSS memory monitoring
-  - Byte formatting (KB/MB/GB)
-- **Performance Panel:**
-  - Server uptime in human-readable format (e.g., "2d 5h" or "3h 30m")
-  - Response time in milliseconds
-- Real-time server timestamp
-- Format helper functions:
-  - `formatBytes()` - Converts bytes to readable units
-  - `formatUptime()` - Formats seconds to days/hours or hours/minutes
-
-**UI Design:**
-- Material-UI Grid layout (3 columns)
-- LinearProgress bars for resource usage
-- Typography hierarchy for metrics
-- Responsive on all screen sizes
-- Auto-updating last refresh timestamp
-
-## API Integration
+## 📚 API Integration
 
 The app communicates with the backend API through Axios with configured interceptors:
 
@@ -609,196 +347,69 @@ The app communicates with the backend API through Axios with configured intercep
 ```javascript
 axios.create({
   baseURL: process.env.REACT_APP_API_URL,
+  timeout: 10000, // 10 second timeout
   headers: {
     'Content-Type': 'application/json'
   }
 })
 ```
 
-**Request Interceptor:**
-- Adds JWT token to Authorization header
-- Handles authentication state
+**Interceptors:**
+- **Request**: Adds JWT token to Authorization header
+- **Response**: Handles 401 (auto-logout) and 403 (permission denied)
+- **Error Handling**: Global error handling with user feedback
 
-**Response Interceptor:**
-- Handles 401 (auto-logout)
-- Handles 403 (permission denied)
-- Global error handling
+---
 
-## Responsive Design
-
-The application is fully responsive and works on:
-- 📱 Mobile devices (320px and up)
-- 📱 Tablets (768px and up)
-- 💻 Desktops (1024px and up)
-- 🖥️ Large screens (1440px and up)
-
-Material-UI Grid system ensures proper layout on all screen sizes.
-
-## 🎯 Performance Optimizations
+## 🎯 Performance & Best Practices
 
 ### Code Optimization
-- **Code Splitting** with React.lazy() for route-based loading
-- **Bundle Analysis** with webpack-bundle-analyzer for size optimization
-- **Tree Shaking** to eliminate unused code
-- **Minification** and compression in production builds
+- **Code Splitting** - React.lazy() for route-based loading
+- **Tree Shaking** - Eliminate unused code
+- **Minification** - Optimized production builds
 
 ### Runtime Performance
-- **React.memo()** for component memoization
-- **useMemo() & useCallback()** for expensive computations
-- **Virtualization** for large lists in admin interfaces
-- **Debounced Search** for real-time filtering without excessive API calls
+- **React.memo()** - Component memoization
+- **useMemo() & useCallback()** - Optimize computations
+- **Debounced Search** - Prevent excessive API calls
 
-### Network Optimization
-- **Axios Interceptors** for request/response optimization
-- **HTTP Caching** with appropriate cache headers
-- **Image Optimization** with lazy loading and responsive images
-- **API Response Optimization** with selective data loading
+### Responsive Design
+- 📱 Mobile-first approach (320px+)
+- 📱 Tablet optimization (768px+)
+- 💻 Desktop layouts (1024px+)
+- Material-UI Grid system
 
-## 🧪 Testing Strategy
+---
 
-### Component Testing
+## � Deployment
+
+### Docker
 ```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
+# Build and run
+docker build -t myblog-frontend .
+docker run -p 3000:80 myblog-frontend
 ```
 
-### Test Structure
-- **Unit Tests** for individual components and utilities
-- **Integration Tests** for component interaction and data flow
-- **Accessibility Tests** with react-testing-library
-- **Mock API Tests** with MSW (Mock Service Worker)
-
-## 🔧 Development Guidelines
-
-### Code Style
-- **ESLint Configuration** with React best practices
-- **Prettier Integration** for consistent formatting
-- **Component Naming** with PascalCase convention
-- **File Organization** with feature-based structure
-
-### Component Development
-```javascript
-// Component Template
-import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
-
-const ComponentName = ({ prop1, prop2 }) => {
-  const [state, setState] = useState();
-
-  useEffect(() => {
-    // Side effects
-  }, []);
-
-  return (
-    <Box>
-      <Typography variant="h4">
-        Component Content
-      </Typography>
-    </Box>
-  );
-};
-
-export default ComponentName;
-```
-
-### State Management Patterns
-- **Local State** for component-specific data
-- **Context API** for shared application state
-- **Custom Hooks** for reusable stateful logic
-- **Props Down, Events Up** pattern for component communication
-
-## 🚀 Deployment
-
-### Build Process
+### Static Hosting
 ```bash
-# Create production build
+# Build for production
 npm run build
 
-# Serve build locally for testing
+# Serve locally
 npm install -g serve
 serve -s build
 ```
 
-### Environment Variables
-```bash
-# Production configuration
+### Production Environment
+```env
 REACT_APP_API_URL=https://api.yourdomain.com
 REACT_APP_ENVIRONMENT=production
-REACT_APP_VERSION=1.0.0
+REACT_APP_VERSION=2.1.0
 ```
-
-### Docker Deployment
-```bash
-# Build container
-docker build -t myblog-frontend .
-
-# Run container
-docker run -p 3000:3000 myblog-frontend
-```
-
-## 🔒 Security Considerations
-
-### Client-Side Security
-- **XSS Protection** with proper input sanitization
-- **CSRF Protection** with token validation
-- **Secure Storage** of JWT tokens in httpOnly cookies
-- **Route Protection** with authentication guards
-
-### Input Validation
-- **Client-side Validation** with immediate feedback
-- **Server-side Validation** as the primary security layer
-- **Sanitization** of user inputs before display
-- **File Upload Security** with type and size restrictions
-
-## 📚 Resources & Documentation
-
-### Material-UI Resources
-- [Component Library](https://mui.com/components/)
-- [Theming Guide](https://mui.com/customization/theming/)
-- [Icon Library](https://mui.com/components/material-icons/)
-
-### React Resources
-- [React Documentation](https://reactjs.org/docs/)
-- [React Router](https://reactrouter.com/)
-- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
-
-### Development Tools
-- [React Developer Tools](https://chrome.google.com/webstore/detail/react-developer-tools/)
-- [Redux DevTools](https://chrome.google.com/webstore/detail/redux-devtools/)
-- [Lighthouse](https://developers.google.com/web/tools/lighthouse) for performance auditing
-
-## 🤝 Contributing
-
-### Getting Started
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** with proper testing
-4. **Commit your changes**: `git commit -m 'Add amazing feature'`
-5. **Push to the branch**: `git push origin feature/amazing-feature`
-6. **Open a Pull Request**
-
-### Development Workflow
-- Follow the existing code style and patterns
-- Write tests for new components and features
-- Update documentation for API changes
-- Ensure all tests pass before submitting PR
-- Use meaningful commit messages
 
 ---
 
-**Built with ❤️ using React 18 and Material-UI**
-- Pagination for large data sets
-- Debounced search inputs
-- Memoized components where appropriate
-- Optimized bundle size with tree shaking
-
-## Security Features
+## � Troubleshooting
 
 - XSS protection on all user inputs
 - CAPTCHA on public forms (login, comments)
@@ -831,16 +442,9 @@ npm install -g serve
 serve -s build
 ```
 
-### Docker Deployment
+---
 
-The frontend includes a Dockerfile for containerized deployment:
-
-```bash
-docker build -t blog-frontend .
-docker run -p 3000:80 blog-frontend
-```
-
-## Troubleshooting
+## 🔧 Troubleshooting
 
 ### API Connection Issues
 - Check `REACT_APP_API_URL` in `.env`
@@ -855,76 +459,53 @@ docker run -p 3000:80 blog-frontend
 ### Authentication Issues
 - Clear localStorage: `localStorage.clear()`
 - Check token expiration
-- Verify user account is active in backend
+- Verify user account is active
+
+---
 
 ## 📊 Project Statistics
 
-- **React 18** - Latest stable React with concurrent features
-- **Material-UI v7** - Modern component library with 100+ components
-- **Production Ready** - Security hardened with comprehensive testing
-- **Zero Security Vulnerabilities** - Clean security audit results
-- **Responsive Design** - Mobile-first approach with breakpoint optimization
-- **Backend Integration** - 379 backend tests ensuring API reliability
+- **React 18** - Latest stable with concurrent features
+- **Material-UI v7** - 100+ production-ready components
+- **Zero Security Vulnerabilities** - Clean audit
+- **Responsive Design** - Mobile-first approach
+- **Backend Integration** - 379 tests ensuring API reliability
 - **Enterprise Security** - XSS protection, secure auth, input validation
 
-## 📖 Documentation
+---
 
-- **Frontend README**: This file (React app documentation)
-- **Backend API**: [../backend/README.md](../backend/README.md) (Complete API reference)
-- **Root README**: [../README.md](../README.md) (Project overview)
+## 📖 Related Documentation
+
+- **Frontend**: This file (React app documentation)
+- **Backend API**: [../backend/README.md](../backend/README.md) - Complete API reference with 379 tests
+- **Root README**: [../README.md](../README.md) - Project overview and setup
+
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these guidelines:
-
-### Development Guidelines
-1. **Follow React best practices** - Use functional components with hooks
-2. **Component Structure** - Keep components small, focused, and reusable
-3. **State Management** - Use Context API for global state, local state for components
-4. **Error Handling** - Implement proper error boundaries and fallback UI
-5. **Security First** - Always sanitize user input and HTML content
-6. **Responsive Design** - Test on multiple screen sizes (mobile, tablet, desktop)
-7. **Code Quality** - Run ESLint before committing
-8. **Type Safety** - Add PropTypes or comments for component props
-
-### Code Style
-- Use functional components with React hooks
-- Follow Material-UI theming conventions
-- Use meaningful variable and function names
-- Add comments for complex logic
-- Keep files under 300 lines when possible
-
-### Pull Request Process
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes with proper testing
-4. Run `npm run lint` and fix any issues
-5. Test on multiple browsers and screen sizes
-6. Commit with meaningful messages
-7. Push to your fork and submit a PR
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Follow React best practices and Material-UI conventions
+4. Test on multiple browsers and screen sizes
+5. Run `npm run lint` before committing
+6. Submit Pull Request with clear description
+
+---
 
 ## 📄 License
 
-MIT License - See [LICENSE](../LICENSE) file for details
+MIT License - See [LICENSE](../LICENSE)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ using React 18 and Material-UI**
+**Built with ❤️ using React 18 and Material-UI v7**
 
-**[Report Bug](../../issues)** · **[Request Feature](../../issues/new)** · **[View Components](./src/components/)**
+[Report Bug](../../issues) · [Request Feature](../../issues/new) · [View Components](./src/components/)
 
 Part of the MyBlog MERN Stack Platform
 
 </div>
 
-## Learn More
-
-- [React Documentation](https://reactjs.org/)
-- [Material-UI Documentation](https://mui.com/)
-- [Create React App Documentation](https://facebook.github.io/create-react-app/docs/getting-started)
-
-## License
-
-This project is part of the Blog Application system.
