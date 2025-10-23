@@ -5,6 +5,7 @@ const Post = require('../models/Post');
 const auth = require('../middleware/auth');
 const { canReplyToComments, canModerateComments, commentRateLimit } = require('../middleware/commentAuth');
 const sanitizeInput = require('../middleware/sanitizeInput');
+const validateCaptcha = require('../middleware/validateCaptcha');
 const { isXssSafe } = require('../utils/xssValidator');
 
 // Optional authentication middleware - sets req.user if token provided
@@ -17,6 +18,17 @@ const optionalAuth = (req, res, next) => {
   
   // Token provided, use full auth middleware
   return auth(req, res, next);
+};
+
+// Conditional CAPTCHA validation - only for anonymous users
+const conditionalCaptchaValidation = (req, res, next) => {
+  // If user is authenticated, skip CAPTCHA validation
+  if (req.user) {
+    return next();
+  }
+  
+  // For anonymous users, validate CAPTCHA
+  return validateCaptcha(req, res, next);
 };
 
 // Get comments for a specific post
@@ -103,7 +115,7 @@ router.get('/post/:postId', optionalAuth, async (req, res) => {
 });
 
 // Submit a new comment (for visitors and authenticated users)
-router.post('/', commentRateLimit, optionalAuth, sanitizeInput, async (req, res) => {
+router.post('/', commentRateLimit, optionalAuth, conditionalCaptchaValidation, sanitizeInput, async (req, res) => {
   try {
     const { content, postId, authorName, authorEmail, authorWebsite } = req.body;
     

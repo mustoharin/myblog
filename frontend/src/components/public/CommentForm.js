@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -12,8 +12,9 @@ import {
   FormControlLabel,
   Checkbox,
   Link,
+  IconButton,
 } from '@mui/material';
-import { Send as SendIcon } from '@mui/icons-material';
+import { Send as SendIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -28,14 +29,48 @@ const CommentForm = ({ postId, onCommentSubmitted }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [captcha, setCaptcha] = useState({
+    sessionId: '',
+    imageDataUrl: '',
+    text: '',
+  });
 
   const { user } = useAuth();
+
+  const fetchCaptcha = async () => {
+    try {
+      const response = await api.get('/auth/captcha');
+      setCaptcha(prev => ({
+        ...prev,
+        sessionId: response.data.sessionId,
+        imageDataUrl: response.data.imageDataUrl,
+        text: '',
+      }));
+    } catch (error) {
+      console.error('Failed to fetch CAPTCHA:', error);
+      setError('Failed to load CAPTCHA. Please try again.');
+    }
+  };
+
+  // Fetch CAPTCHA on component mount for anonymous users
+  React.useEffect(() => {
+    if (!user && postId) {
+      fetchCaptcha();
+    }
+  }, [user, postId]);
 
   const handleInputChange = e => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleCaptchaChange = e => {
+    setCaptcha(prev => ({
+      ...prev,
+      text: e.target.value,
     }));
   };
 
@@ -72,6 +107,12 @@ const CommentForm = ({ postId, onCommentSubmitted }) => {
         setError('Please agree to the terms and conditions');
         return false;
       }
+
+      // Validate CAPTCHA for anonymous users
+      if (!captcha.text.trim()) {
+        setError('Please enter the CAPTCHA code');
+        return false;
+      }
     }
 
     return true;
@@ -101,6 +142,9 @@ const CommentForm = ({ postId, onCommentSubmitted }) => {
         if (formData.authorWebsite.trim()) {
           submitData.authorWebsite = formData.authorWebsite.trim();
         }
+        // Add CAPTCHA data
+        submitData.captchaSessionId = captcha.sessionId;
+        submitData.captchaText = captcha.text.trim();
       }
 
       const response = await api.post('/comments', submitData);
@@ -119,6 +163,11 @@ const CommentForm = ({ postId, onCommentSubmitted }) => {
         authorWebsite: '',
       });
       setAgreedToTerms(false);
+
+      // Fetch new CAPTCHA for anonymous users
+      if (!user) {
+        fetchCaptcha();
+      }
 
       // Notify parent component
       if (onCommentSubmitted) {
@@ -231,6 +280,64 @@ const CommentForm = ({ postId, onCommentSubmitted }) => {
                 )}
                 sx={{ mb: 2 }}
               />
+
+              {/* CAPTCHA Section */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Security Verification
+                </Typography>
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
+                  {captcha.imageDataUrl ? (
+                    <Box
+                      component="img"
+                      src={captcha.imageDataUrl}
+                      alt="CAPTCHA"
+                      sx={{
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        height: 40,
+                        backgroundColor: 'background.paper',
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: 120,
+                        height: 40,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'grey.100',
+                      }}
+                    >
+                      <CircularProgress size={20} />
+                    </Box>
+                  )}
+                  <IconButton
+                    onClick={fetchCaptcha}
+                    size="small"
+                    title="Refresh CAPTCHA"
+                    sx={{ ml: 1 }}
+                  >
+                    <RefreshIcon />
+                  </IconButton>
+                </Stack>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Enter the code shown above *"
+                  value={captcha.text}
+                  onChange={handleCaptchaChange}
+                  onFocus={resetMessages}
+                  placeholder="Enter CAPTCHA code"
+                  helperText="Please enter the characters you see in the image"
+                  inputProps={{ maxLength: 10 }}
+                />
+              </Box>
             </>
           )}
 
@@ -257,7 +364,7 @@ const CommentForm = ({ postId, onCommentSubmitted }) => {
               type="submit"
               variant="contained"
               endIcon={submitting ? <CircularProgress size={16} /> : <SendIcon />}
-              disabled={submitting || (!user && !agreedToTerms)}
+              disabled={submitting || (!user && (!agreedToTerms || !captcha.text.trim()))}
               sx={{ minWidth: 120 }}
             >
               {submitting ? 'Submitting...' : 'Post Comment'}
@@ -266,17 +373,25 @@ const CommentForm = ({ postId, onCommentSubmitted }) => {
 
           {/* Guidelines for anonymous users */}
           {!user && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              <Typography variant="body2">
-                <strong>Comment Guidelines:</strong>
-                <ul style={{ marginTop: '8px', marginBottom: 0, paddingLeft: '20px' }}>
-                  <li>Be respectful and constructive</li>
-                  <li>Stay on topic</li>
-                  <li>No spam or promotional content</li>
-                  <li>Comments are moderated and may take time to appear</li>
-                </ul>
-              </Typography>
-            </Alert>
+            <>
+              <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
+                <Typography variant="body2">
+                  <strong>Comment Guidelines:</strong>
+                  <ul style={{ marginTop: '8px', marginBottom: 0, paddingLeft: '20px' }}>
+                    <li>Be respectful and constructive</li>
+                    <li>Stay on topic</li>
+                    <li>No spam or promotional content</li>
+                    <li>Comments are moderated and may take time to appear</li>
+                  </ul>
+                </Typography>
+              </Alert>
+              
+              <Alert severity="warning" sx={{ mt: 1 }}>
+                <Typography variant="body2">
+                  <strong>Rate Limiting:</strong> Comments are limited to 5 per 10 minutes per user to prevent spam.
+                </Typography>
+              </Alert>
+            </>
           )}
         </Box>
       </CardContent>

@@ -184,7 +184,8 @@ describe('Comment Routes', () => {
         postId: testPost._id,
         authorName: 'Test Visitor',
         authorEmail: 'visitor@example.com',
-        authorWebsite: 'https://example.com'
+        authorWebsite: 'https://example.com',
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
       };
 
       const response = await request(app)
@@ -219,7 +220,9 @@ describe('Comment Routes', () => {
     it('should require content and postId', async () => {
       const response = await request(app)
         .post('/api/comments')
-        .send({});
+        .send({
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -229,7 +232,8 @@ describe('Comment Routes', () => {
     it('should require name and email for anonymous comments', async () => {
       const commentData = {
         content: 'Test comment',
-        postId: testPost._id
+        postId: testPost._id,
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
       };
 
       const response = await request(app)
@@ -245,7 +249,8 @@ describe('Comment Routes', () => {
         content: '<script>alert("xss")</script>',
         postId: testPost._id,
         authorName: 'Test User',
-        authorEmail: 'test@example.com'
+        authorEmail: 'test@example.com',
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
       };
 
       const response = await request(app)
@@ -263,7 +268,8 @@ describe('Comment Routes', () => {
         content: 'Test comment',
         postId: fakePostId,
         authorName: 'Test User',
-        authorEmail: 'test@example.com'
+        authorEmail: 'test@example.com',
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
       };
 
       const response = await request(app)

@@ -217,7 +217,7 @@ const CommentsList = ({ postId, refreshTrigger }) => {
   const canReply = user && (
     user.role?.name === 'admin' || 
     user.role?.name === 'superadmin' ||
-    (user.role?.privileges && user.role.privileges.some(p => p.name === 'reply_comments'))
+    (user.role?.privileges && user.role.privileges.some(p => p.code === 'reply_comments'))
   );
 
   const fetchComments = async (page = 1) => {
@@ -226,7 +226,7 @@ const CommentsList = ({ postId, refreshTrigger }) => {
       const response = await api.get(`/comments/post/${postId}`, {
         params: { page, limit: 10 },
       });
-
+      
       if (page === 1) {
         setComments(response.data.comments);
       } else {
@@ -246,7 +246,7 @@ const CommentsList = ({ postId, refreshTrigger }) => {
 
   const handleReply = async (commentId, content) => {
     try {
-      const response = await api.post(`/comments/${commentId}/reply`, { content });
+      const response = await api.post(`/comments/reply/${commentId}`, { content });
       
       // Refresh comments to show the new reply
       await fetchComments(1);
