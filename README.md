@@ -273,27 +273,6 @@ npm run test:watch
 
 **Coverage**: 99%+ with comprehensive security and integration testing
 
-### 🔄 Recent Updates (October 2025)
-
-#### Unified Comment System Migration
-- **✅ Complete System Unification** - Migrated from dual embedded/separate comment systems to unified Comment model
-- **✅ Enhanced Admin Panel** - Fixed empty comment dialog issues with improved state management
-- **✅ Improved User Experience** - "Commenting as" now properly displays username/fullname
-- **✅ Better Error Handling** - Added null checks and optional chaining for robust comment display
-- **✅ Optimized Performance** - Reduced redundant API calls and improved dialog rendering
-
-#### Frontend Improvements
-- **✅ ESLint Compliance** - Fixed all compilation errors and improved code quality
-- **✅ Comment Management UI** - Enhanced admin comment moderation with detailed view dialogs
-- **✅ State Management** - Improved React state handling for better user experience
-- **✅ Error Prevention** - Added comprehensive error boundaries and fallback UI
-
-#### Backend Enhancements
-- **✅ API Consistency** - Unified comment endpoints with proper data population
-- **✅ Enhanced Statistics** - Updated admin dashboard to use unified comment counting
-- **✅ Improved Testing** - Added comprehensive test coverage for comment system
-- **✅ Database Optimization** - Cleaned up redundant embedded comment schemas
-
 ## 🌐 Service URLs & Endpoints
 
 ### Development Services
@@ -364,83 +343,6 @@ curl http://localhost:5002/api/admin/stats \
 - ✅ Password reset tokens with time-based expiration
 - ✅ Soft delete implementation for data preservation and security
 - ✅ Referential integrity maintenance without cascading deletions
-
-## Recent Features
-
-### Post Analytics
-- **View Tracking**: Automatic view counting for all published posts
-- **Popular Posts Widget**: Admin dashboard widget showing trending posts
-- **Timeframe Filtering**: Filter popular posts by day, week, month, or year
-
-### Soft Delete Functionality
-- **Data Preservation**: Deleted records are marked as deleted but preserved in database
-- **Referential Integrity**: Maintains relationships between soft-deleted entities
-- **Query Filtering**: Automatic exclusion of deleted records from all queries
-- **Admin Transparency**: Deleted records hidden from both admin panel and public frontend
-- **Restore Capability**: Built-in methods to restore soft-deleted records if needed
-
-#### Soft Delete Implementation
-All core models (Posts, Users, Roles, Privileges) implement soft delete with:
-- `deletedAt` field (Date, default: null)
-- Pre-query middleware automatically filtering deleted records
-- `softDelete()` method for marking records as deleted
-- `restore()` method for undeleting records
-- `findDeleted()` static method for admin tools
-- `findWithDeleted()` static method for complete data access
-
-#### Benefits
-- **Data Recovery**: Accidental deletions can be reversed
-- **Audit Trail**: Maintains complete history of all actions
-- **Referential Safety**: No cascading deletion issues
-- **User Experience**: Instant "deletion" without data loss risk
-- **Atomic Operations**: Thread-safe view counting using MongoDB `$inc`
-
-### User Activity
-- **Last Login Tracking**: Automatic timestamp recording on successful login
-- **Activity Monitoring**: Admin can view user login patterns
-- **Security Audit**: Track user access for security purposes
-- **Never Logged In Detection**: Distinguish between never logged in vs. inactive users
-
-### Admin Dashboard
-- **Real-time Statistics**: Total posts, users, views, and comments
-- **Popular Posts**: Sortable list with timeframe filters
-- **User Management**: View last login times for all users
-- **Active Users Widget**: Live monitoring of users active in the last 15 minutes
-- **Recent Activity Widget**: Track recent posts, user registrations, and comments
-- **System Status Widget**: Real-time system health monitoring with database stats, memory usage, and uptime
-- **System Health**: Comprehensive monitoring of content engagement, user activity, and server performance
-
-### User Full Name Display (October 2025)
-- **Professional Author Attribution**: Users can have a display name for blog posts
-- **Flexible Display**: Shows full name if set, otherwise falls back to username
-- **Admin Management**: Create and edit user full names via admin panel
-- **Public Integration**: Blog posts display author's full name prominently
-- **Backward Compatible**: Optional field, existing users work without changes
-
-### Account Status Management (October 2025)
-- **Active/Inactive Toggle**: Administrators can deactivate user accounts
-- **Access Control**: Inactive users cannot login to the system
-- **Token Validation**: Existing tokens are invalidated for inactive users
-- **Audit Trail**: Maintains user data while preventing system access
-- **Visual Indicators**: Status badges in admin panel (Active/Inactive)
-- **Security**: Only users with `update_user` privilege can change status
-
-### Admin Dashboard Monitoring (November 2025)
-- **Active Users Widget**: Real-time monitoring of user activity
-  - Shows users logged in within the last 15 minutes
-  - Displays full name or username
-  - Auto-refreshes every 30 seconds
-  - Maximum 10 most recently active users
-  - Empty state message when no activity
-- **Recent Activity Widget**: System activity tracking and monitoring
-  - Tracks post creation, post updates, user registrations, and comment activity
-  - Configurable limit (default 10, max 50)
-  - Auto-refreshes every 60 seconds
-  - Displays activity type, user name, and relative timestamps
-  - View details action menu for each activity
-- **System Status Widget**: Comprehensive server health monitoring
-  - Database statistics (storage used, total size, collections count)  
-  - Memory usage monitoring (heap, RSS with percentage bars)
 
 ## 🚀 Quick Start Guide
 
@@ -688,20 +590,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
   - Human-readable uptime format (days/hours or hours/minutes)
   - Real-time server timestamp for sync verification
 
-### Automatic Timestamps (November 2025)
-- **All Models**: Consistent explicit timestamp field pattern across the application
-  - `createdAt`: Explicitly defined Date field with `default: Date.now`
-  - `updatedAt`: Explicitly defined Date field with `default: Date.now`
-  - **Automatic Updates**: Pre-save middleware automatically updates `updatedAt` on any modification
-- **Post Model**: Explicit timestamp fields replace Mongoose `timestamps: true`
-  - Includes middleware for both `save()` and `findOneAndUpdate()` operations
-- **User Model**: Converted from `timestamps: true` to explicit fields with middleware
-- **Role Model**: Converted from `timestamps: true` to explicit fields with middleware  
-- **Privilege Model**: Added explicit timestamp fields with middleware for consistency
-- **Recent Activity Widget**: Enhanced to properly utilize explicit `updatedAt` for tracking modifications
-  - Distinguishes between new content and updates based on timestamp comparison
-  - Maintains compatibility with existing data
-
 ## Performance Features
 
 ### Database Optimization
@@ -742,25 +630,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - **Schema Validation**: Mongoose schemas with XSS protection
 - **Strategic Indexing**: Optimized queries for search and sorting
 - **Atomic Operations**: Thread-safe counters and updates
-
-## 📋 Security Changelog
-
-### Version 2.0 - Security Hardening (October 2025)
-#### Backend Security Enhancements
-- ✅ **JWT Secret Validation** - Environment variable validation preventing hardcoded secrets
-- ✅ **NoSQL Injection Prevention** - Input sanitization middleware blocking MongoDB operators  
-- ✅ **Security Headers** - Helmet.js integration (CSP, HSTS, X-Frame-Options, XSS protection)
-- ✅ **Secure Error Handling** - Information disclosure prevention in production
-- ✅ **Database Connection Security** - Proper cleanup and graceful exit handling
-- ✅ **Zero Dependency Vulnerabilities** - Clean npm audit results
-
-#### Frontend Security Enhancements  
-- ✅ **XSS Prevention** - DOMPurify integration for all HTML content rendering
-- ✅ **Object Injection Protection** - Safe property access with whitelist validation
-- ✅ **Secure Token Management** - JWT validation and safe localStorage handling
-- ✅ **HTTPS Enforcement** - Environment-based secure communication configuration
-- ✅ **Secure Logging** - Production-safe logging with sensitive data filtering
-- ✅ **ESLint Security Plugins** - Automated vulnerability detection and prevention
 
 #### SAST Analysis Results
 - **Backend**: 379 tests passing with comprehensive security coverage
