@@ -165,6 +165,20 @@ async function createInitialPrivileges() {
       module: 'content_management',
       moduleDisplayName: 'Content Management',
     },
+    {
+      name: 'View Activities',
+      code: 'view_activities',
+      description: 'Can view system activity logs',
+      module: 'system_administration',
+      moduleDisplayName: 'System Administration',
+    },
+    {
+      name: 'View Analytics',
+      code: 'view_analytics',
+      description: 'Can access analytics and reports',
+      module: 'system_administration',
+      moduleDisplayName: 'System Administration',
+    },
   ];
 
   return await Privilege.insertMany(privileges);
@@ -185,7 +199,9 @@ async function createInitialRoles(privileges) {
       p.code.includes('post') || 
       p.code.includes('comment') || 
       p.code === 'manage_tags' ||
-      p.code === 'manage_media'
+      p.code === 'manage_media' ||
+      p.code === 'view_activities' ||
+      p.code === 'view_analytics'
     ).map(p => p._id),
   });
 

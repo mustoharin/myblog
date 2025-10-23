@@ -9,8 +9,8 @@ const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
 
 // Get admin dashboard statistics
-// Require at least read_post privilege (admins should have this)
-router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
+// Require view_analytics privilege for dashboard access
+router.get('/stats', auth, checkRole(['view_analytics']), async (req, res) => {
   try {
     // Get total counts
     const totalPosts = await Post.countDocuments();
@@ -148,8 +148,8 @@ router.get('/users/active', auth, checkRole(['read_user']), async (req, res) => 
 });
 
 // Get recent activities from Activity model
-// Require at least read_post privilege (since most activities are post-related)
-router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
+// Require view_activities privilege for activity logs
+router.get('/activities', auth, checkRole(['view_activities']), async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 25, 100);
     const page = parseInt(req.query.page) || 1;
@@ -260,8 +260,8 @@ function getActivityDescription(activity) {
 }
 
 // Get system status (database, memory, performance metrics)
-// Require at least read_post privilege (basic admin access)
-router.get('/system/status', auth, checkRole(['read_post']), async (req, res) => {
+// Require view_analytics privilege for system monitoring
+router.get('/system/status', auth, checkRole(['view_analytics']), async (req, res) => {
   try {
     // Get database statistics
     const dbStats = await mongoose.connection.db.stats();
