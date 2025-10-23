@@ -6,8 +6,7 @@ A robust, production-ready Node.js/Express REST API with enterprise-grade securi
 ![Express](https://img.shields.io/badge/express-4.x-blue.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)
 ![Tests](https://img.shields.io/badge/tests-379%20passing-brightgreen.svg)
-![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
-![Express](https://img.shields.io/badge/express-4.x-blue.svg)![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)
 
 **Response Fields:**
 - `database`:
