@@ -6,7 +6,8 @@ A production-ready, full-stack blogging platform built with the MERN stack (Mong
 ![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
 ![React](https://img.shields.io/badge/react-18.x-blue.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)
-![Tests](https://img.shields.io/badge/tests-319%2B-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-379%20passing-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)
 
 ## 🚀 Live Demo
 - **Public Blog**: [View demo](http://localhost:3000)
@@ -71,7 +72,7 @@ A production-ready, full-stack blogging platform built with the MERN stack (Mong
 
 ### 🎯 Modern Development Features
 - **Microservices Architecture** with Docker containerization
-- **Comprehensive Testing** (235+ tests with 99% coverage)
+- **Comprehensive Testing** (379 tests with 99%+ coverage)
 - **API Documentation** with detailed endpoint specifications
 - **CI/CD Ready** with automated testing and deployment
 - **Environment Configuration** with Docker Compose orchestration
@@ -105,7 +106,7 @@ myblog/
 - **Mongoose ODM** - Schema validation with custom middleware
 - **JWT (jsonwebtoken)** - Stateless authentication tokens
 - **bcrypt** - Industry-standard password hashing
-- **Jest** - Comprehensive testing framework (235+ tests)
+- **Jest** - Comprehensive testing framework (379 tests)
 - **express-rate-limit** - Configurable rate limiting
 - **DOMPurify** - Server-side HTML sanitization
 - **Nodemailer** - Email service for notifications
@@ -149,7 +150,7 @@ The project has undergone comprehensive security analysis and hardening:
 - ✅ **Secure Logging** - Production-safe logging with sensitive data filtering
 
 #### Security Testing Results
-- **Backend**: 235 tests passing with comprehensive security coverage
+- **Backend**: 379 tests passing with comprehensive security coverage
 - **Frontend**: Production build successful with security enhancements
 - **ESLint Security**: Automated vulnerability detection and prevention
 - **Penetration Testing**: Resistant to common web application attacks
@@ -217,7 +218,7 @@ After initialization, log in with:
 
 ### Testing
 ```bash
-# Backend tests (235+ tests including security validation)
+# Backend tests (379 tests with 99%+ coverage)
 cd backend
 npm test
 
@@ -241,16 +242,18 @@ npm run lint  # Includes ESLint security plugins
 ### 🧪 Comprehensive Test Suite
 The application includes extensive test coverage across all components:
 
-#### Backend Testing (319+ tests)
+#### Backend Testing (379 tests)
 - **Authentication & Security** (25 tests) - JWT validation, CAPTCHA protection, rate limiting
 - **Authorization & RBAC** (30 tests) - Role-based access control, privilege validation
 - **User Management** (40 tests) - CRUD operations, role assignment, account status
-- **Content Management** (35 tests) - Posts, tags with rich content validation
-- **Unified Comment System** (45 tests) - Comment CRUD, moderation, threading, validation
+- **Content Management** (35 tests) - Posts with rich content validation
+- **Tags Management** (37 tests) - Tag CRUD, statistics, sync functionality
+- **Unified Comment System** (58 tests) - Comment CRUD, moderation, privilege-based auth
 - **Security Middleware** (25 tests) - NoSQL injection prevention, XSS protection, error handling
-- **Admin Dashboard** (50 tests) - Statistics, analytics, activity monitoring
+- **Admin Dashboard** (32 tests) - Statistics, analytics, activity monitoring, system health
 - **Input Validation** (45 tests) - Data sanitization, type checking, boundary validation
 - **Public API** (24 tests) - Blog access, search, view tracking, comment submission
+- **Password Management** (28 tests) - Reset flow, validation, security
 
 #### Test Commands
 ```bash
@@ -311,61 +314,37 @@ npm run test:watch
 - `/admin/activities` - System activity logs
 - `/admin/account` - Account settings
 
-## API Documentation
+## 📚 API Overview
 
-Detailed API documentation is available in the backend README. Key endpoint categories:
+MyBlog provides a comprehensive REST API with endpoints for:
 
-### Authentication Endpoints
-- `POST /api/auth/register` - Register new user with CAPTCHA
-- `POST /api/auth/login` - User login (updates lastLogin timestamp)
-- `POST /api/auth/captcha` - Get CAPTCHA challenge
-- `POST /api/auth/logout` - Logout user
+- **Authentication** - Login, logout, registration, CAPTCHA
+- **User Management** - CRUD operations with privilege checking (admin)
+- **Post Management** - Create, update, publish, delete posts (admin)
+- **Comment Management** - Moderation and approval tools (admin)
+- **Tag Management** - Content organization and statistics
+- **Role & Privilege Management** - RBAC configuration (admin)
+- **Admin Dashboard** - Analytics, statistics, system health monitoring
+- **Public API** - Blog posts, search, comments (no authentication required)
+- **Password Management** - Secure reset flow with time-limited tokens
 
-### User Endpoints (Admin)
-- `GET /api/users` - List users with lastLogin, fullName, and isActive status
-- `GET /api/users/:id` - Get user details
-- `POST /api/users` - Create user with fullName and isActive fields
-- `PUT /api/users/:id` - Update user (including fullName and status)
-- `DELETE /api/users/:id` - Delete user
+### Quick API Example
 
-### Post Endpoints
-- `GET /api/posts` - List posts with pagination and search
-- `POST /api/posts` - Create post (admin)
-- `GET /api/posts/:id` - Get post details
-- `PUT /api/posts/:id` - Update post
-- `DELETE /api/posts/:id` - Delete post
+```bash
+# Get public blog posts
+curl http://localhost:5002/api/public/posts?page=1&limit=10
 
-### Admin Dashboard Endpoints
-- `GET /api/admin/stats` - Get dashboard statistics (posts, users, views, comments)
-- `GET /api/admin/posts/popular` - Get popular posts with timeframe filtering
-  - Query params: `timeframe` (day/week/month/year), `limit` (max 50)
-- `GET /api/admin/users/active` - Get recently active users (last 15 minutes)
-  - Returns up to 10 users sorted by last login
-- `GET /api/admin/activities` - Get recent system activities
-  - Query params: `limit` (max 50)
-  - Returns recent posts, users, and comments with activity tracking
-- `GET /api/admin/system/status` - Get comprehensive system health metrics
-  - Database statistics (storage, collections)
-  - Memory usage (heap, RSS)
-  - Performance metrics (uptime, response time)
+# Login to get JWT token
+curl -X POST http://localhost:5002/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"superadmin","password":"SuperAdmin123!","captchaSessionId":"xxx","captchaText":"ABCD"}'
 
-### Public Endpoints
-- `GET /api/public/posts` - Get published posts (includes author fullName)
-- `GET /api/public/posts/:id` - Get published post details (includes author fullName)
-- `POST /api/public/posts/:id/view` - Track post view (atomic increment)
-- `POST /api/public/posts/:id/comments` - Add comment (rate limited)
+# Get admin statistics (requires auth token)
+curl http://localhost:5002/api/admin/stats \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
 
-### Password Management
-- `POST /api/password/forgot` - Request password reset
-- `POST /api/password/reset/:token` - Reset password with token
-- `POST /api/password/change` - Change password (authenticated)
-
-### Roles & Privileges (Admin)
-- Role management endpoints for RBAC
-- Privilege assignment and management
-- Custom role creation with granular permissions
-
-For complete API documentation with request/response examples, see [Backend README](./backend/README.md).
+**📖 For complete API documentation with request/response examples, see [Backend README](./backend/README.md)**
 
 ## Security Best Practices
 - ✅ Secure password storage with bcrypt (10 salt rounds)
@@ -784,7 +763,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - ✅ **ESLint Security Plugins** - Automated vulnerability detection and prevention
 
 #### SAST Analysis Results
-- **Backend**: 235 tests passing with comprehensive security coverage
+- **Backend**: 379 tests passing with comprehensive security coverage
 - **Frontend**: Production build successful with security enhancements  
 - **Penetration Testing**: Resistant to XSS, injection, and common web attacks
 - **Code Quality**: ESLint security rules integrated into development workflow
