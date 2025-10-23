@@ -32,6 +32,15 @@ router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
+
+    // If post is not published, only author or superadmin can view
+    if (!post.isPublished && 
+        post.author._id.toString() !== req.user._id.toString() && 
+        req.user.role.name !== 'superadmin' &&
+        req.user.role.name !== 'admin') {
+      return res.status(403).json({ message: 'Access denied to unpublished post' });
+    }
+
     res.json(post);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -45,6 +54,15 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
     
     if (!title || !content) {
       return res.status(400).json({ message: 'Title and content are required' });
+    }
+
+    // Check publish privilege if trying to publish
+    if (isPublished && req.user.role.name !== 'superadmin' && req.user.role.name !== 'admin') {
+      const userRole = await require('../models/Role').findById(req.user.role).populate('privileges');
+      const canPublish = userRole.privileges.some(p => p.code === 'publish_post');
+      if (!canPublish) {
+        return res.status(403).json({ message: 'Insufficient privileges to publish posts' });
+      }
     }
 
     const formattedTags = formatTags(tags);
@@ -100,6 +118,15 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
     }
 
     const { title, content, excerpt, tags, isPublished } = req.body;
+    
+    // Check publish privilege if trying to publish or changing publish status
+    if (isPublished !== undefined && isPublished && req.user.role.name !== 'superadmin' && req.user.role.name !== 'admin') {
+      const userRole = await require('../models/Role').findById(req.user.role).populate('privileges');
+      const canPublish = userRole.privileges.some(p => p.code === 'publish_post');
+      if (!canPublish) {
+        return res.status(403).json({ message: 'Insufficient privileges to publish posts' });
+      }
+    }
     if (title) post.title = title;
     if (content) post.content = content;
     if (excerpt !== undefined) post.excerpt = excerpt;
@@ -164,7 +191,7 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
 });
 
 // Add comment to a post
-router.post('/:id/comments', auth, checkRole(['create_post']), async (req, res) => {
+router.post('/:id/comments', auth, checkRole(['manage_comments']), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) {

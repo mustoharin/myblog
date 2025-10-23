@@ -68,7 +68,7 @@ router.get('/:id', auth, checkRole(['read_user']), async (req, res) => {
  * @route POST /api/users
  * @description Create a new user
  * @access Private
- * @requires create_user
+ * @requires create_user (and manage_user_roles for superadmin role assignment)
  * @param {Object} req.body
  * @param {string} req.body.username Username
  * @param {string} req.body.email Email address
@@ -76,6 +76,7 @@ router.get('/:id', auth, checkRole(['read_user']), async (req, res) => {
  * @param {string} req.body.role Role ID
  * @returns {Object} Created user object with populated role
  * @throws {400} Missing required fields or duplicate username/email
+ * @throws {403} Insufficient privileges to assign role
  * @throws {500} Server Error
  */
 router.post('/', auth, checkRole(['create_user']), async (req, res) => {
@@ -101,9 +102,22 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
     }
 
     // Validate role exists
-    const roleDoc = await Role.findById(role);
+    const roleDoc = await Role.findById(role).populate('privileges');
     if (!roleDoc) {
       return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Check if assigning superadmin role - requires manage_user_roles privilege
+    if (roleDoc.name === 'superadmin') {
+      // Check if user has manage_user_roles privilege
+      const userPrivileges = req.user.role?.privileges || [];
+      const hasManageRoles = userPrivileges.some(p => p.code === 'manage_user_roles');
+      
+      if (!hasManageRoles) {
+        return res.status(403).json({ 
+          message: 'Insufficient privileges to assign superadmin role',
+        });
+      }
     }
 
     // Create the new user
@@ -157,7 +171,7 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
  * @route PUT /api/users/:id
  * @description Update user information with optimistic concurrency control
  * @access Private
- * @requires update_user
+ * @requires update_user (and manage_user_roles for role changes)
  * @param {string} id User ID
  * @param {Object} req.body
  * @param {string} [req.body.username] New username
@@ -165,6 +179,7 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
  * @param {string} [req.body.password] New password
  * @param {string} [req.body.role] New role ID
  * @returns {Object} Updated user object with populated role
+ * @throws {403} Cannot modify own role or insufficient privileges for role change
  * @throws {404} User Not Found
  * @throws {400} Invalid role
  * @throws {409} Concurrent update conflict
@@ -178,9 +193,52 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
       const { username, fullName, email, password, role, isActive } = req.body;
       
       // First get the current user
-      const user = await User.findById(req.params.id);
+      const user = await User.findById(req.params.id).populate({
+        path: 'role',
+        populate: { path: 'privileges' },
+      });
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
+      }
+
+            // Check if trying to modify role
+      if (role && role !== user.role._id.toString()) {
+        // Prevent users from modifying their own role
+        if (req.params.id === req.user.id) {
+          return res.status(403).json({ 
+            message: 'Cannot modify your own role',
+          });
+        }
+
+        // Check if user has manage_user_roles privilege
+        const userPrivileges = req.user.role?.privileges || [];
+        const hasManageRoles = userPrivileges.some(p => p.code === 'manage_user_roles');
+        
+        if (!hasManageRoles) {
+          return res.status(403).json({ 
+            message: 'Insufficient privileges to modify user roles',
+          });
+        }
+
+        // Validate the new role exists
+        const roleDoc = await Role.findById(role).populate('privileges');
+        if (!roleDoc) {
+          return res.status(400).json({ message: 'Invalid role' });
+        }
+
+        // Prevent assigning superadmin role without proper privileges
+        if (roleDoc.name === 'superadmin' && !hasManageRoles) {
+          return res.status(403).json({ 
+            message: 'Insufficient privileges to assign superadmin role',
+          });
+        }
+      }
+
+      // Prevent users from deactivating themselves
+      if (isActive === false && req.params.id === req.user.id) {
+        return res.status(403).json({ 
+          message: 'Cannot deactivate your own account',
+        });
       }
 
       // Build update data
@@ -194,10 +252,6 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
         updateData.password = await bcrypt.hash(password, salt);
       }
       if (role) {
-        const roleDoc = await Role.findById(role);
-        if (!roleDoc) {
-          return res.status(400).json({ message: 'Invalid role' });
-        }
         updateData.role = role;
       }
       if (isActive !== undefined) {

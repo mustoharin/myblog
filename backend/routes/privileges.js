@@ -88,12 +88,61 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
 // Update privilege (superadmin only)
 router.put('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
   try {
-    const { name, description, code, isActive } = req.body;
-    const updateData = {};
+    const { name, description, code, isActive, module, moduleDisplayName, priority } = req.body;
+    
+    // Get the current privilege first
+    const currentPrivilege = await Privilege.findById(req.params.id);
+    if (!currentPrivilege) {
+      return res.status(404).json({ message: 'Privilege not found' });
+    }
 
+    // List of essential privileges that cannot be modified
+    const essentialPrivileges = [
+      'create_user', 'read_user', 'update_user', 'delete_user', 'manage_user_roles',
+      'manage_roles', 'create_post', 'read_post', 'update_post', 'delete_post',
+      'publish_post', 'manage_comments', 'change_password',
+    ];
+
+    // Prevent modification of essential privileges
+    if (essentialPrivileges.includes(currentPrivilege.code)) {
+      // Only allow updating description and isActive for essential privileges
+      if (name || code || module) {
+        return res.status(403).json({ 
+          message: 'Cannot modify name, code, or module of essential privilege. Only description and isActive can be updated.',
+        });
+      }
+    }
+
+    // If changing code or name, check for duplicates
+    if (code && code !== currentPrivilege.code) {
+      const existingByCode = await Privilege.findOne({ code, _id: { $ne: req.params.id } });
+      if (existingByCode) {
+        return res.status(400).json({ message: 'Privilege code already exists' });
+      }
+    }
+
+    if (name && name !== currentPrivilege.name) {
+      const existingByName = await Privilege.findOne({ name, _id: { $ne: req.params.id } });
+      if (existingByName) {
+        return res.status(400).json({ message: 'Privilege name already exists' });
+      }
+    }
+
+    // Validate module if provided
+    if (module && module !== currentPrivilege.module) {
+      const validModules = Privilege.getModules().map(m => m.code);
+      if (!validModules.includes(module)) {
+        return res.status(400).json({ message: 'Invalid module' });
+      }
+    }
+
+    const updateData = {};
     if (name) updateData.name = name;
     if (description) updateData.description = description;
     if (code) updateData.code = code;
+    if (module) updateData.module = module;
+    if (moduleDisplayName) updateData.moduleDisplayName = moduleDisplayName;
+    if (priority !== undefined) updateData.priority = priority;
     if (typeof isActive === 'boolean') updateData.isActive = isActive;
 
     const privilege = await Privilege.findByIdAndUpdate(

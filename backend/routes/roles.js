@@ -140,8 +140,40 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
 router.put('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
   try {
     const { name, description, privileges, isActive } = req.body;
-    const updateData = {};
+    
+    // Get the current role first
+    const currentRole = await Role.findById(req.params.id);
+    if (!currentRole) {
+      return res.status(404).json({ message: 'Role not found' });
+    }
 
+    // Prevent modification of superadmin role
+    if (currentRole.name === 'superadmin') {
+      return res.status(403).json({ 
+        message: 'Cannot modify superadmin role',
+      });
+    }
+
+    // Validate privileges if provided
+    if (privileges) {
+      if (!Array.isArray(privileges) || privileges.length === 0) {
+        return res.status(400).json({ 
+          message: 'Privileges must be a non-empty array',
+        });
+      }
+      
+      try {
+        const Privilege = require('../models/Privilege');
+        const validPrivileges = await Privilege.find({ _id: { $in: privileges } });
+        if (validPrivileges.length !== privileges.length) {
+          return res.status(400).json({ message: 'Invalid privilege ID' });
+        }
+      } catch (err) {
+        return res.status(400).json({ message: 'Invalid privilege ID' });
+      }
+    }
+
+    const updateData = {};
     if (name) updateData.name = name;
     if (description) updateData.description = description;
     if (privileges) updateData.privileges = privileges;

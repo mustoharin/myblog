@@ -385,4 +385,104 @@ describe('Role Routes', () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe('Superadmin Role Protection', () => {
+    it('should prevent modification of superadmin role name', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.superadminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'hacked_superadmin',
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify superadmin role');
+    });
+
+    it('should prevent modification of superadmin role privileges', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.superadminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          privileges: [privileges[0]._id], // Try to reduce to just one privilege
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify superadmin role');
+    });
+
+    it('should prevent deactivation of superadmin role', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.superadminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          isActive: false,
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify superadmin role');
+    });
+
+    it('should prevent modification of superadmin role description', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.superadminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          description: 'Modified description',
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify superadmin role');
+    });
+  });
+
+  describe('Role Update Validation', () => {
+    it('should validate privilege IDs when updating role', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          privileges: ['507f1f77bcf86cd799439011'], // Invalid privilege ID
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('Invalid privilege ID');
+    });
+
+    it('should prevent empty privilege array when updating role', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          privileges: [], // Empty array
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('non-empty array');
+    });
+
+    it('should allow updating role with valid privileges', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          privileges: [privileges[0]._id, privileges[1]._id],
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.privileges).toHaveLength(2);
+    });
+
+    it('should allow updating role description without modifying privileges', async () => {
+      const response = await request(app)
+        .put(`/api/roles/${roles.adminRole._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          description: 'Updated admin description',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.description).toBe('Updated admin description');
+    });
+  });
 });

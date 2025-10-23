@@ -1,11 +1,15 @@
 const request = require('supertest');
 const app = require('../server');
+const Role = require('../models/Role');
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 const {
   createInitialPrivileges,
   createInitialRoles,
   createTestUser,
   getSuperadminToken,
   getAdminToken,
+  getAuthToken,
 } = require('./setup');
 
 describe('User Routes', () => {
@@ -191,7 +195,6 @@ describe('User Routes', () => {
       expect(response.status).toBe(201);
       
       // Verify password is hashed in database
-      const User = require('../models/User');
       const user = await User.findById(response.body._id);
       expect(user.password).not.toBe('password123');
       expect(user.password).toMatch(/^\$2[aby]\$\d{1,2}\$[./A-Za-z0-9]{53}$/); // bcrypt hash pattern
@@ -514,6 +517,141 @@ describe('User Routes', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.message).toContain('unsafe content');
+    });
+  });
+
+  describe('Role Assignment RBAC', () => {
+    let editorUser, editorToken, editorRole;
+
+    beforeEach(async () => {
+      // Create editor role with update_user but without manage_user_roles
+      editorRole = await Role.create({
+        name: 'editor',
+        description: 'Editor',
+        privileges: privileges.filter(p => 
+          ['read_post', 'update_post', 'update_user', 'change_password'].includes(p.code)
+        ).map(p => p._id),
+      });
+
+      // Create a user with editor role using the helper (has update_user but not manage_user_roles)
+      editorUser = await createTestUser('editor', editorRole._id);
+      
+      // Get token using the helper that handles CAPTCHA
+      editorToken = await getAuthToken(app, 'editor', 'Password#12345!');
+    });
+
+    it('should prevent non-superadmin from creating superadmin users', async () => {
+      // Editor user tries to create a superadmin (but doesn't have create_user privilege)
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${editorToken}`)
+        .send({
+          username: 'newsuperadmin',
+          email: 'newsuperadmin@test.com',
+          password: 'password123',
+          role: roles.superadminRole._id,
+        });
+
+      // Should be blocked by checkRole middleware before reaching the superadmin check
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Insufficient privileges');
+    });
+
+    it('should allow superadmin to create superadmin users', async () => {
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          username: 'newsuperadmin',
+          email: 'newsuperadmin@test.com',
+          password: 'password123',
+          role: roles.superadminRole._id,
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.role.name).toBe('superadmin');
+    });
+
+    it('should prevent users without manage_user_roles from changing roles', async () => {
+      // Create a test user to modify
+      const testUser = await createTestUser('testuser', roles.regularRole._id);
+
+      // Editor user tries to change role (has update_user but not manage_user_roles)
+      const response = await request(app)
+        .put(`/api/users/${testUser._id}`)
+        .set('Authorization', `Bearer ${editorToken}`)
+        .send({
+          role: roles.adminRole._id,
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Insufficient privileges to modify user roles');
+    });
+
+    it('should allow superadmin to change user roles', async () => {
+      // Create a test user to modify
+      const testUser = await createTestUser('testuser2', roles.regularRole._id);
+
+      const response = await request(app)
+        .put(`/api/users/${testUser._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          role: roles.adminRole._id,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.role.name).toBe('admin');
+    });
+
+    it('should prevent users from modifying their own role', async () => {
+      const response = await request(app)
+        .put(`/api/users/${superadminUser._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          role: roles.regularRole._id,
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify your own role');
+    });
+
+    it('should prevent users from deactivating themselves', async () => {
+      const response = await request(app)
+        .put(`/api/users/${superadminUser._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          isActive: false,
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot deactivate your own account');
+    });
+
+    it('should allow superadmin to deactivate other users', async () => {
+      const response = await request(app)
+        .put(`/api/users/${adminUser._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          isActive: false,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.isActive).toBe(false);
+    });
+
+    it('should allow updating user without role change when user has update_user', async () => {
+      const testUser = await createTestUser('testuser3', roles.regularRole._id);
+
+      // Regular user updates email without touching role
+      const response = await request(app)
+        .put(`/api/users/${testUser._id}`)
+        .set('Authorization', `Bearer ${editorToken}`)
+        .send({
+          email: 'newemail@test.com',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.email).toBe('newemail@test.com');
     });
   });
 });

@@ -65,23 +65,6 @@ describe('Public API', () => {
       expect(response.body.pagination.currentPage).toBe(2);
       expect(response.body.pagination.totalPages).toBe(3); // ceil(16/6) = 3
     });
-
-    it.skip('should enforce rate limiting', async () => {
-      // Reset rate limiters
-      const { resetAllLimiters } = require('../middleware/rateLimiter');
-      resetAllLimiters();
-
-      // Make 1000 requests (reaching the 1000 per windowMs limit)
-      for (let i = 0; i < 1000; i++) {
-        await request(app).get('/api/public/posts');
-      }
-      
-      const response = await request(app)
-        .get('/api/public/posts')
-        .expect(429);
-
-      expect(response.body.message).toContain('Too many requests');
-    });
   });
 
   describe('GET /api/public/posts/:id', () => {
@@ -222,39 +205,6 @@ describe('Public API', () => {
           captchaSessionId: captchaResponse.body.sessionId,
         })
         .expect(400);
-    });
-
-    it.skip('should enforce comment rate limiting even with bypass token', async () => {
-      // Reset rate limiters
-      const { resetAllLimiters } = require('../middleware/rateLimiter');
-      resetAllLimiters();
-
-      // Make 100 comments sequentially and quickly (reaching the 100 per windowMs limit) with bypass token
-      for (let i = 0; i < 100; i++) {
-        await request(app)
-          .post(`/api/public/posts/${testPost._id}/comments`)
-          .send({
-            content: `Comment ${i}`,
-            name: 'Test User',
-            testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
-          })
-          .expect(201);
-      }
-
-      // Small delay to ensure we're still in the same window
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      // Attempt one more comment - should be rate limited even with bypass token
-      const response = await request(app)
-        .post(`/api/public/posts/${testPost._id}/comments`)
-        .send({
-          content: 'Rate limited comment',
-          name: 'Test User',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
-        })
-        .expect(429);
-
-      expect(response.body.message).toContain('Too many comments');
     });
 
     it('should validate comment length', async () => {

@@ -12,12 +12,10 @@ const canReplyToComments = async (req, res, next) => {
       });
     }
     
-    // Check if user has reply permission
-    const canReply = user.role && (
-      user.role.name === 'admin' || 
-      user.role.name === 'superadmin' ||
-      (user.role.privileges && user.role.privileges.some(p => p.code === 'reply_comments'))
-    );
+    // Check if user has reply permission (privilege-based only, no role name checks)
+    const canReply = user.role && 
+      user.role.privileges && 
+      user.role.privileges.some(p => p.code === 'reply_comments');
     
     if (!canReply) {
       return res.status(403).json({
@@ -48,12 +46,10 @@ const canModerateComments = async (req, res, next) => {
       });
     }
     
-    // Check if user has admin role or comment moderation privilege
-    const canModerate = user.role && (
-      user.role.name === 'admin' || 
-      user.role.name === 'superadmin' ||
-      (user.role.privileges && user.role.privileges.some(p => p.code === 'manage_comments'))
-    );
+    // Check if user has comment moderation privilege (privilege-based only, no role name checks)
+    const canModerate = user.role && 
+      user.role.privileges && 
+      user.role.privileges.some(p => p.code === 'manage_comments');
     
     if (!canModerate) {
       return res.status(403).json({

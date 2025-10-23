@@ -96,6 +96,13 @@ async function createInitialPrivileges() {
       moduleDisplayName: 'User Management',
     },
     {
+      name: 'Manage User Roles',
+      code: 'manage_user_roles',
+      description: 'Can assign and modify user roles',
+      module: 'user_management',
+      moduleDisplayName: 'User Management',
+    },
+    {
       name: 'Manage Roles',
       code: 'manage_roles',
       description: 'Can manage roles and privileges',
@@ -130,6 +137,34 @@ async function createInitialPrivileges() {
       module: 'content_management',
       moduleDisplayName: 'Content Management',
     },
+    {
+      name: 'Publish Post',
+      code: 'publish_post',
+      description: 'Can publish and unpublish posts',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management',
+    },
+    {
+      name: 'Manage Tags',
+      code: 'manage_tags',
+      description: 'Can create, edit, and delete tags',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management',
+    },
+    {
+      name: 'Manage Comments',
+      code: 'manage_comments',
+      description: 'Can moderate comments',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management',
+    },
+    {
+      name: 'Reply Comments',
+      code: 'reply_comments',
+      description: 'Can reply to comments',
+      module: 'content_management',
+      moduleDisplayName: 'Content Management',
+    },
   ];
 
   return await Privilege.insertMany(privileges);
@@ -146,7 +181,12 @@ async function createInitialRoles(privileges) {
   const adminRole = await Role.create({
     name: 'admin',
     description: 'Administrator',
-    privileges: privileges.filter(p => p.code.includes('post')).map(p => p._id),
+    privileges: privileges.filter(p => 
+      p.code.includes('post') || 
+      p.code.includes('comment') || 
+      p.code === 'manage_tags' ||
+      p.code === 'manage_media'
+    ).map(p => p._id),
   });
 
   const regularRole = await Role.create({

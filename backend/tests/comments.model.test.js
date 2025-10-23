@@ -330,14 +330,8 @@ describe('Comment Model', () => {
     });
 
     it('should check if user has reply privileges', async () => {
-      // Add comment reply privilege to regular role
-      const replyPrivilege = await Privilege.create({
-        name: 'reply_comments',
-        code: 'reply_comments',
-        description: 'Can reply to comments',
-        module: 'user_management',
-        moduleDisplayName: 'User Management'
-      });
+      // Add comment reply privilege to regular role (privilege already created in setup)
+      const replyPrivilege = await Privilege.findOne({ code: 'reply_comments' });
 
       await Role.findByIdAndUpdate(roles.regularRole._id, {
         $push: { privileges: replyPrivilege._id }
@@ -356,14 +350,8 @@ describe('Comment Model', () => {
     });
 
     it('should check if user has moderation privileges', async () => {
-      // Add comment moderation privilege to admin role
-      const moderatePrivilege = await Privilege.create({
-        name: 'manage_comments',
-        code: 'manage_comments',
-        description: 'Can moderate comments',
-        module: 'user_management',
-        moduleDisplayName: 'User Management'
-      });
+      // Add comment moderation privilege to admin role (privilege already created in setup)
+      const moderatePrivilege = await Privilege.findOne({ code: 'manage_comments' });
 
       await Role.findByIdAndUpdate(roles.adminRole._id, {
         $push: { privileges: moderatePrivilege._id }

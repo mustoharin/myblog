@@ -7,7 +7,7 @@ const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
 
 // Get all tags with pagination
-router.get('/', auth, checkRole(['read_post']), async (req, res) => {
+router.get('/', auth, checkRole(['manage_tags']), async (req, res) => {
   try {
     const paginateResults = require('../utils/pagination');
     const { page, limit, sort = '-createdAt', search } = req.query;
@@ -63,7 +63,7 @@ router.get('/', auth, checkRole(['read_post']), async (req, res) => {
 });
 
 // Get single tag by ID
-router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
+router.get('/:id', auth, checkRole(['manage_tags']), async (req, res) => {
   try {
     const tag = await Tag.findById(req.params.id);
     if (!tag) {
@@ -76,7 +76,7 @@ router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
 });
 
 // Create new tag
-router.post('/', auth, checkRole(['create_post']), async (req, res) => {
+router.post('/', auth, checkRole(['manage_tags']), async (req, res) => {
   try {
     const { name, displayName, description, color, isActive } = req.body;
 
@@ -138,7 +138,7 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
 });
 
 // Update tag
-router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
+router.put('/:id', auth, checkRole(['manage_tags']), async (req, res) => {
   try {
     const tag = await Tag.findById(req.params.id);
     if (!tag) {
@@ -180,7 +180,7 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
 });
 
 // Delete tag (soft delete)
-router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
+router.delete('/:id', auth, checkRole(['manage_tags']), async (req, res) => {
   try {
     const tag = await Tag.findById(req.params.id);
     if (!tag) {
@@ -210,7 +210,7 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
 });
 
 // Get tag statistics
-router.get('/:id/stats', auth, checkRole(['read_post']), async (req, res) => {
+router.get('/:id/stats', auth, checkRole(['manage_tags']), async (req, res) => {
   try {
     const tag = await Tag.findById(req.params.id);
     if (!tag) {
@@ -239,7 +239,7 @@ router.get('/:id/stats', auth, checkRole(['read_post']), async (req, res) => {
 });
 
 // Sync all tag post counts
-router.post('/sync-counts', auth, checkRole(['update_post']), async (req, res) => {
+router.post('/sync-counts', auth, checkRole(['manage_tags']), async (req, res) => {
   try {
     // First, get all unique tags from published posts
     const postTags = await Post.aggregate([

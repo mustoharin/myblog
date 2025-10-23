@@ -155,4 +155,204 @@ describe('Privilege Routes', () => {
       expect(response.status).toBe(200);
     });
   });
+  describe('Essential Privilege Protection', () => {
+    it('should prevent modification of essential privilege code', async () => {
+      // Try to modify manage_roles privilege code
+      const manageRolesPrivilege = privileges.find(p => p.code === 'manage_roles');
+      
+      const response = await request(app)
+        .put(`/api/privileges/${manageRolesPrivilege._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          code: 'hacked_privilege',
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify name, code, or module of essential privilege');
+    });
+
+    it('should prevent modification of essential privilege name', async () => {
+      const manageRolesPrivilege = privileges.find(p => p.code === 'manage_roles');
+      
+      const response = await request(app)
+        .put(`/api/privileges/${manageRolesPrivilege._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Hacked Privilege',
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify name, code, or module of essential privilege');
+    });
+
+    it('should prevent modification of essential privilege module', async () => {
+      const manageRolesPrivilege = privileges.find(p => p.code === 'manage_roles');
+      
+      const response = await request(app)
+        .put(`/api/privileges/${manageRolesPrivilege._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          module: 'content_management',
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.message).toContain('Cannot modify name, code, or module of essential privilege');
+    });
+
+    it('should allow updating description of essential privilege', async () => {
+      const manageRolesPrivilege = privileges.find(p => p.code === 'manage_roles');
+      
+      const response = await request(app)
+        .put(`/api/privileges/${manageRolesPrivilege._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          description: 'Updated description for manage roles',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.description).toBe('Updated description for manage roles');
+    });
+
+    it('should allow updating isActive status of essential privilege', async () => {
+      const manageRolesPrivilege = privileges.find(p => p.code === 'manage_roles');
+      
+      const response = await request(app)
+        .put(`/api/privileges/${manageRolesPrivilege._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          isActive: false,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.isActive).toBe(false);
+
+      // Restore it for other tests
+      await request(app)
+        .put(`/api/privileges/${manageRolesPrivilege._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({ isActive: true });
+    });
+  });
+
+  describe('Privilege Update Validation', () => {
+    it('should prevent duplicate privilege codes when updating', async () => {
+      // Create two custom privileges
+      const privilege1 = await request(app)
+        .post('/api/privileges')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Custom Privilege 1',
+          code: 'custom_priv_1',
+          description: 'First custom privilege',
+          module: 'system_administration',
+        });
+
+      const privilege2 = await request(app)
+        .post('/api/privileges')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Custom Privilege 2',
+          code: 'custom_priv_2',
+          description: 'Second custom privilege',
+          module: 'system_administration',
+        });
+
+      // Try to update privilege2 to have the same code as privilege1
+      const response = await request(app)
+        .put(`/api/privileges/${privilege2.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          code: 'custom_priv_1',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('Privilege code already exists');
+    });
+
+    it('should prevent duplicate privilege names when updating', async () => {
+      // Create two custom privileges
+      const privilege1 = await request(app)
+        .post('/api/privileges')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Unique Name 1',
+          code: 'unique_code_1',
+          description: 'First privilege',
+          module: 'system_administration',
+        });
+
+      const privilege2 = await request(app)
+        .post('/api/privileges')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Unique Name 2',
+          code: 'unique_code_2',
+          description: 'Second privilege',
+          module: 'system_administration',
+        });
+
+      // Try to update privilege2 to have the same name as privilege1
+      const response = await request(app)
+        .put(`/api/privileges/${privilege2.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Unique Name 1',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('Privilege name already exists');
+    });
+
+    it('should validate module when updating privilege', async () => {
+      // Create a custom privilege
+      const privilege = await request(app)
+        .post('/api/privileges')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Test Privilege',
+          code: 'test_priv',
+          description: 'Test privilege',
+          module: 'system_administration',
+        });
+
+      const response = await request(app)
+        .put(`/api/privileges/${privilege.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          module: 'invalid_module',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.message).toContain('Invalid module');
+    });
+
+    it('should allow updating custom privilege with valid data', async () => {
+      // Create a custom privilege
+      const privilege = await request(app)
+        .post('/api/privileges')
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Updateable Privilege',
+          code: 'updateable_priv',
+          description: 'Can be updated',
+          module: 'system_administration',
+        });
+
+      const response = await request(app)
+        .put(`/api/privileges/${privilege.body._id}`)
+        .set('Authorization', `Bearer ${superadminToken}`)
+        .send({
+          name: 'Updated Privilege Name',
+          code: 'updated_priv_code',
+          description: 'Updated description',
+          module: 'content_management',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.name).toBe('Updated Privilege Name');
+      expect(response.body.code).toBe('updated_priv_code');
+      expect(response.body.description).toBe('Updated description');
+      expect(response.body.module).toBe('content_management');
+    });
+  });
 });

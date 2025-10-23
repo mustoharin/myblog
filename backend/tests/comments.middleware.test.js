@@ -46,25 +46,7 @@ describe('Comment Auth Middleware', () => {
   beforeEach(async () => {
     privileges = await createInitialPrivileges();
     
-    // Add comment-specific privileges
-    const commentPrivileges = await Privilege.insertMany([
-      {
-        name: 'Reply Comments',
-        code: 'reply_comments',
-        description: 'Can reply to comments',
-        module: 'user_management',
-        moduleDisplayName: 'User Management'
-      },
-      {
-        name: 'Manage Comments',
-        code: 'manage_comments',
-        description: 'Can moderate comments',
-        module: 'user_management',
-        moduleDisplayName: 'User Management'
-      }
-    ]);
-
-    privileges = [...privileges, ...commentPrivileges];
+    // Comment privileges are now included in createInitialPrivileges()
     
     roles = await createInitialRoles(privileges);
     
@@ -75,17 +57,11 @@ describe('Comment Auth Middleware', () => {
       privileges: [] // No privileges
     });
     
-    // Add comment privileges to appropriate roles
-    await Role.findByIdAndUpdate(roles.superadminRole._id, {
-      $push: { privileges: { $each: commentPrivileges.map(p => p._id) } }
-    });
-    
-    await Role.findByIdAndUpdate(roles.adminRole._id, {
-      $push: { privileges: { $each: commentPrivileges.map(p => p._id) } }
-    });
-    
+    // Note: Admin and superadmin already have comment privileges from createInitialRoles()
+    // Just add reply privilege to regular user
+    const replyPrivilege = privileges.find(p => p.code === 'reply_comments');
     await Role.findByIdAndUpdate(roles.regularRole._id, {
-      $push: { privileges: commentPrivileges[0]._id } // Only reply privilege
+      $push: { privileges: replyPrivilege._id }
     });
 
     // Create test users
