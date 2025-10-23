@@ -58,7 +58,6 @@ router.get('/', auth, checkRole(['read_post']), async (req, res) => {
       items: tagsWithCounts,
     });
   } catch (err) {
-    console.error('Get tags error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -72,7 +71,6 @@ router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
     }
     res.json(tag);
   } catch (err) {
-    console.error('Get tag error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -135,7 +133,6 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       const message = Object.values(err.errors).map(error => error.message).join(', ');
       return res.status(400).json({ message });
     }
-    console.error('Create tag error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -178,7 +175,6 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
       const message = Object.values(err.errors).map(error => error.message).join(', ');
       return res.status(400).json({ message });
     }
-    console.error('Update tag error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -209,7 +205,6 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
     await tag.softDelete();
     res.status(204).send();
   } catch (err) {
-    console.error('Delete tag error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -239,7 +234,6 @@ router.get('/:id/stats', auth, checkRole(['read_post']), async (req, res) => {
       isActive: tag.isActive,
     });
   } catch (err) {
-    console.error('Get tag stats error:', err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -301,7 +295,6 @@ router.post('/sync-counts', auth, checkRole(['update_post']), async (req, res) =
       totalTags: postTags.length,
     });
   } catch (err) {
-    console.error('Sync tag counts error:', err);
     res.status(500).json({ message: err.message });
   }
 });

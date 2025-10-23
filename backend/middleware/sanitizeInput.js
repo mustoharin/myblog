@@ -43,7 +43,6 @@ const sanitizeInput = (req, res, next) => {
     
     next();
   } catch (error) {
-    console.error('Input sanitization error:', error);
     res.status(400).json({ message: 'Invalid input format' });
   }
 };

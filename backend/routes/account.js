@@ -48,7 +48,6 @@ router.get('/profile', auth, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get profile error:', error);
     res.status(500).json({ message: 'Error fetching profile' });
   }
 });
@@ -146,7 +145,6 @@ router.put('/profile', auth, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update profile error:', error);
     res.status(500).json({ message: 'Error updating profile' });
   }
 });
@@ -218,7 +216,6 @@ router.post('/change-password', auth, async (req, res) => {
     
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
-    console.error('Password change error:', error);
     res.status(500).json({ message: 'Error changing password' });
   }
 });

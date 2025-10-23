@@ -65,7 +65,6 @@ activitySchema.statics.logActivity = async function(type, actor, target, targetI
 
     return await this.create(activityData);
   } catch (error) {
-    console.error('Failed to log activity:', error);
     // Don't throw error to avoid breaking main operations
     return null;
   }

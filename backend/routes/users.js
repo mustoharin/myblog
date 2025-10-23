@@ -149,7 +149,6 @@ router.post('/', auth, checkRole(['create_user']), async (req, res) => {
       const message = Object.values(error.errors).map(err => err.message).join(', ');
       return res.status(400).json({ message });
     }
-    console.error('User creation error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

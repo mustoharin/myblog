@@ -27,7 +27,6 @@ router.get('/', auth, checkRole(['manage_roles']), async (req, res) => {
       res.json(result);
     }
   } catch (error) {
-    console.error('Privileges fetch error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -38,7 +37,6 @@ router.get('/modules', auth, checkRole(['manage_roles']), async (req, res) => {
     const modules = Privilege.getModules();
     res.json({ modules });
   } catch (error) {
-    console.error('Modules fetch error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -83,7 +81,6 @@ router.post('/', auth, checkRole(['manage_roles']), async (req, res) => {
     await privilege.save();
     res.status(201).json(privilege);
   } catch (error) {
-    console.error('Privilege creation error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -144,7 +141,6 @@ router.delete('/:id', auth, checkRole(['manage_roles']), async (req, res) => {
     await privilege.softDelete();
     res.status(200).json({ message: 'Privilege deleted successfully' });
   } catch (error) {
-    console.error('Privilege delete error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

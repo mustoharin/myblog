@@ -49,7 +49,6 @@ router.get('/stats', auth, checkRole(['read_post']), async (req, res) => {
       totalComments,
     });
   } catch (error) {
-    console.error('Admin stats error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -113,7 +112,6 @@ router.get('/posts/popular', auth, checkRole(['read_post']), async (req, res) =>
     
     res.json({ posts: formattedPosts });
   } catch (error) {
-    console.error('Popular posts error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -145,7 +143,6 @@ router.get('/users/active', auth, checkRole(['read_user']), async (req, res) => 
     
     res.json({ users });
   } catch (error) {
-    console.error('Active users error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -215,7 +212,6 @@ router.get('/activities', auth, checkRole(['read_post']), async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Activities error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -318,7 +314,6 @@ router.get('/system/status', auth, checkRole(['read_post']), async (req, res) =>
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('System status error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

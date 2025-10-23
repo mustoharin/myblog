@@ -26,7 +26,6 @@ async function enrichTags(tags) {
       };
     });
   } catch (error) {
-    console.error('Error enriching tags:', error);
     // Fallback to simple tag format
     return tags.map(tag => ({
       name: tag,
@@ -134,7 +133,6 @@ router.get('/tags', baseRateLimiter, async (req, res) => {
 
     res.json(enrichedTags);
   } catch (err) {
-    console.error('Public tags error:', err);
     res.status(500).json({ message: err.message });
   }
 });

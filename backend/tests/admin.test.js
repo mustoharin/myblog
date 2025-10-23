@@ -939,7 +939,6 @@ describe('Admin Routes', () => {
           
           // Skip if either date is invalid (shouldn't happen but be safe)
           if (isNaN(currentTime) || isNaN(nextTime)) {
-            console.log('Invalid date found:', { current: current.createdAt, next: next.createdAt });
             continue;
           }
           

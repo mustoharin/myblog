@@ -28,7 +28,6 @@ describe('Auth Routes', () => {
     it('should login successfully with test bypass token', async () => {
       // Verify the bypass token is set in the environment
       const bypassToken = process.env.TEST_BYPASS_CAPTCHA_TOKEN;
-      console.log('Bypass token from env:', bypassToken);
       expect(bypassToken).toBe('e2e_test_bypass_captcha_2025');
 
       const response = await request(app)

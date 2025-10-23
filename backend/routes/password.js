@@ -20,7 +20,6 @@ router.get('/requirements', (req, res) => {
       requirements: requirements.map(req => req.replace(/^- /, '').replace(/^\s+\* /, '')),
     });
   } catch (error) {
-    console.error('Get requirements error:', error);
     res.status(500).json({ message: 'Error fetching password requirements' });
   }
 });
@@ -79,7 +78,6 @@ router.post('/forgot', async (req, res) => {
 
     res.json({ message: 'Password reset email sent' });
   } catch (error) {
-    console.error('Password reset error:', error);
     res.status(500).json({ message: 'Error sending password reset email' });
   }
 });
@@ -153,13 +151,11 @@ router.post('/change', auth, roleAuth(['change_password']), async (req, res) => 
     try {
       await user.save();
     } catch (error) {
-      console.error('Error saving password:', error);
       throw error;
     }
     
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
-    console.error('Password change error:', error);
     res.status(500).json({ message: 'Error changing password' });
   }
 });
@@ -207,13 +203,11 @@ router.post('/reset/:token', async (req, res) => {
     try {
       await user.save();
     } catch (error) {
-      console.error('Error saving password:', error);
       throw error;
     }
 
     res.status(200).json({ message: 'Password has been reset' });
   } catch (error) {
-    console.error('Password reset error:', error);
     res.status(500).json({ message: 'Error resetting password' });
   }
 });
