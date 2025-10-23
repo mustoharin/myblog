@@ -2,35 +2,12 @@
 
 A robust, production-ready Node.js/Express REST API with enterprise-grade security, comprehensive testing, and role-based access control.
 
-![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)A robust, production-ready Node.js/Express REST API with enterprise-grade security, comprehensive testing, and role-based access control.## 🚀 Overview
-
+![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
 ![Express](https://img.shields.io/badge/express-4.x-blue.svg)
-
-![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)A robust Node.js/Express.js REST API powering a modern blogging platform with enterprise-level security, comprehensive admin capabilities, unified comment management system, and scalable architecture. Built with MongoDB for flexible data management and extensive testing coverage.
-
+![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)
 ![Tests](https://img.shields.io/badge/tests-379%20passing-brightgreen.svg)
-
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
-
-
-
----![Express](https://img.shields.io/badge/express-4.x-blue.svg)![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
-
-
-
-## 🚀 Quick Start![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)![Express](https://img.shields.io/badge/express-4.x-blue.svg)
-
-
-
-### Prerequisites![Tests](https://img.shields.io/badge/tests-379%20passing-brightgreen.svg)![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)
-
-- Node.js 20+
-
-- MongoDB 6.x![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)![Tests](https://img.shields.io/badge/tests-379%20passing-brightgreen.svg)
-
-- npm or yarn
-
-![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen.svg)
+![Express](https://img.shields.io/badge/express-4.x-blue.svg)![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
 
 **Response Fields:**
 - `database`:
