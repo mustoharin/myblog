@@ -273,6 +273,8 @@ npm run test:watch
 
 **Coverage**: 99%+ with comprehensive security and integration testing
 
+
+
 ## 🌐 Service URLs & Endpoints
 
 ### Development Services
@@ -326,23 +328,17 @@ curl http://localhost:5002/api/admin/stats \
 **📖 For complete API documentation with request/response examples, see [Backend README](./backend/README.md)**
 
 ## Security Best Practices
-- ✅ Secure password storage with bcrypt (10 salt rounds)
-- ✅ CAPTCHA protection against bots and brute force attacks
-- ✅ Rate limiting for API endpoints (1000 req/15min, configurable)
-- ✅ JWT token validation with 7-day expiration
-- ✅ XSS protection with DOMPurify HTML sanitization
-- ✅ Input validation and sanitization on all endpoints
-- ✅ Secure HTTP headers with helmet.js
-- ✅ Role-based access control with granular privileges
-- ✅ Password complexity requirements (12+ chars, mixed case, numbers, symbols)
-- ✅ Failed login attempts don't reveal user existence
-- ✅ Last login tracking for security auditing
-- ✅ Inactive user access control (blocked login and API requests)
-- ✅ Atomic database operations to prevent race conditions
-- ✅ Environment variables for sensitive configuration
-- ✅ Password reset tokens with time-based expiration
-- ✅ Soft delete implementation for data preservation and security
-- ✅ Referential integrity maintenance without cascading deletions
+
+- ✅ **Password Security**: bcrypt hashing (12 rounds) with complexity requirements (12+ chars)
+- ✅ **CAPTCHA Protection**: Bot prevention and brute force protection
+- ✅ **Rate Limiting**: 1000 req/15min (configurable per endpoint)
+- ✅ **JWT Authentication**: 7-day token expiration with secure validation
+- ✅ **XSS Protection**: DOMPurify sanitization on all user content
+- ✅ **NoSQL Injection Prevention**: Input sanitization middleware
+- ✅ **Security Headers**: Helmet.js (CSP, HSTS, X-Frame-Options)
+- ✅ **RBAC**: Granular privilege-based access control
+- ✅ **Soft Delete**: Data preservation with restore capability
+- ✅ **Audit Logging**: Last login tracking and activity monitoring
 
 ## 🚀 Quick Start Guide
 
@@ -396,63 +392,7 @@ curl http://localhost:5002/api/admin/stats \
 - **Database**: Persistent volumes with automatic backups
 - **Networking**: Isolated container networking
 
-## 📚 API Documentation
-
-### Authentication Endpoints
-```bash
-# Get CAPTCHA for authentication
-GET /api/auth/captcha
-
-# User login with CAPTCHA
-POST /api/auth/login
-{
-  "username": "superadmin",
-  "password": "SuperAdmin123!",
-  "captchaSessionId": "session-id",
-  "captchaText": "ABCD"
-}
-
-# User logout
-POST /api/auth/logout
-```
-
-### Admin Endpoints
-```bash
-# Dashboard statistics
-GET /api/admin/stats
-
-# User management
-GET /api/users
-POST /api/users
-PUT /api/users/:id
-DELETE /api/users/:id
-
-# Post management
-GET /api/posts
-POST /api/posts
-PUT /api/posts/:id
-DELETE /api/posts/:id
-
-# Activity monitoring
-GET /api/admin/activities
-```
-
-### Public Endpoints
-```bash
-# Public blog posts
-GET /api/public/posts
-
-# Individual post with view tracking
-GET /api/public/posts/:id
-
-# Search posts
-GET /api/public/posts/search?q=query
-
-# Tag-based filtering
-GET /api/public/posts?tags=javascript,react
-```
-
-## 🛠️ Development
+## ️ Development
 
 ### Project Structure
 ```
@@ -488,54 +428,17 @@ myblog/
    docker compose up -d
    
    # Make changes and test
-   npm test
-   ```
-
-2. **Testing**:
-   ```bash
-   # Backend tests
    cd backend && npm test
-   
-   # Frontend tests
-   cd frontend && npm test
-   
-   # Integration tests
-   npm run test:integration
    ```
 
-3. **Code Quality**:
+2. **Code Quality**:
    ```bash
    # Linting
    npm run lint
    
-   # Format code
-   npm run format
-   
-   # Type checking
-   npm run type-check
+   # Run all tests
+   npm test
    ```
-
-## 🔒 Security Features
-
-### Authentication Security
-- **JWT Tokens** with configurable expiration
-- **CAPTCHA Protection** against automated attacks
-- **Rate Limiting** on authentication endpoints
-- **Password Complexity** requirements enforced
-- **Brute Force Protection** with progressive delays
-
-### Data Security
-- **Input Sanitization** with DOMPurify
-- **XSS Protection** on all user inputs
-- **SQL Injection Prevention** via Mongoose ODM
-- **CORS Configuration** for cross-origin requests
-- **Security Headers** with helmet.js
-
-### Access Control
-- **Role-Based Permissions** with granular privileges
-- **Route Protection** with middleware authentication
-- **Admin Panel Security** with privilege validation
-- **Session Management** with secure logout
 
 ## 🤝 Contributing
 
@@ -568,94 +471,18 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ### Documentation
 - **Backend API**: See [backend/README.md](backend/README.md)
 - **Frontend Guide**: See [frontend/README.md](frontend/README.md)
-- **API Documentation**: Available at `/api-docs` when running
 
 ### Issues & Questions
 - **Bug Reports**: Use GitHub Issues
 - **Feature Requests**: Create a detailed issue
 - **Security Issues**: Contact maintainers directly
 
-### Performance & Monitoring
-- **Database Indexing**: Optimized for common queries
-- **Caching Strategy**: Redis integration ready
-- **Logging**: Structured logs with Winston
-- **Monitoring**: Health checks and metrics endpoints
-
 ---
 
+<div align="center">
+
 **Built with ❤️ using the MERN Stack**
-  - Performance metrics (server uptime, response times)
-  - Collections overview (posts, users, comments counts)
-  - Auto-refreshes every 60 seconds
-  - Human-readable uptime format (days/hours or hours/minutes)
-  - Real-time server timestamp for sync verification
 
-## Performance Features
+**[Report Bug](../../issues)** · **[Request Feature](../../issues/new)** · **[Documentation](./backend/README.md)**
 
-### Database Optimization
-- Strategic indexes on frequently queried fields
-- Text indexes for full-text search on posts
-- Compound indexes for complex queries
-- Views field indexed for popular posts sorting
-- lastLogin indexed for user activity queries
-
-### Caching Recommendations
-- Redis caching for popular posts (5-minute TTL)
-- Dashboard statistics caching with invalidation
-- Role/privilege in-memory caching
-
-## Documentation
-
-- **[Backend API Documentation](./backend/README.md)** - Comprehensive backend API guide
-- **[Frontend Documentation](./frontend/README.md)** - React component documentation
-- **[Contributing Guide](./CONTRIBUTING.md)** - Development workflow and guidelines
-
-## Key Technologies & Patterns
-
-### Backend Architecture
-- **RESTful API Design**: Clean, intuitive endpoints
-- **Middleware Pattern**: Modular authentication, validation, and rate limiting
-- **Repository Pattern**: Mongoose models with schema validation
-- **Error Handling**: Centralized error handling with meaningful messages
-- **Testing**: Comprehensive Jest test suite with 99%+ coverage
-
-### Frontend Architecture
-- **Component-Based**: Reusable React components
-- **Context API**: Global state management for authentication
-- **Protected Routes**: Role-based component rendering
-- **Form Validation**: Formik + Yup for robust validation
-- **Responsive Design**: Material-UI Grid system for all devices
-
-### Database Design
-- **Schema Validation**: Mongoose schemas with XSS protection
-- **Strategic Indexing**: Optimized queries for search and sorting
-- **Atomic Operations**: Thread-safe counters and updates
-
-#### SAST Analysis Results
-- **Backend**: 379 tests passing with comprehensive security coverage
-- **Frontend**: Production build successful with security enhancements  
-- **Penetration Testing**: Resistant to XSS, injection, and common web attacks
-- **Code Quality**: ESLint security rules integrated into development workflow
-
-## 📄 License
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## 🤝 Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Run security tests: `npm run lint && npm test`
-4. Submit a pull request
-
-## 🆘 Support
-For issues and support, please open a GitHub issue with detailed information about your environment and the problem you're experiencing.
-- **Reference Relationships**: Populated joins for related data
-
-## Contributing
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-This project is licensed under the MIT License.
+</div>
