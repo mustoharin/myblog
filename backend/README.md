@@ -1,4 +1,4 @@
-# MyBlog Backend API# MyBlog Backend API# MyBlog Backend API
+# MyBlog Backend API
 
 A robust, production-ready Node.js/Express REST API with enterprise-grade security, comprehensive testing, and role-based access control.
 
