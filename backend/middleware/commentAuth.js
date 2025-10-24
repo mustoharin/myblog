@@ -8,7 +8,7 @@ const canReplyToComments = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required to reply to comments'
+        message: 'Authentication required to reply to comments',
       });
     }
     
@@ -20,7 +20,7 @@ const canReplyToComments = async (req, res, next) => {
     if (!canReply) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to reply to comments'
+        message: 'You do not have permission to reply to comments',
       });
     }
     
@@ -29,7 +29,7 @@ const canReplyToComments = async (req, res, next) => {
     res.status(500).json({
       success: false,
       message: 'Error checking comment permissions',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -42,7 +42,7 @@ const canModerateComments = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
     
@@ -54,7 +54,7 @@ const canModerateComments = async (req, res, next) => {
     if (!canModerate) {
       return res.status(403).json({
         success: false,
-        message: 'You do not have permission to moderate comments'
+        message: 'You do not have permission to moderate comments',
       });
     }
     
@@ -63,7 +63,7 @@ const canModerateComments = async (req, res, next) => {
     res.status(500).json({
       success: false,
       message: 'Error checking moderation permissions',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -93,7 +93,7 @@ const commentRateLimit = (req, res, next) => {
   if (recentSubmissions.length >= maxComments) {
     return res.status(429).json({
       success: false,
-      message: 'Too many comments submitted. Please wait before commenting again.'
+      message: 'Too many comments submitted. Please wait before commenting again.',
     });
   }
   
@@ -107,5 +107,5 @@ const commentRateLimit = (req, res, next) => {
 module.exports = {
   canReplyToComments,
   canModerateComments,
-  commentRateLimit
+  commentRateLimit,
 };

@@ -54,14 +54,14 @@ describe('Comment Auth Middleware', () => {
     const noPermissionRole = await Role.create({
       name: 'nopermission',
       description: 'No Permission Role',
-      privileges: [] // No privileges
+      privileges: [], // No privileges
     });
     
     // Note: Admin and superadmin already have comment privileges from createInitialRoles()
     // Just add reply privilege to regular user
     const replyPrivilege = privileges.find(p => p.code === 'reply_comments');
     await Role.findByIdAndUpdate(roles.regularRole._id, {
-      $push: { privileges: replyPrivilege._id }
+      $push: { privileges: replyPrivilege._id },
     });
 
     // Create test users
@@ -79,7 +79,7 @@ describe('Comment Auth Middleware', () => {
       .send({
         username: 'superadmin',
         password: 'Password#12345!',
-        testBypassToken: bypassToken
+        testBypassToken: bypassToken,
       });
     superadminToken = superadminAuth.body.token;
 
@@ -88,7 +88,7 @@ describe('Comment Auth Middleware', () => {
       .send({
         username: 'admin',
         password: 'Password#12345!',
-        testBypassToken: bypassToken
+        testBypassToken: bypassToken,
       });
     adminToken = adminAuth.body.token;
 
@@ -97,7 +97,7 @@ describe('Comment Auth Middleware', () => {
       .send({
         username: 'regular',
         password: 'Password#12345!',
-        testBypassToken: bypassToken
+        testBypassToken: bypassToken,
       });
     regularToken = regularAuth.body.token;
 
@@ -106,7 +106,7 @@ describe('Comment Auth Middleware', () => {
       .send({
         username: 'nopermission',
         password: 'Password#12345!',
-        testBypassToken: bypassToken
+        testBypassToken: bypassToken,
       });
     noPermissionToken = noPermissionAuth.body.token;
   });
@@ -242,7 +242,7 @@ describe('Comment Auth Middleware', () => {
         max: 2, // Very low limit for testing
         message: {
           success: false,
-          message: 'Too many comment requests from this IP, please try again later.'
+          message: 'Too many comment requests from this IP, please try again later.',
         },
         standardHeaders: true,
         legacyHeaders: false,
@@ -291,12 +291,12 @@ describe('Comment Auth Middleware', () => {
       
       const regularUserWithRole = await User.findById(regularUser._id).populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
 
       const noPermissionUserWithRole = await User.findById(noPermissionUser._id).populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
 
       // Regular user should have reply permission
@@ -313,12 +313,12 @@ describe('Comment Auth Middleware', () => {
       
       const adminUserWithRole = await User.findById(adminUser._id).populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
 
       const regularUserWithRole = await User.findById(regularUser._id).populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
 
       // Admin user should have moderation permission

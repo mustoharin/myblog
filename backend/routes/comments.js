@@ -42,7 +42,7 @@ router.get('/post/:postId', optionalAuth, async (req, res) => {
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: 'Post not found'
+        message: 'Post not found',
       });
     }
     
@@ -54,17 +54,17 @@ router.get('/post/:postId', optionalAuth, async (req, res) => {
         // Admin requesting all comments - get them separately
         const allComments = await Comment.find({
           post: postId,
-          parentComment: null
+          parentComment: null,
         })
-        .populate('author.user', 'username fullName')
-        .populate({
-          path: 'replies',
-          populate: {
-            path: 'author.user',
-            select: 'username fullName'
-          }
-        })
-        .sort({ createdAt: -1 });
+          .populate('author.user', 'username fullName')
+          .populate({
+            path: 'replies',
+            populate: {
+              path: 'author.user',
+              select: 'username fullName',
+            },
+          })
+          .sort({ createdAt: -1 });
         
         // Paginate results
         const startIndex = (page - 1) * limit;
@@ -79,8 +79,8 @@ router.get('/post/:postId', optionalAuth, async (req, res) => {
             totalPages: Math.ceil(allComments.length / limit),
             totalComments: allComments.length,
             hasNext: endIndex < allComments.length,
-            hasPrev: page > 1
-          }
+            hasPrev: page > 1,
+          },
         });
       } else {
         commentStatus = status;
@@ -102,14 +102,14 @@ router.get('/post/:postId', optionalAuth, async (req, res) => {
         totalPages: Math.ceil(comments.length / limit),
         totalComments: comments.length,
         hasNext: endIndex < comments.length,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error fetching comments',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -123,7 +123,7 @@ router.post('/', commentRateLimit, optionalAuth, conditionalCaptchaValidation, s
     if (!content || !postId) {
       return res.status(400).json({
         success: false,
-        message: 'Content and post ID are required'
+        message: 'Content and post ID are required',
       });
     }
     
@@ -131,7 +131,7 @@ router.post('/', commentRateLimit, optionalAuth, conditionalCaptchaValidation, s
     if (!isXssSafe(content)) {
       return res.status(400).json({
         success: false,
-        message: 'Comment contains invalid content'
+        message: 'Comment contains invalid content',
       });
     }
     
@@ -140,7 +140,7 @@ router.post('/', commentRateLimit, optionalAuth, conditionalCaptchaValidation, s
     if (!post) {
       return res.status(404).json({
         success: false,
-        message: 'Post not found'
+        message: 'Post not found',
       });
     }
     
@@ -149,14 +149,14 @@ router.post('/', commentRateLimit, optionalAuth, conditionalCaptchaValidation, s
       content: content.trim(),
       post: postId,
       ipAddress: req.ip || req.connection.remoteAddress,
-      userAgent: req.get('User-Agent')
+      userAgent: req.get('User-Agent'),
     };
     
     // Set author information
     if (req.user) {
       // Authenticated user
       commentData.author = {
-        user: req.user._id
+        user: req.user._id,
       };
       // Auto-approve comments from authenticated users
       commentData.status = 'approved';
@@ -165,14 +165,14 @@ router.post('/', commentRateLimit, optionalAuth, conditionalCaptchaValidation, s
       if (!authorName || !authorEmail) {
         return res.status(400).json({
           success: false,
-          message: 'Name and email are required for anonymous comments'
+          message: 'Name and email are required for anonymous comments',
         });
       }
       
       commentData.author = {
         name: authorName.trim(),
         email: authorEmail.trim().toLowerCase(),
-        website: authorWebsite ? authorWebsite.trim() : undefined
+        website: authorWebsite ? authorWebsite.trim() : undefined,
       };
       // Anonymous comments need moderation
       commentData.status = 'pending';
@@ -187,13 +187,13 @@ router.post('/', commentRateLimit, optionalAuth, conditionalCaptchaValidation, s
     res.status(201).json({
       success: true,
       message: req.user ? 'Comment posted successfully' : 'Comment submitted for moderation',
-      comment
+      comment,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error creating comment',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -207,7 +207,7 @@ router.post('/reply/:commentId', auth, canReplyToComments, sanitizeInput, async 
     if (!content) {
       return res.status(400).json({
         success: false,
-        message: 'Reply content is required'
+        message: 'Reply content is required',
       });
     }
     
@@ -215,7 +215,7 @@ router.post('/reply/:commentId', auth, canReplyToComments, sanitizeInput, async 
     if (!isXssSafe(content)) {
       return res.status(400).json({
         success: false,
-        message: 'Reply contains invalid content'
+        message: 'Reply contains invalid content',
       });
     }
     
@@ -224,7 +224,7 @@ router.post('/reply/:commentId', auth, canReplyToComments, sanitizeInput, async 
     if (!parentComment) {
       return res.status(404).json({
         success: false,
-        message: 'Parent comment not found'
+        message: 'Parent comment not found',
       });
     }
     
@@ -234,11 +234,11 @@ router.post('/reply/:commentId', auth, canReplyToComments, sanitizeInput, async 
       post: parentComment.post._id,
       parentComment: commentId,
       author: {
-        user: req.user._id
+        user: req.user._id,
       },
       status: 'approved', // Auto-approve replies from authorized users
       ipAddress: req.ip || req.connection.remoteAddress,
-      userAgent: req.get('User-Agent')
+      userAgent: req.get('User-Agent'),
     });
     
     await reply.save();
@@ -247,13 +247,13 @@ router.post('/reply/:commentId', auth, canReplyToComments, sanitizeInput, async 
     res.status(201).json({
       success: true,
       message: 'Reply posted successfully',
-      comment: reply
+      comment: reply,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error creating reply',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -267,7 +267,7 @@ router.get('/admin/all', auth, canModerateComments, async (req, res) => {
       limit = 20, 
       sortBy = 'createdAt', 
       sortOrder = 'desc',
-      search 
+      search, 
     } = req.query;
     
     // Build query
@@ -280,7 +280,7 @@ router.get('/admin/all', auth, canModerateComments, async (req, res) => {
       query.$or = [
         { content: { $regex: search, $options: 'i' } },
         { 'author.name': { $regex: search, $options: 'i' } },
-        { 'author.email': { $regex: search, $options: 'i' } }
+        { 'author.email': { $regex: search, $options: 'i' } },
       ];
     }
     
@@ -306,14 +306,14 @@ router.get('/admin/all', auth, canModerateComments, async (req, res) => {
         totalPages: Math.ceil(total / limit),
         totalComments: total,
         hasNext: skip + comments.length < total,
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error fetching comments',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -327,7 +327,7 @@ router.patch('/:id/status', auth, canModerateComments, async (req, res) => {
     if (!['approved', 'rejected', 'spam'].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid status. Must be approved, rejected, or spam'
+        message: 'Invalid status. Must be approved, rejected, or spam',
       });
     }
     
@@ -336,29 +336,29 @@ router.patch('/:id/status', auth, canModerateComments, async (req, res) => {
       {
         status,
         moderatedBy: req.user._id,
-        moderatedAt: new Date()
+        moderatedAt: new Date(),
       },
-      { new: true }
+      { new: true },
     ).populate('author.user', 'username fullName')
-     .populate('post', 'title slug');
+      .populate('post', 'title slug');
     
     if (!comment) {
       return res.status(404).json({
         success: false,
-        message: 'Comment not found'
+        message: 'Comment not found',
       });
     }
     
     res.json({
       success: true,
       message: `Comment ${status} successfully`,
-      comment
+      comment,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error moderating comment',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -372,7 +372,7 @@ router.delete('/:id', auth, canModerateComments, async (req, res) => {
     if (!comment) {
       return res.status(404).json({
         success: false,
-        message: 'Comment not found'
+        message: 'Comment not found',
       });
     }
     
@@ -382,13 +382,13 @@ router.delete('/:id', auth, canModerateComments, async (req, res) => {
     
     res.json({
       success: true,
-      message: 'Comment deleted successfully'
+      message: 'Comment deleted successfully',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error deleting comment',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -401,14 +401,14 @@ router.patch('/admin/bulk-action', auth, canModerateComments, async (req, res) =
     if (!commentIds || !Array.isArray(commentIds) || commentIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Comment IDs array is required'
+        message: 'Comment IDs array is required',
       });
     }
     
     if (!action) {
       return res.status(400).json({
         success: false,
-        message: 'Action is required'
+        message: 'Action is required',
       });
     }
     
@@ -421,8 +421,8 @@ router.patch('/admin/bulk-action', auth, canModerateComments, async (req, res) =
           { 
             status: 'approved',
             moderatedBy: req.user._id,
-            moderatedAt: new Date()
-          }
+            moderatedAt: new Date(),
+          },
         );
         result.updatedCount = result.modifiedCount;
         break;
@@ -433,8 +433,8 @@ router.patch('/admin/bulk-action', auth, canModerateComments, async (req, res) =
           { 
             status: 'rejected',
             moderatedBy: req.user._id,
-            moderatedAt: new Date()
-          }
+            moderatedAt: new Date(),
+          },
         );
         result.updatedCount = result.modifiedCount;
         break;
@@ -445,8 +445,8 @@ router.patch('/admin/bulk-action', auth, canModerateComments, async (req, res) =
           { 
             status: 'spam',
             moderatedBy: req.user._id,
-            moderatedAt: new Date()
-          }
+            moderatedAt: new Date(),
+          },
         );
         result.updatedCount = result.modifiedCount;
         break;
@@ -461,20 +461,20 @@ router.patch('/admin/bulk-action', auth, canModerateComments, async (req, res) =
       default:
         return res.status(400).json({
           success: false,
-          message: 'Invalid action. Must be approve, reject, spam, or delete'
+          message: 'Invalid action. Must be approve, reject, spam, or delete',
         });
     }
     
     res.json({
       success: true,
       message: `Bulk ${action} completed successfully`,
-      ...result
+      ...result,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error performing bulk action',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -486,14 +486,14 @@ router.get('/admin/stats', auth, canModerateComments, async (req, res) => {
       {
         $group: {
           _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
     
     const totalComments = await Comment.countDocuments();
     const recentComments = await Comment.countDocuments({
-      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
     });
     
     const formattedStats = {
@@ -502,7 +502,7 @@ router.get('/admin/stats', auth, canModerateComments, async (req, res) => {
       approved: 0,
       pending: 0,
       rejected: 0,
-      spam: 0
+      spam: 0,
     };
     
     stats.forEach(stat => {
@@ -511,13 +511,13 @@ router.get('/admin/stats', auth, canModerateComments, async (req, res) => {
     
     res.json({
       success: true,
-      stats: formattedStats
+      stats: formattedStats,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'Error fetching comment statistics',
-      error: error.message
+      error: error.message,
     });
   }
 });

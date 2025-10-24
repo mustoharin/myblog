@@ -1,6 +1,11 @@
 // Set test environment first before any imports
 process.env.NODE_ENV = 'test';
 
+// Mock uuid before any imports that use it
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'test-uuid-12345'),
+}));
+
 const mongoose = require('mongoose');
 const Role = require('../models/Role');
 const Privilege = require('../models/Privilege');
@@ -201,8 +206,7 @@ async function createInitialRoles(privileges) {
       p.code === 'manage_tags' ||
       p.code === 'manage_media' ||
       p.code === 'view_activities' ||
-      p.code === 'view_analytics'
-    ).map(p => p._id),
+      p.code === 'view_analytics').map(p => p._id),
   });
 
   const regularRole = await Role.create({

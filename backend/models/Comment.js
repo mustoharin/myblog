@@ -5,7 +5,7 @@ const commentSchema = new mongoose.Schema({
     type: String,
     required: true,
     maxlength: 1000,
-    trim: true
+    trim: true,
   },
   
   // Author information for both visitors and registered users
@@ -14,92 +14,92 @@ const commentSchema = new mongoose.Schema({
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: false
+      required: false,
     },
     
     // For anonymous visitors
     name: {
       type: String,
-      required: function() {
-        return !this.author.user;
-      },
-      maxlength: 100,
-      trim: true
-    },
-    email: {
-      type: String,
-      required: function() {
+      required() {
         return !this.author.user;
       },
       maxlength: 100,
       trim: true,
-      lowercase: true
+    },
+    email: {
+      type: String,
+      required() {
+        return !this.author.user;
+      },
+      maxlength: 100,
+      trim: true,
+      lowercase: true,
     },
     website: {
       type: String,
       required: false,
       maxlength: 200,
-      trim: true
-    }
+      trim: true,
+    },
   },
   
   // Post reference
   post: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
-    required: true
+    required: true,
   },
   
   // For nested replies
   parentComment: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
-    required: false
+    required: false,
   },
   
   // Comment status for moderation
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected', 'spam'],
-    default: 'pending'
+    default: 'pending',
   },
   
   // Admin/moderator who approved/rejected
   moderatedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false
+    required: false,
   },
   
   moderatedAt: {
     type: Date,
-    required: false
+    required: false,
   },
   
   // For spam detection and moderation
   ipAddress: {
     type: String,
-    required: false
+    required: false,
   },
   
   userAgent: {
     type: String,
-    required: false
+    required: false,
   },
   
   // Reply count for performance
   replyCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   
   // Nested replies array for easy querying
   replies: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Comment'
-  }]
+    ref: 'Comment',
+  }],
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 // Indexes for performance
@@ -140,19 +140,19 @@ commentSchema.statics.canUserReply = function(user) {
 commentSchema.statics.getCommentTree = async function(postId, status = 'approved') {
   const comments = await this.find({
     post: postId,
-    status: status,
-    parentComment: null
+    status,
+    parentComment: null,
   })
-  .populate('author.user', 'username fullName')
-  .populate({
-    path: 'replies',
-    match: { status: status },
-    populate: {
-      path: 'author.user',
-      select: 'username fullName'
-    }
-  })
-  .sort({ createdAt: -1 });
+    .populate('author.user', 'username fullName')
+    .populate({
+      path: 'replies',
+      match: { status },
+      populate: {
+        path: 'author.user',
+        select: 'username fullName',
+      },
+    })
+    .sort({ createdAt: -1 });
   
   return comments;
 };
@@ -164,8 +164,8 @@ commentSchema.pre('save', async function(next) {
       this.parentComment,
       { 
         $inc: { replyCount: 1 },
-        $push: { replies: this._id }
-      }
+        $push: { replies: this._id },
+      },
     );
   }
   next();
@@ -178,8 +178,8 @@ commentSchema.pre('remove', async function(next) {
       this.parentComment,
       { 
         $inc: { replyCount: -1 },
-        $pull: { replies: this._id }
-      }
+        $pull: { replies: this._id },
+      },
     );
   }
   next();

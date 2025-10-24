@@ -200,12 +200,12 @@ router.post('/logout', (req, res) => {
     
     res.json({ 
       success: true,
-      message: 'Logged out successfully' 
+      message: 'Logged out successfully', 
     });
   } catch (error) {
     res.status(500).json({ 
       success: false,
-      message: 'Error during logout' 
+      message: 'Error during logout', 
     });
   }
 });

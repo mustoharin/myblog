@@ -529,8 +529,7 @@ describe('User Routes', () => {
         name: 'editor',
         description: 'Editor',
         privileges: privileges.filter(p => 
-          ['read_post', 'update_post', 'update_user', 'change_password'].includes(p.code)
-        ).map(p => p._id),
+          ['read_post', 'update_post', 'update_user', 'change_password'].includes(p.code)).map(p => p._id),
       });
 
       // Create a user with editor role using the helper (has update_user but not manage_user_roles)

@@ -12,6 +12,17 @@ if (process.env.NODE_ENV !== 'test') {
   connectDB();
 }
 
+// Load models FIRST in correct order (Media before Post due to populate)
+// This must be done before any routes are loaded
+require('./models/Media');
+require('./models/Post');
+
+// Initialize MinIO bucket
+const { initializeBucket } = require('./config/minio');
+if (process.env.NODE_ENV !== 'test') {
+  initializeBucket();
+}
+
 // Middleware
 app.use(helmet()); // Security headers
 app.use(cors());
@@ -48,6 +59,9 @@ app.use('/api/tags', authMiddleware, require('./routes/tags'));
 
 // Admin routes (protected)
 app.use('/api/admin', authMiddleware, require('./routes/admin'));
+
+// Media routes (protected - requires manage_media privilege)
+app.use('/api/media', authMiddleware, require('./routes/media'));
 
 // Account routes (protected)
 app.use('/api/account', authMiddleware, require('./routes/account'));

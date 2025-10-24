@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Media = require('../models/Media'); // Load Media before Post due to populate
 const Post = require('../models/Post');
 const Activity = require('../models/Activity');
 const auth = require('../middleware/auth');
@@ -50,10 +51,19 @@ router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
 // Create a post
 router.post('/', auth, checkRole(['create_post']), async (req, res) => {
   try {
-    const { title, content, excerpt, tags, isPublished } = req.body;
+    const { title, content, excerpt, tags, isPublished, featuredImage } = req.body;
     
     if (!title || !content) {
       return res.status(400).json({ message: 'Title and content are required' });
+    }
+
+    // Validate featuredImage if provided
+    if (featuredImage) {
+      const Media = require('../models/Media');
+      const media = await Media.findById(featuredImage);
+      if (!media) {
+        return res.status(404).json({ message: 'Featured image not found' });
+      }
     }
 
     // Check publish privilege if trying to publish
@@ -73,11 +83,21 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       excerpt,
       tags: formattedTags,
       isPublished,
+      featuredImage: featuredImage || null,
       author: req.user._id, // Use the authenticated user's ID
     });
 
     const newPost = await post.save();
     const savedPost = await Post.findById(newPost._id).populate('author', 'username');
+    
+    // Track media usage if featured image is set
+    if (featuredImage) {
+      const Media = require('../models/Media');
+      const media = await Media.findById(featuredImage);
+      if (media) {
+        await media.addUsage('Post', savedPost._id);
+      }
+    }
     
     // Log activity
     await Activity.logActivity(
@@ -117,7 +137,16 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this post' });
     }
 
-    const { title, content, excerpt, tags, isPublished } = req.body;
+    const { title, content, excerpt, tags, isPublished, featuredImage } = req.body;
+    
+    // Validate featuredImage if provided
+    if (featuredImage !== undefined && featuredImage !== null) {
+      const Media = require('../models/Media');
+      const media = await Media.findById(featuredImage);
+      if (!media) {
+        return res.status(404).json({ message: 'Featured image not found' });
+      }
+    }
     
     // Check publish privilege if trying to publish or changing publish status
     if (isPublished !== undefined && isPublished && req.user.role.name !== 'superadmin' && req.user.role.name !== 'admin') {
@@ -127,6 +156,30 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
         return res.status(403).json({ message: 'Insufficient privileges to publish posts' });
       }
     }
+    
+    // Handle featured image change and update media usage tracking
+    if (featuredImage !== undefined) {
+      const Media = require('../models/Media');
+      
+      // Remove old usage if featured image is being changed
+      if (post.featuredImage && post.featuredImage.toString() !== featuredImage) {
+        const oldMedia = await Media.findById(post.featuredImage);
+        if (oldMedia) {
+          await oldMedia.removeUsage('Post', post._id);
+        }
+      }
+      
+      // Add new usage if featured image is set
+      if (featuredImage) {
+        const newMedia = await Media.findById(featuredImage);
+        if (newMedia && (!post.featuredImage || post.featuredImage.toString() !== featuredImage)) {
+          await newMedia.addUsage('Post', post._id);
+        }
+      }
+      
+      post.featuredImage = featuredImage;
+    }
+    
     if (title) post.title = title;
     if (content) post.content = content;
     if (excerpt !== undefined) post.excerpt = excerpt;
@@ -170,6 +223,15 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
+    // Remove media usage tracking if featured image exists
+    if (post.featuredImage) {
+      const Media = require('../models/Media');
+      const media = await Media.findById(post.featuredImage);
+      if (media) {
+        await media.removeUsage('Post', post._id);
+      }
+    }
+    
     // Log activity before deletion
     await Activity.logActivity(
       'post_delete',

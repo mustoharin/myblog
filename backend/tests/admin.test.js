@@ -107,9 +107,9 @@ describe('Admin Routes', () => {
         content: 'Comment 1',
         author: {
           name: 'User1',
-          email: 'user1@example.com'
+          email: 'user1@example.com',
         },
-        status: 'approved'
+        status: 'approved',
       });
 
       await Comment.create({
@@ -117,9 +117,9 @@ describe('Admin Routes', () => {
         content: 'Comment 2',
         author: {
           name: 'User2',
-          email: 'user2@example.com'
+          email: 'user2@example.com',
         },
-        status: 'approved'
+        status: 'approved',
       });
 
       const response = await request(app)
@@ -252,28 +252,28 @@ describe('Admin Routes', () => {
           content: 'Comment 1',
           author: {
             name: 'User1',
-            email: 'user1@example.com'
+            email: 'user1@example.com',
           },
-          status: 'approved'
+          status: 'approved',
         },
         {
           post: posts[0]._id,
           content: 'Comment 2',
           author: {
             name: 'User2',
-            email: 'user2@example.com'
+            email: 'user2@example.com',
           },
-          status: 'approved'
+          status: 'approved',
         },
         {
           post: posts[1]._id,
           content: 'Comment 3',
           author: {
             name: 'User3',
-            email: 'user3@example.com'
+            email: 'user3@example.com',
           },
-          status: 'approved'
-        }
+          status: 'approved',
+        },
       ]);
 
       const response = await request(app)
@@ -399,18 +399,18 @@ describe('Admin Routes', () => {
           post: post._id,
           content: 'Comment 1',
           author: {
-            user: superadminUser._id
+            user: superadminUser._id,
           },
-          status: 'approved'
+          status: 'approved',
         },
         {
           post: post._id,
           content: 'Comment 2',
           author: {
-            user: superadminUser._id
+            user: superadminUser._id,
           },
-          status: 'approved'
-        }
+          status: 'approved',
+        },
       ]);
 
       const response = await request(app)

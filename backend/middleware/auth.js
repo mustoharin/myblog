@@ -22,14 +22,14 @@ const auth = async (req, res, next) => {
     if (!authHeader) {
       return res.status(401).json({ 
         success: false,
-        message: 'No token provided' 
+        message: 'No token provided', 
       });
     }
 
     if (!authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ 
         success: false,
-        message: 'Invalid authorization format' 
+        message: 'Invalid authorization format', 
       });
     }
     
@@ -39,7 +39,7 @@ const auth = async (req, res, next) => {
       console.error('JWT_SECRET environment variable is not set');
       return res.status(500).json({ 
         success: false,
-        message: 'Server configuration error' 
+        message: 'Server configuration error', 
       });
     }
     
@@ -57,14 +57,14 @@ const auth = async (req, res, next) => {
       if (!user) {
         return res.status(401).json({ 
           success: false,
-          message: 'User not found' 
+          message: 'User not found', 
         });
       }
 
       if (!user.role) {
         return res.status(401).json({ 
           success: false,
-          message: 'User role not found' 
+          message: 'User role not found', 
         });
       }
 
@@ -81,13 +81,13 @@ const auth = async (req, res, next) => {
     } catch (err) {
       return res.status(401).json({ 
         success: false,
-        message: 'Authentication failed' 
+        message: 'Authentication failed', 
       });
     }
   } catch (error) {
     res.status(401).json({ 
       success: false,
-      message: 'Invalid token' 
+      message: 'Invalid token', 
     });
   }
 };

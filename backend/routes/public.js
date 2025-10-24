@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Media = require('../models/Media'); // Load Media before Post due to populate
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const Tag = require('../models/Tag');
@@ -59,8 +60,9 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
 
     // Execute query with pagination
     const posts = await Post.find(query)
-      .select('title excerpt createdAt author tags')
+      .select('title excerpt createdAt author tags featuredImage')
       .populate('author', 'username fullName')
+      .populate('featuredImage', 'url thumbnailUrl altText')
       .sort(search ? { score: { $meta: 'textScore' } } : { createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -72,12 +74,14 @@ router.get('/posts', baseRateLimiter, async (req, res) => {
         // Get comment count for this post (only approved comments)
         const commentCount = await Comment.countDocuments({
           post: post._id,
-          status: 'approved'
+          status: 'approved',
         });
         return {
           ...post.toObject(),
           tags: enrichedTags,
-          commentCount: commentCount
+          commentCount,
+          featuredImageUrl: post.featuredImage?.thumbnailUrl || post.featuredImage?.url || null,
+          featuredImageAlt: post.featuredImage?.altText || post.title,
         };
       }),
     );
@@ -141,7 +145,8 @@ router.get('/tags', baseRateLimiter, async (req, res) => {
 router.get('/posts/:id', baseRateLimiter, async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.id, isPublished: true })
-      .populate('author', 'username fullName');
+      .populate('author', 'username fullName')
+      .populate('featuredImage', 'url thumbnailUrl altText caption');
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
@@ -151,25 +156,28 @@ router.get('/posts/:id', baseRateLimiter, async (req, res) => {
     const comments = await Comment.find({
       post: post._id,
       status: 'approved',
-      parentComment: null
+      parentComment: null,
     })
-    .populate('author.user', 'username fullName')
-    .populate({
-      path: 'replies',
-      match: { status: 'approved' },
-      populate: {
-        path: 'author.user',
-        select: 'username fullName'
-      }
-    })
-    .sort({ createdAt: -1 });
+      .populate('author.user', 'username fullName')
+      .populate({
+        path: 'replies',
+        match: { status: 'approved' },
+        populate: {
+          path: 'author.user',
+          select: 'username fullName',
+        },
+      })
+      .sort({ createdAt: -1 });
 
     // Enrich tags with metadata
     const enrichedTags = await enrichTags(post.tags);
     const enrichedPost = {
       ...post.toObject(),
       tags: enrichedTags,
-      comments: comments
+      comments,
+      featuredImageUrl: post.featuredImage?.url || null,
+      featuredImageAlt: post.featuredImage?.altText || post.title,
+      featuredImageCaption: post.featuredImage?.caption || null,
     };
 
     res.json(enrichedPost);
@@ -231,11 +239,11 @@ router.post('/posts/:id/comments', [commentRateLimiter, validateCaptcha], async 
       author: {
         name: name.trim(),
         email: email ? email.trim().toLowerCase() : `anonymous_${Date.now()}@example.com`,
-        website: website ? website.trim() : undefined
+        website: website ? website.trim() : undefined,
       },
       status: 'pending', // Public comments require moderation
       ipAddress: req.ip || req.connection.remoteAddress,
-      userAgent: req.get('User-Agent')
+      userAgent: req.get('User-Agent'),
     });
 
     await comment.save();
@@ -246,7 +254,7 @@ router.post('/posts/:id/comments', [commentRateLimiter, validateCaptcha], async 
       content: comment.content,
       authorName: comment.author.name,
       createdAt: comment.createdAt,
-      status: comment.status
+      status: comment.status,
     });
   } catch (err) {
     if (err.name === 'CastError') {

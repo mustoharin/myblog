@@ -9,4 +9,10 @@ module.exports = {
   coveragePathIgnorePatterns: [
     '/node_modules/',
   ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(uuid)/)',
+  ],
+  moduleNameMapper: {
+    '^uuid$': require.resolve('uuid'),
+  },
 };

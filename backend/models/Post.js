@@ -59,6 +59,12 @@ const PostSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  featuredImage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Media',
+    default: null,
+    index: true,
+  },
   views: {
     type: Number,
     default: 0,
@@ -99,6 +105,9 @@ PostSchema.pre('findOneAndUpdate', function(next) {
 PostSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'count', 'countDocuments'], function() {
   this.where({ deletedAt: null });
 });
+
+// Note: featuredImage population removed from middleware to avoid model loading order issues
+// Manually populate in routes where needed: .populate('featuredImage', 'url thumbnailUrl altText caption')
 
 // Add soft delete method
 PostSchema.methods.softDelete = function() {

@@ -23,7 +23,7 @@ describe('Comment Model', () => {
       title: 'Test Post',
       content: 'This is a test post for comments',
       author: testUser._id,
-      status: 'published'
+      status: 'published',
     });
   });
 
@@ -37,12 +37,12 @@ describe('Comment Model', () => {
       const commentData = {
         content: 'This is a test comment from registered user',
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
         post: testPost._id,
         status: 'approved',
         ipAddress: '127.0.0.1',
-        userAgent: 'Test Agent'
+        userAgent: 'Test Agent',
       };
 
       const comment = await Comment.create(commentData);
@@ -59,12 +59,12 @@ describe('Comment Model', () => {
         author: {
           name: 'Anonymous User',
           email: 'anonymous@example.com',
-          website: 'https://example.com'
+          website: 'https://example.com',
         },
         post: testPost._id,
         status: 'pending',
         ipAddress: '127.0.0.1',
-        userAgent: 'Test Agent'
+        userAgent: 'Test Agent',
       };
 
       const comment = await Comment.create(commentData);
@@ -81,10 +81,10 @@ describe('Comment Model', () => {
       const parentComment = await Comment.create({
         content: 'Parent comment',
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
         post: testPost._id,
-        status: 'approved'
+        status: 'approved',
       });
 
       // Create a reply
@@ -92,11 +92,11 @@ describe('Comment Model', () => {
         content: 'This is a reply to the parent comment',
         author: {
           name: 'Reply Author',
-          email: 'reply@example.com'
+          email: 'reply@example.com',
         },
         post: testPost._id,
         parentComment: parentComment._id,
-        status: 'approved'
+        status: 'approved',
       };
 
       const reply = await Comment.create(replyData);
@@ -110,9 +110,9 @@ describe('Comment Model', () => {
     it('should require content', async () => {
       const commentData = {
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
-        post: testPost._id
+        post: testPost._id,
       };
 
       await expect(Comment.create(commentData)).rejects.toThrow();
@@ -122,8 +122,8 @@ describe('Comment Model', () => {
       const commentData = {
         content: 'Test comment',
         author: {
-          user: testUser._id
-        }
+          user: testUser._id,
+        },
       };
 
       await expect(Comment.create(commentData)).rejects.toThrow();
@@ -133,7 +133,7 @@ describe('Comment Model', () => {
       const commentData = {
         content: 'Test comment',
         author: {},
-        post: testPost._id
+        post: testPost._id,
       };
 
       await expect(Comment.create(commentData)).rejects.toThrow();
@@ -144,9 +144,9 @@ describe('Comment Model', () => {
       const commentData = {
         content: longContent,
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
-        post: testPost._id
+        post: testPost._id,
       };
 
       await expect(Comment.create(commentData)).rejects.toThrow();
@@ -156,9 +156,9 @@ describe('Comment Model', () => {
       const commentData = {
         content: '  This is a test comment with whitespace  ',
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
-        post: testPost._id
+        post: testPost._id,
       };
 
       const comment = await Comment.create(commentData);
@@ -170,9 +170,9 @@ describe('Comment Model', () => {
         content: 'Test comment',
         author: {
           name: 'Test User',
-          email: 'TEST@EXAMPLE.COM'
+          email: 'TEST@EXAMPLE.COM',
         },
-        post: testPost._id
+        post: testPost._id,
       };
 
       const comment = await Comment.create(commentData);
@@ -185,9 +185,9 @@ describe('Comment Model', () => {
       const commentData = {
         content: 'Test comment',
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
-        post: testPost._id
+        post: testPost._id,
       };
 
       const comment = await Comment.create(commentData);
@@ -198,10 +198,10 @@ describe('Comment Model', () => {
       const commentData = {
         content: 'Test comment',
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
         post: testPost._id,
-        status: 'approved'
+        status: 'approved',
       };
 
       const comment = await Comment.create(commentData);
@@ -212,10 +212,10 @@ describe('Comment Model', () => {
       const commentData = {
         content: 'Test comment',
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
         post: testPost._id,
-        status: 'rejected'
+        status: 'rejected',
       };
 
       const comment = await Comment.create(commentData);
@@ -226,10 +226,10 @@ describe('Comment Model', () => {
       const commentData = {
         content: 'Test comment',
         author: {
-          user: testUser._id
+          user: testUser._id,
         },
         post: testPost._id,
-        status: 'spam'
+        status: 'spam',
       };
 
       const comment = await Comment.create(commentData);
@@ -246,7 +246,7 @@ describe('Comment Model', () => {
         content: 'Parent comment',
         author: { user: testUser._id },
         post: testPost._id,
-        status: 'approved'
+        status: 'approved',
       });
 
       childComment1 = await Comment.create({
@@ -254,7 +254,7 @@ describe('Comment Model', () => {
         author: { name: 'Child1', email: 'child1@example.com' },
         post: testPost._id,
         parentComment: parentComment._id,
-        status: 'approved'
+        status: 'approved',
       });
 
       childComment2 = await Comment.create({
@@ -262,7 +262,7 @@ describe('Comment Model', () => {
         author: { name: 'Child2', email: 'child2@example.com' },
         post: testPost._id,
         parentComment: parentComment._id,
-        status: 'approved'
+        status: 'approved',
       });
 
       grandchildComment = await Comment.create({
@@ -270,7 +270,7 @@ describe('Comment Model', () => {
         author: { user: testUser._id },
         post: testPost._id,
         parentComment: childComment1._id,
-        status: 'approved'
+        status: 'approved',
       });
     });
 
@@ -304,7 +304,7 @@ describe('Comment Model', () => {
         content: 'Pending comment',
         author: { name: 'Pending', email: 'pending@example.com' },
         post: testPost._id,
-        status: 'pending'
+        status: 'pending',
       });
 
       const approvedComments = await Comment.getCommentTree(testPost._id, 'approved');
@@ -325,7 +325,7 @@ describe('Comment Model', () => {
         content: 'Test comment for instance methods',
         author: { user: testUser._id },
         post: testPost._id,
-        status: 'pending'
+        status: 'pending',
       });
     });
 
@@ -334,13 +334,13 @@ describe('Comment Model', () => {
       const replyPrivilege = await Privilege.findOne({ code: 'reply_comments' });
 
       await Role.findByIdAndUpdate(roles.regularRole._id, {
-        $push: { privileges: replyPrivilege._id }
+        $push: { privileges: replyPrivilege._id },
       });
 
       // Reload user with updated role
       const updatedUser = await User.findById(testUser._id).populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
 
       // Check if user has reply privilege (mimicking the middleware logic)
@@ -354,13 +354,13 @@ describe('Comment Model', () => {
       const moderatePrivilege = await Privilege.findOne({ code: 'manage_comments' });
 
       await Role.findByIdAndUpdate(roles.adminRole._id, {
-        $push: { privileges: moderatePrivilege._id }
+        $push: { privileges: moderatePrivilege._id },
       });
 
       // Reload admin user with updated role
       const updatedAdmin = await User.findById(adminUser._id).populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
 
       // Check if user has moderation privilege (mimicking the middleware logic)
@@ -377,7 +377,7 @@ describe('Comment Model', () => {
       // testUser doesn't have populated role, so we'll check directly
       const userWithRole = await User.findById(testUser._id).populate({
         path: 'role',
-        populate: { path: 'privileges' }
+        populate: { path: 'privileges' },
       });
       
       const canModerate = userWithRole.role && (
@@ -394,7 +394,7 @@ describe('Comment Model', () => {
       const comment = await Comment.create({
         content: 'Test comment',
         author: { user: testUser._id },
-        post: testPost._id
+        post: testPost._id,
       });
 
       expect(comment.createdAt).toBeDefined();
@@ -405,7 +405,7 @@ describe('Comment Model', () => {
       const comment = await Comment.create({
         content: 'Original content',
         author: { user: testUser._id },
-        post: testPost._id
+        post: testPost._id,
       });
 
       const originalUpdatedAt = comment.updatedAt;
@@ -425,7 +425,7 @@ describe('Comment Model', () => {
       const comment = await Comment.create({
         content: 'Test comment',
         author: { user: testUser._id },
-        post: testPost._id
+        post: testPost._id,
       });
 
       const populatedComment = await Comment.findById(comment._id)
@@ -439,7 +439,7 @@ describe('Comment Model', () => {
       const comment = await Comment.create({
         content: 'Test comment',
         author: { user: testUser._id },
-        post: testPost._id
+        post: testPost._id,
       });
 
       const populatedComment = await Comment.findById(comment._id)
@@ -453,14 +453,14 @@ describe('Comment Model', () => {
       const parentComment = await Comment.create({
         content: 'Parent comment',
         author: { user: testUser._id },
-        post: testPost._id
+        post: testPost._id,
       });
 
       const childComment = await Comment.create({
         content: 'Child comment',
         author: { user: testUser._id },
         post: testPost._id,
-        parentComment: parentComment._id
+        parentComment: parentComment._id,
       });
 
       const populatedChild = await Comment.findById(childComment._id)

@@ -20,8 +20,7 @@ describe('Comment Routes', () => {
     
     // Comment privileges are now included in createInitialPrivileges()
     const commentPrivileges = privileges.filter(p => 
-      p.code === 'reply_comments' || p.code === 'manage_comments'
-    );
+      p.code === 'reply_comments' || p.code === 'manage_comments');
     
     roles = await createInitialRoles(privileges);
     
@@ -29,7 +28,7 @@ describe('Comment Routes', () => {
     // Just add reply privilege to regular user
     const replyPrivilege = privileges.find(p => p.code === 'reply_comments');
     await Role.findByIdAndUpdate(roles.regularRole._id, {
-      $push: { privileges: replyPrivilege._id }
+      $push: { privileges: replyPrivilege._id },
     });
 
     superadminUser = await createTestUser('superadmin', roles.superadminRole._id);
@@ -41,7 +40,7 @@ describe('Comment Routes', () => {
       title: 'Test Post for Comments',
       content: 'This is a test post for comment testing',
       author: superadminUser._id,
-      status: 'published'
+      status: 'published',
     });
 
     // Get authentication tokens
@@ -52,7 +51,7 @@ describe('Comment Routes', () => {
       .send({
         username: 'superadmin',
         password: 'Password#12345!',
-        testBypassToken: bypassToken
+        testBypassToken: bypassToken,
       });
     superadminToken = superadminAuth.body.token;
 
@@ -61,7 +60,7 @@ describe('Comment Routes', () => {
       .send({
         username: 'admin',
         password: 'Password#12345!',
-        testBypassToken: bypassToken
+        testBypassToken: bypassToken,
       });
     adminToken = adminAuth.body.token;
 
@@ -70,7 +69,7 @@ describe('Comment Routes', () => {
       .send({
         username: 'regular',
         password: 'Password#12345!',
-        testBypassToken: bypassToken
+        testBypassToken: bypassToken,
       });
     regularToken = regularAuth.body.token;
   });
@@ -87,21 +86,21 @@ describe('Comment Routes', () => {
         content: 'Approved comment',
         author: { user: regularUser._id },
         post: testPost._id,
-        status: 'approved'
+        status: 'approved',
       });
 
       await Comment.create({
         content: 'Pending comment',
         author: { name: 'Anonymous', email: 'anon@example.com' },
         post: testPost._id,
-        status: 'pending'
+        status: 'pending',
       });
 
       await Comment.create({
         content: 'Rejected comment',
         author: { name: 'Rejected User', email: 'rejected@example.com' },
         post: testPost._id,
-        status: 'rejected'
+        status: 'rejected',
       });
     });
 
@@ -142,7 +141,7 @@ describe('Comment Routes', () => {
           content: `Comment ${i}`,
           author: { name: `User${i}`, email: `user${i}@example.com` },
           post: testPost._id,
-          status: 'approved'
+          status: 'approved',
         });
       }
 
@@ -163,7 +162,7 @@ describe('Comment Routes', () => {
         authorName: 'Test Visitor',
         authorEmail: 'visitor@example.com',
         authorWebsite: 'https://example.com',
-        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
       };
 
       const response = await request(app)
@@ -180,7 +179,7 @@ describe('Comment Routes', () => {
     it('should create comment from authenticated user', async () => {
       const commentData = {
         content: 'This is a test comment from authenticated user',
-        postId: testPost._id
+        postId: testPost._id,
       };
 
       const response = await request(app)
@@ -199,7 +198,7 @@ describe('Comment Routes', () => {
       const response = await request(app)
         .post('/api/comments')
         .send({
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       expect(response.status).toBe(400);
@@ -211,7 +210,7 @@ describe('Comment Routes', () => {
       const commentData = {
         content: 'Test comment',
         postId: testPost._id,
-        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
       };
 
       const response = await request(app)
@@ -228,7 +227,7 @@ describe('Comment Routes', () => {
         postId: testPost._id,
         authorName: 'Test User',
         authorEmail: 'test@example.com',
-        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
       };
 
       const response = await request(app)
@@ -247,7 +246,7 @@ describe('Comment Routes', () => {
         postId: fakePostId,
         authorName: 'Test User',
         authorEmail: 'test@example.com',
-        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+        testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
       };
 
       const response = await request(app)
@@ -268,13 +267,13 @@ describe('Comment Routes', () => {
         content: 'Parent comment',
         author: { name: 'Parent Author', email: 'parent@example.com' },
         post: testPost._id,
-        status: 'approved'
+        status: 'approved',
       });
     });
 
     it('should allow authenticated user to reply to comment', async () => {
       const replyData = {
-        content: 'This is a reply to the parent comment'
+        content: 'This is a reply to the parent comment',
       };
 
       const response = await request(app)
@@ -290,7 +289,7 @@ describe('Comment Routes', () => {
 
     it('should require authentication for replies', async () => {
       const replyData = {
-        content: 'This is a reply attempt without auth'
+        content: 'This is a reply attempt without auth',
       };
 
       const response = await request(app)
@@ -305,7 +304,7 @@ describe('Comment Routes', () => {
       const noPermissionRole = await Role.create({
         name: 'nopermission',
         description: 'No Permission Role',
-        privileges: []
+        privileges: [],
       });
 
       const noPermissionUser = await createTestUser('nopermission', noPermissionRole._id);
@@ -315,11 +314,11 @@ describe('Comment Routes', () => {
         .send({
           username: 'nopermission',
           password: 'Password#12345!',
-          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN
+          testBypassToken: process.env.TEST_BYPASS_CAPTCHA_TOKEN,
         });
 
       const replyData = {
-        content: 'This is a reply attempt without permission'
+        content: 'This is a reply attempt without permission',
       };
 
       const response = await request(app)
@@ -333,7 +332,7 @@ describe('Comment Routes', () => {
     it('should return 404 for non-existent comment', async () => {
       const fakeCommentId = '507f1f77bcf86cd799439011';
       const replyData = {
-        content: 'Reply to non-existent comment'
+        content: 'Reply to non-existent comment',
       };
 
       const response = await request(app)
@@ -355,7 +354,7 @@ describe('Comment Routes', () => {
         content: 'Test comment for moderation',
         author: { name: 'Test User', email: 'test@example.com' },
         post: testPost._id,
-        status: 'pending'
+        status: 'pending',
       });
     });
 
@@ -428,7 +427,7 @@ describe('Comment Routes', () => {
         content: 'Test comment for deletion',
         author: { name: 'Test User', email: 'test@example.com' },
         post: testPost._id,
-        status: 'approved'
+        status: 'approved',
       });
     });
 
@@ -481,20 +480,20 @@ describe('Comment Routes', () => {
           content: 'Approved comment',
           author: { name: 'User1', email: 'user1@example.com' },
           post: testPost._id,
-          status: 'approved'
+          status: 'approved',
         },
         {
           content: 'Pending comment',
           author: { name: 'User2', email: 'user2@example.com' },
           post: testPost._id,
-          status: 'pending'
+          status: 'pending',
         },
         {
           content: 'Rejected comment',
           author: { name: 'User3', email: 'user3@example.com' },
           post: testPost._id,
-          status: 'rejected'
-        }
+          status: 'rejected',
+        },
       ]);
     });
 
@@ -555,20 +554,20 @@ describe('Comment Routes', () => {
           content: 'Comment 1',
           author: { name: 'User1', email: 'user1@example.com' },
           post: testPost._id,
-          status: 'pending'
+          status: 'pending',
         },
         {
           content: 'Comment 2',
           author: { name: 'User2', email: 'user2@example.com' },
           post: testPost._id,
-          status: 'pending'
+          status: 'pending',
         },
         {
           content: 'Comment 3',
           author: { name: 'User3', email: 'user3@example.com' },
           post: testPost._id,
-          status: 'pending'
-        }
+          status: 'pending',
+        },
       ]);
     });
 
@@ -580,7 +579,7 @@ describe('Comment Routes', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           commentIds,
-          action: 'approve'
+          action: 'approve',
         });
 
       expect(response.status).toBe(200);
@@ -602,7 +601,7 @@ describe('Comment Routes', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           commentIds,
-          action: 'delete'
+          action: 'delete',
         });
 
       expect(response.status).toBe(200);
@@ -619,7 +618,7 @@ describe('Comment Routes', () => {
         .patch('/api/comments/admin/bulk-action')
         .send({
           commentIds: [comments[0]._id],
-          action: 'approve'
+          action: 'approve',
         });
 
       expect(response.status).toBe(401);
@@ -631,7 +630,7 @@ describe('Comment Routes', () => {
         .set('Authorization', `Bearer ${regularToken}`)
         .send({
           commentIds: [comments[0]._id],
-          action: 'approve'
+          action: 'approve',
         });
 
       expect(response.status).toBe(403);
@@ -643,7 +642,7 @@ describe('Comment Routes', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           commentIds: [comments[0]._id],
-          action: 'invalid_action'
+          action: 'invalid_action',
         });
 
       expect(response.status).toBe(400);
@@ -658,32 +657,32 @@ describe('Comment Routes', () => {
           content: 'Approved 1',
           author: { name: 'User1', email: 'user1@example.com' },
           post: testPost._id,
-          status: 'approved'
+          status: 'approved',
         },
         {
           content: 'Approved 2',
           author: { name: 'User2', email: 'user2@example.com' },
           post: testPost._id,
-          status: 'approved'
+          status: 'approved',
         },
         {
           content: 'Pending 1',
           author: { name: 'User3', email: 'user3@example.com' },
           post: testPost._id,
-          status: 'pending'
+          status: 'pending',
         },
         {
           content: 'Rejected 1',
           author: { name: 'User4', email: 'user4@example.com' },
           post: testPost._id,
-          status: 'rejected'
+          status: 'rejected',
         },
         {
           content: 'Spam 1',
           author: { name: 'User5', email: 'user5@example.com' },
           post: testPost._id,
-          status: 'spam'
-        }
+          status: 'spam',
+        },
       ]);
     });
 

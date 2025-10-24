@@ -201,7 +201,7 @@ router.put('/:id', auth, checkRole(['update_user']), async (req, res) => {
         return res.status(404).json({ message: 'User not found' });
       }
 
-            // Check if trying to modify role
+      // Check if trying to modify role
       if (role && role !== user.role._id.toString()) {
         // Prevent users from modifying their own role
         if (req.params.id === req.user.id) {
