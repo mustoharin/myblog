@@ -10,6 +10,7 @@ const activitySchema = new mongoose.Schema({
       'tag_create', 'tag_update', 'tag_delete',
       'role_create', 'role_update', 'role_delete',
       'comment_create', 'comment_delete',
+      'media_upload', 'media_update', 'media_delete', 'media_bulk_delete',
       'profile_update',
     ],
   },
@@ -110,6 +111,15 @@ activitySchema.methods.getDescription = function() {
       return `${actor} commented on "${this.data.postTitle}"`;
     case 'comment_delete':
       return `${actor} deleted a comment on "${this.data.postTitle}"`;
+    
+    case 'media_upload':
+      return `${actor} uploaded media "${this.data.filename}"`;
+    case 'media_update':
+      return `${actor} updated media "${this.data.filename}"`;
+    case 'media_delete':
+      return `${actor} deleted media "${this.data.filename}"`;
+    case 'media_bulk_delete':
+      return `${actor} bulk deleted ${this.data.count || 'multiple'} media files`;
     
     default:
       return 'Unknown activity';

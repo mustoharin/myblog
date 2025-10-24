@@ -170,7 +170,7 @@ describe('Media Routes', () => {
       testMediaId = res.body.media.id;
 
       // Verify activity was logged
-      const activity = await Activity.findOne({ action: 'media_upload' });
+      const activity = await Activity.findOne({ type: 'media_upload' });
       expect(activity).toBeTruthy();
     });
 
@@ -428,7 +428,7 @@ describe('Media Routes', () => {
       expect(res.body.media.folder).toBe('updated-folder');
 
       // Verify activity was logged
-      const activity = await Activity.findOne({ action: 'media_update' });
+      const activity = await Activity.findOne({ type: 'media_update' });
       expect(activity).toBeTruthy();
     });
 
@@ -485,7 +485,7 @@ describe('Media Routes', () => {
       expect(deletedMedia.deletedAt).toBeTruthy();
 
       // Verify activity was logged
-      const activity = await Activity.findOne({ action: 'media_delete' });
+      const activity = await Activity.findOne({ type: 'media_delete' });
       expect(activity).toBeTruthy();
     });
 
@@ -565,7 +565,7 @@ describe('Media Routes', () => {
       expect(deleteFile).toHaveBeenCalled();
 
       // Verify activity was logged
-      const activity = await Activity.findOne({ action: 'media_bulk_delete' });
+      const activity = await Activity.findOne({ type: 'media_bulk_delete' });
       expect(activity).toBeTruthy();
     });
 
