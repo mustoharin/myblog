@@ -6,6 +6,11 @@ const Activity = require('../models/Activity');
 const auth = require('../middleware/auth');
 const checkRole = require('../middleware/roleAuth');
 const { formatTags } = require('../utils/tagFormatter');
+const { 
+  addContentMediaTracking, 
+  trackContentMediaChanges, 
+  removeContentMediaTracking 
+} = require('../utils/mediaExtractor');
 
 // Get all posts
 router.get('/', auth, checkRole(['read_post']), async (req, res) => {
@@ -29,7 +34,9 @@ router.get('/', auth, checkRole(['read_post']), async (req, res) => {
 // Get one post
 router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate('author', 'username');
+    const post = await Post.findById(req.params.id)
+      .populate('author', 'username')
+      .populate('featuredImage');
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -88,7 +95,9 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
     });
 
     const newPost = await post.save();
-    const savedPost = await Post.findById(newPost._id).populate('author', 'username');
+    const savedPost = await Post.findById(newPost._id)
+      .populate('author', 'username')
+      .populate('featuredImage');
     
     // Track media usage if featured image is set
     if (featuredImage) {
@@ -97,6 +106,14 @@ router.post('/', auth, checkRole(['create_post']), async (req, res) => {
       if (media) {
         await media.addUsage('Post', savedPost._id);
       }
+    }
+    
+    // Track all media in post content
+    try {
+      await addContentMediaTracking(content, savedPost._id);
+    } catch (mediaErr) {
+      // Log but don't fail post creation if media tracking fails
+      console.error('Error tracking content media:', mediaErr);
     }
     
     // Log activity
@@ -180,6 +197,16 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
       post.featuredImage = featuredImage;
     }
     
+    // Track content media changes if content is being updated
+    if (content !== undefined) {
+      try {
+        await trackContentMediaChanges(post.content, content, post._id);
+      } catch (mediaErr) {
+        // Log but don't fail post update if media tracking fails
+        console.error('Error tracking content media changes:', mediaErr);
+      }
+    }
+    
     if (title) post.title = title;
     if (content) post.content = content;
     if (excerpt !== undefined) post.excerpt = excerpt;
@@ -187,7 +214,9 @@ router.put('/:id', auth, checkRole(['update_post']), async (req, res) => {
     if (isPublished !== undefined) post.isPublished = isPublished;
 
     await post.save();
-    const updatedPost = await Post.findById(post._id).populate('author', 'username');
+    const updatedPost = await Post.findById(post._id)
+      .populate('author', 'username')
+      .populate('featuredImage');
     
     // Log activity
     await Activity.logActivity(
@@ -230,6 +259,14 @@ router.delete('/:id', auth, checkRole(['delete_post']), async (req, res) => {
       if (media) {
         await media.removeUsage('Post', post._id);
       }
+    }
+    
+    // Remove all content media tracking
+    try {
+      await removeContentMediaTracking(post.content, post._id);
+    } catch (mediaErr) {
+      // Log but don't fail post deletion if media tracking removal fails
+      console.error('Error removing content media tracking:', mediaErr);
     }
     
     // Log activity before deletion

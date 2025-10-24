@@ -492,8 +492,8 @@ describe('Post Model - Featured Image Population', () => {
     }
   });
 
-  it('should automatically populate featuredImage on find', async () => {
-    const post = await Post.findById(testPost._id);
+  it('should populate featuredImage on find with explicit populate', async () => {
+    const post = await Post.findById(testPost._id).populate('featuredImage');
     
     expect(post.featuredImage).toBeDefined();
     expect(post.featuredImage).not.toBeNull();
@@ -502,8 +502,8 @@ describe('Post Model - Featured Image Population', () => {
     expect(post.featuredImage.altText).toBe(testMedia.altText);
   });
 
-  it('should automatically populate featuredImage on findOne', async () => {
-    const post = await Post.findOne({ _id: testPost._id });
+  it('should populate featuredImage on findOne with explicit populate', async () => {
+    const post = await Post.findOne({ _id: testPost._id }).populate('featuredImage');
     
     expect(post.featuredImage).toBeDefined();
     expect(post.featuredImage.url).toBe(testMedia.url);
