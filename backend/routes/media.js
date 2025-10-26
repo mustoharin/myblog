@@ -15,6 +15,16 @@ const {
   getFileCategory,
   formatFileSize,
 } = require('../utils/mediaProcessor');
+const {
+  getUsageStatistics,
+  getMostUsedMedia,
+  getLeastUsedMedia,
+  getStorageByUsage,
+  getUploadTimeline,
+  getMediaByType,
+  getMediaByUploader,
+  getAnalyticsDashboard,
+} = require('../utils/mediaAnalytics');
 
 /**
  * @route POST /api/media/upload
@@ -461,5 +471,357 @@ router.delete('/:id', auth, checkRole(['manage_media']), async (req, res) => {
     res.status(500).json({ message: 'Failed to delete media' });
   }
 });
+
+// =============================================
+// Phase 3: Advanced Media Management
+// =============================================
+
+/**
+ * @route GET /api/media/orphaned
+ * @desc Get list of orphaned media files
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/orphaned',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { graceDays = 7, page = 1, limit = 20 } = req.query;
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+
+      // Find orphaned media beyond grace period
+      const orphanedMedia = await Media.findOrphaned(parseInt(graceDays))
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('uploadedBy', 'username fullName')
+        .sort({ orphanedSince: 1 }); // Oldest first
+
+      // Get total count
+      const allOrphaned = await Media.findOrphaned(parseInt(graceDays));
+      const total = allOrphaned.length;
+
+      // Calculate total size
+      const totalSize = orphanedMedia.reduce((sum, media) => sum + media.size, 0);
+
+      res.json({
+        orphanedMedia,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / parseInt(limit)),
+        },
+        summary: {
+          count: orphanedMedia.length,
+          totalSize,
+          totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+          graceDays: parseInt(graceDays),
+        },
+      });
+    } catch (error) {
+      console.error('❌ Get orphaned media error:', error);
+      res.status(500).json({ message: 'Failed to fetch orphaned media' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/orphaned/stats
+ * @desc Get statistics about orphaned media
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/orphaned/stats',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const stats = await Media.getOrphanedStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('❌ Get orphaned stats error:', error);
+      res.status(500).json({ message: 'Failed to fetch orphaned statistics' });
+    }
+  }
+);
+
+/**
+ * @route POST /api/media/orphaned/cleanup
+ * @desc Clean up orphaned media files
+ * @access Private (requires manage_media privilege)
+ */
+router.post(
+  '/orphaned/cleanup',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { graceDays = 30, dryRun = false, mediaIds } = req.body;
+
+      let mediaToDelete;
+
+      // If specific IDs provided, use those
+      if (mediaIds && Array.isArray(mediaIds)) {
+        mediaToDelete = await Media.find({
+          _id: { $in: mediaIds },
+          deletedAt: null,
+          usedIn: { $size: 0 },
+        });
+      } else {
+        // Otherwise, find all orphaned media beyond grace period
+        mediaToDelete = await Media.findOrphaned(parseInt(graceDays));
+      }
+
+      if (mediaToDelete.length === 0) {
+        return res.json({
+          message: 'No orphaned media found to cleanup',
+          deletedCount: 0,
+          dryRun,
+        });
+      }
+
+      const deletionResults = {
+        success: [],
+        failed: [],
+        totalSize: 0,
+      };
+
+      // Dry run mode - just report what would be deleted
+      if (dryRun) {
+        const totalSize = mediaToDelete.reduce((sum, media) => sum + media.size, 0);
+        
+        return res.json({
+          message: 'Dry run completed',
+          dryRun: true,
+          wouldDelete: mediaToDelete.map(m => ({
+            id: m._id,
+            filename: m.originalName,
+            size: formatFileSize(m.size),
+            orphanedSince: m.orphanedSince,
+            url: m.url,
+          })),
+          summary: {
+            count: mediaToDelete.length,
+            totalSize,
+            totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+          },
+        });
+      }
+
+      // Actually delete the media
+      for (const media of mediaToDelete) {
+        try {
+          // Delete from MinIO
+          await deleteFile(media.key);
+          
+          // Delete thumbnail if exists
+          if (media.thumbnailUrl) {
+            const thumbnailKey = `${media.folder}/thumbnails/${media.filename}`;
+            await deleteFile(thumbnailKey);
+          }
+
+          // Soft delete from database
+          await media.softDelete();
+
+          deletionResults.success.push({
+            id: media._id,
+            filename: media.originalName,
+            size: media.size,
+          });
+          deletionResults.totalSize += media.size;
+
+        } catch (error) {
+          console.error(`❌ Failed to delete media ${media._id}:`, error);
+          deletionResults.failed.push({
+            id: media._id,
+            filename: media.originalName,
+            error: error.message,
+          });
+        }
+      }
+
+      // Log bulk activity
+      await Activity.logActivity(
+        'media_bulk_delete',
+        req.user,
+        'media',
+        deletionResults.success[0]?.id || new mongoose.Types.ObjectId(),
+        {
+          action: 'orphaned_cleanup',
+          count: deletionResults.success.length,
+          totalSize: formatFileSize(deletionResults.totalSize),
+          graceDays: parseInt(graceDays),
+          ids: deletionResults.success.map(m => m.id),
+        },
+        req,
+      );
+
+      res.json({
+        message: `Cleaned up ${deletionResults.success.length} orphaned media files`,
+        deletedCount: deletionResults.success.length,
+        failedCount: deletionResults.failed.length,
+        totalSize: deletionResults.totalSize,
+        totalSizeMB: (deletionResults.totalSize / (1024 * 1024)).toFixed(2),
+        results: deletionResults,
+        dryRun: false,
+      });
+
+    } catch (error) {
+      console.error('❌ Cleanup orphaned media error:', error);
+      res.status(500).json({ message: 'Failed to cleanup orphaned media' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/analytics/dashboard
+ * @desc Get comprehensive analytics dashboard
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/analytics/dashboard',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const dashboard = await getAnalyticsDashboard();
+      res.json(dashboard);
+    } catch (error) {
+      console.error('❌ Get analytics dashboard error:', error);
+      res.status(500).json({ message: 'Failed to fetch analytics dashboard' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/analytics/usage
+ * @desc Get media usage statistics
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/analytics/usage',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const stats = await getUsageStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error('❌ Get usage statistics error:', error);
+      res.status(500).json({ message: 'Failed to fetch usage statistics' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/analytics/popular
+ * @desc Get most and least used media
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/analytics/popular',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { limit = 10 } = req.query;
+      const [mostUsed, leastUsed] = await Promise.all([
+        getMostUsedMedia(parseInt(limit)),
+        getLeastUsedMedia(parseInt(limit)),
+      ]);
+      
+      res.json({
+        mostUsed,
+        leastUsed,
+      });
+    } catch (error) {
+      console.error('❌ Get popular media error:', error);
+      res.status(500).json({ message: 'Failed to fetch popular media' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/analytics/storage
+ * @desc Get storage statistics
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/analytics/storage',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const storage = await getStorageByUsage();
+      res.json(storage);
+    } catch (error) {
+      console.error('❌ Get storage statistics error:', error);
+      res.status(500).json({ message: 'Failed to fetch storage statistics' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/analytics/timeline
+ * @desc Get upload timeline
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/analytics/timeline',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { days = 30 } = req.query;
+      const timeline = await getUploadTimeline(parseInt(days));
+      res.json(timeline);
+    } catch (error) {
+      console.error('❌ Get upload timeline error:', error);
+      res.status(500).json({ message: 'Failed to fetch upload timeline' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/analytics/by-type
+ * @desc Get media breakdown by type
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/analytics/by-type',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const byType = await getMediaByType();
+      res.json(byType);
+    } catch (error) {
+      console.error('❌ Get media by type error:', error);
+      res.status(500).json({ message: 'Failed to fetch media by type' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/media/analytics/by-uploader
+ * @desc Get media statistics by uploader
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/analytics/by-uploader',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { limit = 10 } = req.query;
+      const byUploader = await getMediaByUploader(parseInt(limit));
+      res.json(byUploader);
+    } catch (error) {
+      console.error('❌ Get media by uploader error:', error);
+      res.status(500).json({ message: 'Failed to fetch media by uploader' });
+    }
+  }
+);
 
 module.exports = router;

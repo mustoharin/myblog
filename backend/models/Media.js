@@ -96,6 +96,18 @@ const MediaSchema = new mongoose.Schema({
     default: 0,
   },
   
+  // Phase 3: Advanced tracking
+  lastUsedAt: {
+    type: Date,
+    default: null,
+    index: true,
+  },
+  orphanedSince: {
+    type: Date,
+    default: null,
+    index: true,
+  },
+  
   // Timestamps
   createdAt: {
     type: Date,
@@ -117,6 +129,8 @@ const MediaSchema = new mongoose.Schema({
 MediaSchema.index({ uploadedBy: 1, createdAt: -1 });
 MediaSchema.index({ mimeType: 1, deletedAt: 1 });
 MediaSchema.index({ folder: 1, deletedAt: 1 });
+MediaSchema.index({ orphanedSince: 1, deletedAt: 1 }); // Phase 3: Orphaned media queries
+MediaSchema.index({ lastUsedAt: -1, deletedAt: 1 }); // Phase 3: Recent usage queries
 
 // Pre-save middleware to update timestamps
 MediaSchema.pre('save', function(next) {
@@ -216,6 +230,73 @@ MediaSchema.statics.getFolderStats = async function() {
     },
     { $sort: { count: -1 } },
   ]);
+};
+
+// Phase 3: Check if media is orphaned
+MediaSchema.methods.isOrphaned = function() {
+  return !this.usedIn || this.usedIn.length === 0;
+};
+
+// Phase 3: Mark as orphaned
+MediaSchema.methods.markAsOrphaned = async function() {
+  if (this.isOrphaned() && !this.orphanedSince) {
+    this.orphanedSince = new Date();
+    return this.save();
+  }
+  return this;
+};
+
+// Phase 3: Clear orphaned status
+MediaSchema.methods.clearOrphanedStatus = async function() {
+  if (this.orphanedSince) {
+    this.orphanedSince = null;
+    return this.save();
+  }
+  return this;
+};
+
+// Phase 3: Update last used timestamp
+MediaSchema.methods.updateLastUsed = async function() {
+  this.lastUsedAt = new Date();
+  return this.save();
+};
+
+// Phase 3: Static method to find orphaned media
+MediaSchema.statics.findOrphaned = async function(graceDays = 30) {
+  const graceDate = new Date();
+  graceDate.setDate(graceDate.getDate() - graceDays);
+  
+  return this.find({
+    deletedAt: null,
+    $or: [
+      { usedIn: { $exists: false } },
+      { usedIn: { $size: 0 } }
+    ],
+    $or: [
+      { orphanedSince: { $lte: graceDate } },
+      { orphanedSince: null, createdAt: { $lte: graceDate } }
+    ]
+  }).sort({ createdAt: 1 });
+};
+
+// Phase 3: Static method to get orphaned stats
+MediaSchema.statics.getOrphanedStats = async function() {
+  const orphanedMedia = await this.find({
+    deletedAt: null,
+    $or: [
+      { usedIn: { $exists: false } },
+      { usedIn: { $size: 0 } }
+    ]
+  });
+
+  const totalSize = orphanedMedia.reduce((sum, media) => sum + media.size, 0);
+  
+  return {
+    count: orphanedMedia.length,
+    totalSize,
+    totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+    oldestOrphaned: orphanedMedia.length > 0 ? orphanedMedia[0].createdAt : null
+  };
 };
 
 module.exports = mongoose.model('Media', MediaSchema);

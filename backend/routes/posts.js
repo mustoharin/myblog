@@ -11,6 +11,11 @@ const {
   trackContentMediaChanges, 
   removeContentMediaTracking 
 } = require('../utils/mediaExtractor');
+const {
+  validatePostContent,
+  findBrokenReferences,
+  checkMediaHealth,
+} = require('../utils/mediaValidator');
 
 // Get all posts
 router.get('/', auth, checkRole(['read_post']), async (req, res) => {
@@ -331,5 +336,80 @@ router.post('/:id/comments', auth, checkRole(['manage_comments']), async (req, r
     res.status(500).json({ message: err.message });
   }
 });
+
+// =============================================
+// Phase 3: Media Validation
+// =============================================
+
+/**
+ * @route POST /api/posts/validate-media
+ * @desc Validate media references in post content
+ * @access Private (requires manage_media privilege)
+ */
+router.post(
+  '/validate-media',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { content } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: 'Content is required' });
+      }
+
+      const validation = await validatePostContent(content);
+      res.json(validation);
+    } catch (error) {
+      console.error('❌ Validate media error:', error);
+      res.status(500).json({ message: 'Failed to validate media references' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/posts/:id/media-health
+ * @desc Check media health for a specific post
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/:id/media-health',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const report = await findBrokenReferences(req.params.id);
+      res.json(report);
+    } catch (error) {
+      console.error('❌ Get media health error:', error);
+      
+      if (error.message === 'Post not found') {
+        return res.status(404).json({ message: 'Post not found' });
+      }
+      
+      res.status(500).json({ message: 'Failed to check media health' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/posts/system/media-health
+ * @desc Check overall system media health
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/system/media-health',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const health = await checkMediaHealth();
+      res.json(health);
+    } catch (error) {
+      console.error('❌ Get system media health error:', error);
+      res.status(500).json({ message: 'Failed to check system media health' });
+    }
+  }
+);
 
 module.exports = router;
