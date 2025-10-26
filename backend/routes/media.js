@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Media = require('../models/Media');
 const Activity = require('../models/Activity');
@@ -243,13 +244,13 @@ router.post('/bulk/delete', auth, checkRole(['manage_media']), async (req, res) 
 
     await Promise.all(deletePromises);
 
-    // Log activity
+    // Log activity (use first media ID as targetId since bulk operations don't have single target)
     await Activity.logActivity(
       'media_bulk_delete',
       req.user,
       'media',
-      null,
-      { count: media.length },
+      media[0]?._id || new mongoose.Types.ObjectId(),
+      { count: media.length, ids: media.map(m => m._id) },
       req,
     );
 

@@ -59,14 +59,19 @@ describe('Media Routes', () => {
   let manageMediaPrivilege;
   let testMediaId;
 
-  beforeAll(async () => {
-    // Clean up collections
+  afterAll(async () => {
     await User.deleteMany({});
     await Role.deleteMany({});
     await Privilege.deleteMany({});
     await Media.deleteMany({});
     await Activity.deleteMany({});
+  });
 
+  beforeEach(async () => {
+    // Clear mock calls
+    uploadFile.mockClear();
+    deleteFile.mockClear();
+    
     // Create manage_media privilege
     manageMediaPrivilege = await Privilege.create({
       name: 'Manage Media',
@@ -128,20 +133,6 @@ describe('Media Routes', () => {
 
     // Mock MinIO upload to return a URL
     uploadFile.mockResolvedValue('http://localhost:9000/test-bucket/test-file.jpg');
-  });
-
-  afterAll(async () => {
-    await User.deleteMany({});
-    await Role.deleteMany({});
-    await Privilege.deleteMany({});
-    await Media.deleteMany({});
-    await Activity.deleteMany({});
-  });
-
-  beforeEach(() => {
-    // Clear mock calls between tests
-    uploadFile.mockClear();
-    deleteFile.mockClear();
   });
 
   describe('POST /api/media/upload', () => {
@@ -456,6 +447,9 @@ describe('Media Routes', () => {
     let mediaId;
 
     beforeEach(async () => {
+      // Clean up any existing media first to avoid duplicate key errors
+      await Media.deleteMany({});
+      
       const media = await Media.create({
         filename: 'delete-test.jpg',
         originalName: 'Delete Test.jpg',
@@ -525,6 +519,9 @@ describe('Media Routes', () => {
     let mediaIds;
 
     beforeEach(async () => {
+      // Clean up any existing media first to avoid duplicate key errors
+      await Media.deleteMany({});
+      
       const media1 = await Media.create({
         filename: 'bulk1.jpg',
         originalName: 'Bulk 1.jpg',
