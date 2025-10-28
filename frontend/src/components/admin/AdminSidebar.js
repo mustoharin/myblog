@@ -17,6 +17,7 @@ import {
   Security as PrivilegesIcon,
   Settings as SettingsIcon,
   Comment as CommentIcon,
+  PermMedia as MediaIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -26,6 +27,7 @@ const menuItems = [
   { text: 'Overview', icon: <DashboardIcon />, path: '/admin' },
   { text: 'Posts', icon: <ArticleIcon />, path: '/admin/posts' },
   { text: 'Comments', icon: <CommentIcon />, path: '/admin/comments' },
+  { text: 'Media', icon: <MediaIcon />, path: '/admin/media' },
   { text: 'Tags', icon: <TagIcon />, path: '/admin/tags' },
   { text: 'Activities', icon: <ActivitiesIcon />, path: '/admin/activities' },
   { text: 'Users', icon: <PeopleIcon />, path: '/admin/users' },

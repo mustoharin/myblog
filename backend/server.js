@@ -26,7 +26,8 @@ if (process.env.NODE_ENV !== 'test') {
 // Middleware
 app.use(helmet()); // Security headers
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increase limit for large payloads (media, rich content)
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // Handle URL-encoded bodies
 app.use(require('./middleware/sanitizeInput')); // Sanitize inputs to prevent NoSQL injection
 app.use(require('./middleware/trimInputs')); // Trim all request body inputs
 

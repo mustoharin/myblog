@@ -109,16 +109,14 @@ const TagInput = ({ value, onChange, error, helperText, disabled }) => {
         renderTags={(tagNames, getTagProps) =>
           tagNames.map((tagName, index) => {
             const tag = availableTags.find(t => t.name === tagName);
+            const { key, ...chipProps } = getTagProps({ index });
             return (
               <Chip
-                key={tagName}
+                key={key}
                 variant="filled"
                 size="small"
                 label={tag ? tag.displayName : tagName}
-                {...(() => {
-                  const { button, ...chipProps } = getTagProps({ index });
-                  return chipProps;
-                })()}
+                {...chipProps}
                 sx={{ 
                   mr: 0.5, 
                   mb: 0.5,

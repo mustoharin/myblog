@@ -36,6 +36,56 @@ router.get('/', auth, checkRole(['read_post']), async (req, res) => {
   }
 });
 
+// =============================================
+// Phase 3: Media Validation Routes (must be before /:id)
+// =============================================
+
+/**
+ * @route POST /api/posts/validate-media
+ * @desc Validate media references in post content
+ * @access Private (requires manage_media privilege)
+ */
+router.post(
+  '/validate-media',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { content } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ message: 'Content is required' });
+      }
+
+      const validation = await validatePostContent(content);
+      res.json(validation);
+    } catch (error) {
+      console.error('❌ Validate media error:', error);
+      res.status(500).json({ message: 'Failed to validate media references' });
+    }
+  }
+);
+
+/**
+ * @route GET /api/posts/system/media-health
+ * @desc Check overall system media health
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/system/media-health',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const health = await checkMediaHealth();
+      res.json(health);
+    } catch (error) {
+      console.error('❌ Get system media health error:', error);
+      res.status(500).json({ message: 'Failed to check system media health' });
+    }
+  }
+);
+
 // Get one post
 router.get('/:id', auth, checkRole(['read_post']), async (req, res) => {
   try {
@@ -338,34 +388,8 @@ router.post('/:id/comments', auth, checkRole(['manage_comments']), async (req, r
 });
 
 // =============================================
-// Phase 3: Media Validation
+// Phase 3: Post-specific Media Health (must stay after /:id route is defined)
 // =============================================
-
-/**
- * @route POST /api/posts/validate-media
- * @desc Validate media references in post content
- * @access Private (requires manage_media privilege)
- */
-router.post(
-  '/validate-media',
-  auth,
-  checkRole(['manage_media']),
-  async (req, res) => {
-    try {
-      const { content } = req.body;
-      
-      if (!content) {
-        return res.status(400).json({ message: 'Content is required' });
-      }
-
-      const validation = await validatePostContent(content);
-      res.json(validation);
-    } catch (error) {
-      console.error('❌ Validate media error:', error);
-      res.status(500).json({ message: 'Failed to validate media references' });
-    }
-  }
-);
 
 /**
  * @route GET /api/posts/:id/media-health
@@ -388,26 +412,6 @@ router.get(
       }
       
       res.status(500).json({ message: 'Failed to check media health' });
-    }
-  }
-);
-
-/**
- * @route GET /api/posts/system/media-health
- * @desc Check overall system media health
- * @access Private (requires manage_media privilege)
- */
-router.get(
-  '/system/media-health',
-  auth,
-  checkRole(['manage_media']),
-  async (req, res) => {
-    try {
-      const health = await checkMediaHealth();
-      res.json(health);
-    } catch (error) {
-      console.error('❌ Get system media health error:', error);
-      res.status(500).json({ message: 'Failed to check system media health' });
     }
   }
 );

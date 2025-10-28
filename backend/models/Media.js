@@ -158,18 +158,30 @@ MediaSchema.methods.incrementUsage = async function() {
 
 // Add usage reference
 MediaSchema.methods.addUsage = async function(model, id) {
-  if (!this.usedIn.some(u => u.model === model && u.id.equals(id))) {
+  const alreadyExists = this.usedIn.some(u => u.model === model && u.id.equals(id));
+  
+  if (!alreadyExists) {
     this.usedIn.push({ model, id });
-    this.usageCount = this.usedIn.length;
-    return this.save();
   }
-  return this;
+  
+  // Always update these fields when media is used
+  this.usageCount = this.usedIn.length;
+  this.lastUsedAt = new Date();
+  this.orphanedSince = null; // Clear orphaned status when used
+  
+  return this.save();
 };
 
 // Remove usage reference
 MediaSchema.methods.removeUsage = async function(model, id) {
   this.usedIn = this.usedIn.filter(u => !(u.model === model && u.id.equals(id)));
   this.usageCount = this.usedIn.length;
+  
+  // If no longer used anywhere, mark as orphaned
+  if (this.usageCount === 0) {
+    this.orphanedSince = new Date();
+  }
+  
   return this.save();
 };
 

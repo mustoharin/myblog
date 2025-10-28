@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
@@ -29,6 +29,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { createSafeHTML } from '../../utils/htmlSanitizer';
 import TagInput from './TagInput';
+import MediaPicker from './MediaPicker';
 
 // Constants
 const AUTO_SAVE_DELAY = 3000; // 3 seconds
@@ -42,7 +43,12 @@ const validationSchema = Yup.object({
     .max(MAX_TITLE_LENGTH, `Title must be at most ${MAX_TITLE_LENGTH} characters`),
   content: Yup.string()
     .required('Content is required')
-    .trim(),
+    .test('not-empty-html', 'Content is required', value => {
+      if (!value) return false;
+      // Remove HTML tags and check if there's actual content
+      const strippedContent = value.replace(/<[^>]*>/g, '').trim();
+      return strippedContent.length > 0;
+    }),
   excerpt: Yup.string()
     .required('Excerpt is required')
     .trim()
@@ -59,6 +65,7 @@ const validationSchema = Yup.object({
 const PostForm = ({ onBack }) => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const quillRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [fetchingPost, setFetchingPost] = useState(!!id);
   const [autoSaving, setAutoSaving] = useState(false);
@@ -66,6 +73,7 @@ const PostForm = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState('edit');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [post, setPost] = useState(null);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   // Fetch post data if editing
   useEffect(() => {
@@ -87,6 +95,42 @@ const PostForm = ({ onBack }) => {
     }
   }, [id, navigate]);
 
+  // Custom image handler for ReactQuill - wrapped in useCallback for stability
+  const imageHandler = useCallback(() => {
+    setShowMediaPicker(true);
+  }, []);
+
+  // Handle media selection from picker - wrapped in useCallback
+  const handleMediaSelect = useCallback(media => {
+    if (!media) return;
+    
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const range = quill.getSelection(true);
+    quill.insertEmbed(range.index, 'image', media.url);
+    quill.setSelection(range.index + 1);
+    
+    toast.success('Image inserted successfully');
+  }, []);
+
+  // Configure ReactQuill modules with custom image handler
+  // Use useMemo to prevent recreating the config on every render
+  const quillModules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ header: [1, 2, false] }],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link', 'image', 'code-block'],
+        ['clean'],
+      ],
+      handlers: {
+        image: imageHandler,
+      },
+    },
+  }), [imageHandler]);
+
   const initialValues = {
     title: post?.title || '',
     content: post?.content || '',
@@ -105,9 +149,13 @@ const PostForm = ({ onBack }) => {
           .filter(tag => tag.length > 0))]
         : [];
 
+      // Clean ReactQuill content - don't trim as it may remove valid content
+      // ReactQuill adds <p><br></p> for empty content, which we should preserve
+      const cleanContent = values.content || '';
+
       const formData = {
         title: values.title.trim(),
-        content: values.content.trim(),
+        content: cleanContent,
         excerpt: values.excerpt.trim(),
         isPublished: values.isPublished,
         tags: processedTags,
@@ -351,18 +399,11 @@ const PostForm = ({ onBack }) => {
                 Content
                 </Typography>
                 <ReactQuill
+                  ref={quillRef}
                   value={formik.values.content}
                   onChange={content => formik.setFieldValue('content', content)}
                   style={{ height: '400px', marginBottom: '50px' }}
-                  modules={{
-                    toolbar: [
-                      [{ header: [1, 2, false] }],
-                      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                      [{ list: 'ordered' }, { list: 'bullet' }],
-                      ['link', 'image', 'code-block'],
-                      ['clean'],
-                    ],
-                  }}
+                  modules={quillModules}
                 />
                 {formik.touched.content && formik.errors.content && (
                   <Typography color="error" variant="caption">
@@ -412,7 +453,7 @@ const PostForm = ({ onBack }) => {
         ) : (
           <Box className="blog-preview">
             <Typography variant="h3" gutterBottom>
-              {formik.values.title}
+              {formik.values.title || 'Untitled Post'}
             </Typography>
             {formik.values.tags && (
               <Box sx={{ mb: 3 }}>
@@ -427,48 +468,75 @@ const PostForm = ({ onBack }) => {
               </Box>
             )}
             <Typography variant="subtitle1" color="text.secondary" paragraph>
-              {formik.values.excerpt}
+              {formik.values.excerpt || 'No excerpt provided'}
             </Typography>
-            <Box
-              dangerouslySetInnerHTML={createSafeHTML(formik.values.content)}
-              sx={{
-                '& img': {
-                  maxWidth: '100%',
-                  height: 'auto',
-                },
-                '& h1, & h2, & h3, & h4, & h5, & h6': {
-                  mt: 3,
-                  mb: 2,
-                },
-                '& p': {
-                  mb: 2,
-                  lineHeight: 1.7,
-                },
-                '& blockquote': {
-                  borderLeft: '4px solid',
-                  borderColor: 'primary.main',
-                  pl: 2,
-                  py: 1,
-                  my: 2,
-                  bgcolor: 'action.hover',
-                },
-                '& pre': {
-                  bgcolor: 'grey.900',
-                  color: 'common.white',
-                  p: 2,
-                  borderRadius: 1,
-                  overflow: 'auto',
-                },
-                '& code': {
-                  bgcolor: 'action.hover',
-                  px: 1,
-                  borderRadius: 0.5,
-                },
-              }}
-            />
+            {formik.values.content ? (
+              <Box
+                dangerouslySetInnerHTML={createSafeHTML(formik.values.content)}
+                sx={{
+                  '& img': {
+                    maxWidth: '100%',
+                    height: 'auto',
+                  },
+                  '& h1, & h2, & h3, & h4, & h5, & h6': {
+                    mt: 3,
+                    mb: 2,
+                    fontWeight: 600,
+                  },
+                  '& p': {
+                    mb: 2,
+                    lineHeight: 1.7,
+                    fontSize: '1rem',
+                  },
+                  '& blockquote': {
+                    borderLeft: '4px solid',
+                    borderColor: 'primary.main',
+                    pl: 2,
+                    py: 1,
+                    my: 2,
+                    bgcolor: 'action.hover',
+                  },
+                  '& pre': {
+                    bgcolor: 'grey.900',
+                    color: 'common.white',
+                    p: 2,
+                    borderRadius: 1,
+                    overflow: 'auto',
+                  },
+                  '& code': {
+                    bgcolor: 'action.hover',
+                    px: 1,
+                    borderRadius: 0.5,
+                  },
+                  '& ul, & ol': {
+                    mb: 2,
+                    pl: 3,
+                  },
+                  '& li': {
+                    mb: 0.5,
+                  },
+                  '& a': {
+                    color: 'primary.main',
+                    textDecoration: 'underline',
+                  },
+                }}
+              />
+            ) : (
+              <Typography color="text.secondary" fontStyle="italic">
+                No content yet. Start writing in the Edit tab.
+              </Typography>
+            )}
           </Box>
         )}
       </Paper>
+
+      {/* Media Picker Dialog */}
+      <MediaPicker
+        open={showMediaPicker}
+        onClose={() => setShowMediaPicker(false)}
+        onSelect={handleMediaSelect}
+        multiple={false}
+      />
     </Box>
   );
 };

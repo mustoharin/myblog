@@ -8,7 +8,18 @@
 
 const Media = require('../models/Media');
 const Post = require('../models/Post');
-const { extractMediaFromContent } = require('./mediaExtractor');
+const { extractImageUrls, filterLocalMediaUrls } = require('./mediaExtractor');
+
+/**
+ * Extract media URLs from HTML content
+ * Helper function that combines extractImageUrls and filterLocalMediaUrls
+ * @param {string} content - HTML content
+ * @returns {string[]} Array of local media URLs
+ */
+function extractMediaFromContent(content) {
+  const allUrls = extractImageUrls(content);
+  return filterLocalMediaUrls(allUrls);
+}
 
 /**
  * Validate all media references in a post's content
@@ -117,7 +128,7 @@ async function findBrokenReferences(postId) {
 async function findPostsWithBrokenReferences(options = {}) {
   const { limit = 100, skip = 0 } = options;
   
-  const posts = await Post.find({ status: 'published' })
+  const posts = await Post.find({ isPublished: true })
     .select('_id title content featuredImage')
     .limit(limit)
     .skip(skip);
@@ -151,12 +162,12 @@ async function checkMediaHealth() {
     Media.countDocuments({ deletedAt: { $ne: null } }),
     Media.findOrphaned(0), // All orphaned media
     Post.countDocuments(),
-    Post.countDocuments({ status: 'published' }),
+    Post.countDocuments({ isPublished: true }),
   ]);
 
   // Sample check for broken references in published posts
   const sampleSize = Math.min(publishedPosts, 50);
-  const posts = await Post.find({ status: 'published' })
+  const posts = await Post.find({ isPublished: true })
     .select('_id title content featuredImage')
     .limit(sampleSize);
 
