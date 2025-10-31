@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   Box,
+  Grid,
   Card,
   CardContent,
   Typography,
@@ -146,15 +147,14 @@ const OrphanedMediaManager = ({ onCleanup }) => {
 
   return (
     <Box>
-      <Box display="flex" alignItems="center" mb={3}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Orphaned Media Files
-        </Typography>
-        <Button startIcon={<RefreshIcon />} onClick={fetchOrphanedMedia} disabled={loading} sx={{ ml: 2 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} px={{ xs: 2, md: 4 }} py={2}>
+        <Typography variant="h5" sx={{ letterSpacing: 0.5 }}>Orphaned Media Files</Typography>
+        <Button startIcon={<RefreshIcon />} onClick={fetchOrphanedMedia} disabled={loading} variant="outlined" sx={{ minWidth: 120 }}>
           Refresh
         </Button>
       </Box>
 
+      <Grid container spacing={3} sx={{ pl: { xs: 1, md: 3 } }}>
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
@@ -388,6 +388,7 @@ const OrphanedMediaManager = ({ onCleanup }) => {
           </Button>
         </DialogActions>
       </Dialog>
+      </Grid>
     </Box>
   );
 };

@@ -32,11 +32,13 @@ const MediaStorageStats = ({ stats }) => {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Storage Details
-      </Typography>
+      <Box display="flex" alignItems="center" mb={3} px={{ xs: 2, md: 4 }} py={2}>
+        <Typography variant="h5" sx={{ letterSpacing: 0.5 }}>
+          Storage Details
+        </Typography>
+      </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ pl: { xs: 1, md: 3 } }}>
         {/* Storage Overview */}
         <Grid item xs={12} md={6}>
           <Card>

@@ -13,6 +13,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Grid,
   Divider,
   Stack,
   LinearProgress,
@@ -82,10 +83,12 @@ const ContentValidation = () => {
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Content Validation & Health Check
-      </Typography>
-
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3} px={{ xs: 2, md: 4 }} py={2}>
+        <Typography variant="h5" sx={{ letterSpacing: 0.5 }}>
+          Content Validation & Health Check
+        </Typography>
+      </Box>
+      <Grid container spacing={3} sx={{ pl: { xs: 1, md: 3 } }}>
       {/* Content Validation Section */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -356,6 +359,7 @@ const ContentValidation = () => {
           )}
         </CardContent>
       </Card>
+      </Grid>
     </Box>
   );
 };
