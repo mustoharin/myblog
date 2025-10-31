@@ -274,10 +274,9 @@ MediaSchema.methods.updateLastUsed = async function() {
 };
 
 // Phase 3: Static method to find orphaned media
-MediaSchema.statics.findOrphaned = async function(graceDays = 30) {
+MediaSchema.statics.findOrphaned = function(graceDays = 30) {
   const graceDate = new Date();
   graceDate.setDate(graceDate.getDate() - graceDays);
-  
   return this.find({
     deletedAt: null,
     $or: [

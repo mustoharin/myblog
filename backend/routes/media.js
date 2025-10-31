@@ -345,6 +345,49 @@ router.get('/', auth, checkRole(['manage_media']), async (req, res) => {
 });
 
 /**
+ * @route GET /api/media/orphaned
+ * @desc Get list of orphaned media files
+ * @access Private (requires manage_media privilege)
+ */
+router.get(
+  '/orphaned',
+  auth,
+  checkRole(['manage_media']),
+  async (req, res) => {
+    try {
+      const { graceDays = 7, page = 1, limit = 20 } = req.query;
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const orphanedMedia = await Media.findOrphaned(parseInt(graceDays))
+        .skip(skip)
+        .limit(parseInt(limit))
+        .populate('uploadedBy', 'username fullName')
+        .sort({ orphanedSince: 1 });
+      const allOrphaned = await Media.findOrphaned(parseInt(graceDays));
+      const total = allOrphaned.length;
+      const totalSize = orphanedMedia.reduce((sum, media) => sum + media.size, 0);
+      res.json({
+        orphanedMedia,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / parseInt(limit)),
+        },
+        summary: {
+          count: orphanedMedia.length,
+          totalSize,
+          totalSizeMB: (totalSize / (1024 * 1024)).toFixed(2),
+          graceDays: parseInt(graceDays),
+        },
+      });
+    } catch (error) {
+      console.error('❌ Get orphaned media error:', error);
+      res.status(500).json({ message: 'Failed to fetch orphaned media' });
+    }
+  }
+  );
+
+/**
  * @route GET /api/media/:id
  * @desc Get single media by ID with detailed information
  * @access Private (requires manage_media privilege)
@@ -355,11 +398,9 @@ router.get('/:id', auth, checkRole(['manage_media']), async (req, res) => {
       .populate('uploadedBy', 'username fullName email')
       .populate('usedIn.id')
       .lean();
-
     if (!media || media.deletedAt) {
       return res.status(404).json({ message: 'Media not found' });
     }
-
     res.json({
       media: {
         ...media,
